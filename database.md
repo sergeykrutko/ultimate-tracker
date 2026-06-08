@@ -7,12 +7,12 @@
 - \+3	🌊 Flowing
 - \+2	🏹 Engaged
 - \+1	🌳 Grounded
--  0  	⚖️ Neutral
-- \-1 	🪫 Agitated / Drained
-- \-2 	🪨 Tense / Heavy
-- \-3 	🫨 Frantic / Exhausted
-- \-4 	🧊 Overstimulated / Collapsed
-- \-5 	🫥 Reactive / Shutdown
+-  0 ⚖️ Neutral
+- \-1 🪫 Agitated / Drained
+- \-2 🪨 Tense / Heavy
+- \-3 🫨 Frantic / Exhausted
+- \-4 🧊 Overstimulated / Collapsed
+- \-5 🫥 Reactive / Shutdown
 
 \- - - - -
 
@@ -524,7 +524,7 @@
 
 # needs [tags: ✓, ✘]
 
-✓ **Met-needs,** ✘ **Un-met-needs**
+#### ✓ **Met-needs,** ✘ **Un-met-needs**
 
 ### 🫂 Стосунки та Зв'язок (Connection & Relational)
 
@@ -577,9 +577,9 @@
 
 # boundaries [tags: ✓, ✘]
 
-Кордони: передумова для співчуття; розуміння, де закінчуємося ми, а починається інша людина.
+#### Кордони: передумова для співчуття; розуміння, де закінчуємося ми, а починається інша людина.
 
-✓ - hold, ✘ - violated
+#### ✓ - hold, ✘ - violated
 
 - **Physical** — Кордони тіла, доторків та особистої території.
 - **Emotional** — Відповідальність за власні емоції; не вбирання емоцій інших.
