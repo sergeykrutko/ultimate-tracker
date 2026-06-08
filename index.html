@@ -200,9 +200,9 @@
             }
             if (!currentCat) return;
 
-            // Коментар (######)
-            if (line.match(/^#{6,}\s+/)) {
-                let commentText = line.replace(/^#{6,}\s+/, '').replace(/\*/g, '').trim();
+            // Коментар (####)
+            if (line.match(/^#{4,}\s+/)) {
+                let commentText = line.replace(/^#{4,}\s+/, '').replace(/\*/g, '').trim();
                 db[currentCat].items.push({ type: 'comment', text: commentText });
                 return;
             }
