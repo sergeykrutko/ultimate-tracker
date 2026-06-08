@@ -2,17 +2,17 @@
 
 # BODY [scale]
 
-- \+5	✨ Radiant
-- \+4	⚡ Energized
-- \+3	🌊 Flowing
-- \+2	🏹 Engaged
-- \+1	🌳 Grounded
--  0	⚖️ Neutral
-- \-1	🪫 Agitated / Drained
-- \-2	🪨 Tense / Heavy
-- \-3	🫨 Frantic / Exhausted
-- \-4	🧊 Overstimulated / Collapsed
-- \-5 🫥 Reactive / Shutdown
+- \+5	— ✨ Radiant
+- \+4	— ⚡ Energized
+- \+3	— 🌊 Flowing
+- \+2	— 🏹 Engaged
+- \+1	— 🌳 Grounded
+-  0 — ⚖️ Neutral
+- \-1 — 🪫 Agitated / Drained
+- \-2 — 🪨 Tense / Heavy
+- \-3 — 🫨 Frantic / Exhausted
+- \-4 — 🧊 Overstimulated / Collapsed
+- \-5 — 🫥 Reactive / Shutdown
 
 \- - - - -
 
@@ -351,19 +351,19 @@ IN
 - **"i-waste-my-time"** — Токсична провина («Я знову марную своє життя, я нічого не досяг»).
 - **"i'm miserable"** — Відчай / Позиція жертви («Я жалюгідний», «Все абсолютно безнадійно»).
 
-**⚪️ Група установок Дефіциту та Поспіху (Стресові драйвери):**
+### **⚪️ Група установок Дефіциту та Поспіху (Стресові драйвери):**
 
 - **not-enough** — Установка дефіциту («Мені постійно не вистачає — часу, грошей, знань, ресурсу»). Стан постійного «голоду», що блокує спокій.
 - **hurry-up!** — Драйвер поспіху («Я нічого не встигаю! Треба швидше!», «Немає часу розслаблятися»). Внутрішній таймер, який створює штучну паніку навіть у вихідний день.
 - **too-late** — Синдром втрачених можливостей («Вже пізно щось змінювати», «Мій час минув»).
 
-**⚪️ Група установок Самозванця та Перфекціоніста (Критичний Батько):**
+### **⚪️ Група установок Самозванця та Перфекціоніста (Критичний Батько):**
 
 - **imposter** — Синдром самозванця («Я обманщик, скоро всі зрозуміють, що я насправді нічого не вмію»).
 - **try-harder** — Драйвер надзусиль («Щоб мене поважали, я маю працювати на межі виснаження», «Просто зробити — недостатньо, треба страждати»).
 - **it's-not-perfect** — Знецінення результату («Якщо це не бездоганно, це взагалі не має сенсу», «Або найкраще, або ніяк»).
 
-**⚪️ Група установок Відчуження та Жертви (Адаптивна Дитина):**
+### **⚪️ Група установок Відчуження та Жертви (Адаптивна Дитина):**
 
 - **nobody-cares** — Ізоляція («Нікому насправді немає до мене діла», «Я завжди залишаюся сам зі своїми проблемами»).
 - **i-must-please** — Драйвер догоджання («Якщо я зараз скажу "ні", від мене відвернуться», «Я маю бути зручним, щоб мене любили»).
@@ -464,12 +464,9 @@ IN
 
 \- - - - -
 
-# needs
+# needs [tags: ✅, ❌]
 
-### 🏁 Статус Потреб (General Status)
-
-- **Met-needs** — Потреби, які наразі повністю задоволені.
-- **Un-met-needs** — Потреби, які потребують уваги через дефіцит.
+#### ✅ **Met-needs,** ❌ **Un-met-needs**
 
 ### 🫂 Стосунки та Зв'язок (Connection & Relational)
 
@@ -518,31 +515,30 @@ IN
 - **Clarity/order** — Потреба у структурі, ясності та розумінні ситуації.
 - **Play/fun** — Потреба у грі, творчості та розвагах.
 
-### ✋ Кордони (Boundaries)
+\- - - - -
 
-- **Hold-boundary** — Вміння виставляти та утримувати власні кордони.
-- **Violated-boundary** — Відчуття порушення твоїх кордонів кимось іншим.
+# boundaries [tags:🫸, 🚩]
 
-**Типи кордонів (для деталізації):**
+#### 🫸 - hold, 🚩 violated
 
-- **Physical-boundary** — Кордони тіла, доторків та особистої території.
-- **Emotion-boundary** — Відповідальність за власні емоції; не вбирання емоцій інших.
-- **Mental-boundary** — Право на власні думки, переконання та цінності.
-- **Material-boundary** — Розпорядження своїми речами та грошима.
-- **Energy-boundary** — Захист власного енергетичного ресурсу від «висмоктування».
+- **Physical** — Кордони тіла, доторків та особистої території.
+- **Emotional** — Відповідальність за власні емоції; не вбирання емоцій інших.
+- **Mental** — Право на власні думки, переконання та цінності.
+- **Material** — Розпорядження своїми речами та грошима.
+- **Energy** — Захист власного енергетичного ресурсу від «висмоктування».
 
 \- - - - -
 
 # sub-parts
 
-**EXILES:**
+### EXILES:
 
 - Abandoned Child — who holds grief, sadness and loneliness from emotional neglect or loss of a caregiver early in life
 - Bullied Teenager — The bullied teenager who carries shame, inadequacy and mistrust from being victimized
 - Heartbroken Teenager — The heartbroken young adult who harbours unprocessed grief from a difficult breakup or divorce
 - UnNamed Exile
 
-**MANAGERS Parts:**
+### MANAGERS:
 
 - Judge/Critic — Judges and critiques self and others harshly
 - High achiever — Relentlessly drives and pressures to achieve
@@ -563,7 +559,7 @@ IN
 - Pessimist — Focuses on flaws and negatives
 - UnNamed Manager
 
-**FIREFIGHTERS Parts:**
+### FIREFIGHTERS:
 
 - Partying one — Uses substances, sex, intensity to distract
 - Adrenaline Seeker — Creates drama, crisis, chaos
