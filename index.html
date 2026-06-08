@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Трекер</title>
+    <style>
+        :root {
+            --bg-color: #f2f2f7;
+            --card-bg: #ffffff;
+            --text-main: #000000;
+            --text-desc: #8e8e93;
+            --accent: #007aff;
+            --accent-light: #e5f1ff;
+            --border: #d1d1d6;
+        }
+
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        
+        body { background-color: var(--bg-color); margin: 0; padding-bottom: 180px; color: var(--text-main); }
+        .wrapper { max-width: 600px; margin: 0 auto; }
+
+        /* Шапка і Пошук */
+        .header-container {
+            position: sticky; top: 0; z-index: 10; background: var(--bg-color);
+            padding: 16px 16px 10px; border-bottom: 1px solid var(--border);
+        }
+        
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        h1 { margin: 0; font-size: 24px; font-weight: 700; }
+        .clear-btn { color: var(--accent); background: none; border: none; font-size: 15px; cursor: pointer; padding: 4px 0; }
+
+        .search-bar {
+            width: 100%; background: #e3e3e8; border: none; border-radius: 10px;
+            padding: 10px 14px; font-size: 16px; color: var(--text-main); outline: none;
+        }
+        .search-bar::placeholder { color: #8e8e93; }
+
+        /* Контейнер категорій */
+        .container { padding: 10px 16px; }
+        .category-block { margin-bottom: 16px; }
+        .category-title { font-size: 18px; font-weight: 700; margin: 10px 0; text-transform: lowercase; }
+        .subheader { font-size: 14px; font-weight: 600; color: var(--text-desc); margin: 12px 0 6px; grid-column: 1 / -1; }
+
+        /* Сітка */
+        .grid-list { display: grid; grid-template-columns: 1fr; gap: 8px; }
+        .grid-compact { display: grid; grid-template-columns: repeat(auto-fill, minmax(95px, 1fr)); gap: 8px; }
+
+        /* Кнопки */
+        .option-btn {
+            background-color: var(--card-bg); border: 1px solid var(--border);
+            border-radius: 12px; padding: 10px; cursor: pointer;
+            transition: all 0.15s ease; -webkit-tap-highlight-color: transparent;
+            display: flex; flex-direction: column; justify-content: center;
+        }
+
+        .option-btn.active { background-color: var(--accent-light); border-color: var(--accent); }
+        .option-name { font-size: 15px; font-weight: 600; color: var(--text-main); margin-bottom: 2px;}
+        .option-btn.active .option-name { color: var(--accent); }
+        .option-desc { font-size: 13px; color: var(--text-desc); line-height: 1.2; }
+
+        /* Ультракомпактна шкала 1-5 */
+        .scale-container {
+            display: none; margin-top: 8px;
+            justify-content: space-between; gap: 2px;
+        }
+        .option-btn.active .scale-container { display: flex; }
+        
+        .scale-btn {
+            width: 100%; aspect-ratio: 1; max-height: 24px; border-radius: 6px;
+            background: var(--card-bg); border: 1px solid var(--accent);
+            color: var(--accent); font-size: 12px; font-weight: 700; 
+            display: flex; align-items: center; justify-content: center;
+        }
+        .scale-btn.selected { background: var(--accent); color: white; }
+
+        /* Нижня панель */
+        .bottom-panel-wrapper {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background-color: var(--card-bg); border-top: 1px solid var(--border); z-index: 100;
+        }
+        .bottom-panel { max-width: 600px; margin: 0 auto; padding: 12px 16px; padding-bottom: env(safe-area-inset-bottom, 12px); }
+
+        .report-area {
+            width: 100%; height: 70px; border: 1px solid var(--border);
+            border-radius: 8px; padding: 8px; font-size: 13px;
+            background-color: var(--bg-color); resize: none; margin-bottom: 8px;
+            color: var(--text-main); font-family: monospace;
+        }
+        .copy-btn {
+            width: 100%; background-color: var(--accent); color: white;
+            border: none; border-radius: 10px; padding: 12px;
+            font-size: 16px; font-weight: 600; cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <div class="header-container">
+        <div class="header-top">
+            <h1>Трекер</h1>
+            <button class="clear-btn" onclick="clearData()">Очистити</button>
+        </div>
+        <input type="text" class="search-bar" id="search-input" onkeyup="filterItems()" placeholder="Пошук (наприклад, worry або face)...">
+    </div>
+    <div class="container" id="app-container"></div>
+</div>
+
+<div class="bottom-panel-wrapper">
+    <div class="bottom-panel">
+        <textarea id="report" class="report-area" readonly></textarea>
+        <button class="copy-btn" onclick="copyReport()">Скопіювати звіт</button>
+    </div>
+</div>
+
+<script>
+    // === ВАША БАЗА ДАНИХ (Markdown) ===
+    const rawDatabaseText = `
+# factors
+🔁
+🚗
+🛡️
+☕
+⏳
+pa
+
+# thoughts
+## 🌟 Адаптивні та Підтримуючі думки (Yellow / Positive)
+over-thinking: Надмірне обдумування (ментальна жуйка, постійний аналіз).
+worry: Тривожність / Хвилювання (фоновий ланцюг думок про те, що може піти не так).
+should: Вимоги / «Треба» («Я повинен бути ідеальним», тиск на себе).
+
+# emotions
+## I. High-Energy Pleasant
+Connection: Зв'язок: енергія між людьми, коли вони відчувають себе побаченими.
+Joy: Радість: раптова, несподівана, інтенсивна емоція духовного зв'язку.
+
+# affects
+SEEK
+RAGE
+FEAR
+LUST
+CARE
+GRIEF/PANIC
+PLAY
+
+# tensions
+Head
+Face
+Shoulders
+L-Hand
+R-Hand
+Belly
+L-Leg
+R-Leg
+
+# pain
+gut
+    `;
+
+    function parseDatabase(text) {
+        const lines = text.split('\n');
+        const db = {};
+        let currentCategory = "";
+
+        lines.forEach(line => {
+            line = line.trim();
+            if (!line) return;
+
+            if (line.startsWith('# ')) {
+                currentCategory = line.substring(2).trim();
+                db[currentCategory] = [];
+                return;
+            }
+            if (!currentCategory) return;
+
+            if (line.startsWith('## ')) {
+                db[currentCategory].push({ type: 'subheader', title: line.substring(3).trim() });
+                return;
+            }
+
+            let name = line;
+            let desc = "";
+            const separatorMatch = line.match(/[:—]/); 
+            if (separatorMatch) {
+                const idx = separatorMatch.index;
+                name = line.substring(0, idx).trim();
+                desc = line.substring(idx + 1).trim();
+            }
+            if (name.startsWith('- ')) name = name.substring(2).trim();
+
+            db[currentCategory].push({ type: 'item', name, desc });
+        });
+        return db;
+    }
+
+    const database = parseDatabase(rawDatabaseText);
+    let selectedItems = JSON.parse(localStorage.getItem('trackerData5')) || {};
+
+    function renderApp() {
+        const container = document.getElementById('app-container');
+        container.innerHTML = '';
+
+        for (const [category, items] of Object.entries(database)) {
+            // Створюємо блок-обгортку для кожної категорії (потрібно для пошуку)
+            const block = document.createElement('div');
+            block.className = 'category-block';
+            block.id = `cat-${category}`;
+
+            const title = document.createElement('div');
+            title.className = 'category-title';
+            title.innerText = category;
+            block.appendChild(title);
+
+            const hasDescriptions = items.some(i => i.desc !== "");
+            const list = document.createElement('div');
+            list.className = hasDescriptions ? 'grid-list' : 'grid-compact';
+
+            items.forEach((item) => {
+                if (item.type === 'subheader') {
+                    const sub = document.createElement('div');
+                    sub.className = 'subheader';
+                    sub.innerText = item.title;
+                    list.appendChild(sub);
+                    return;
+                }
+
+                const itemId = `${category}|${item.name}`;
+                const isSelected = !!selectedItems[itemId];
+                const currentScale = isSelected ? selectedItems[itemId].scale : null;
+
+                const btn = document.createElement('div');
+                btn.className = `option-btn ${isSelected ? 'active' : ''}`;
+                
+                // Клікабельна верхня частина для увімкнення/вимкнення
+                let html = `<div onclick="toggleItem('${itemId}', '${category}', '${item.name}')">`;
+                html += `<div class="option-name">${item.name}</div>`;
+                if (item.desc) html += `<div class="option-desc">${item.desc}</div>`;
+                html += `</div>`;
+                
+                // Компактні кнопки шкали 1-5
+                html += `<div class="scale-container" onclick="event.stopPropagation();">
+                    ${[1,2,3,4,5].map(num => 
+                        `<div class="scale-btn ${currentScale === num ? 'selected' : ''}" 
+                              onclick="setScale('${itemId}', '${category}', '${item.name}', ${num})">
+                            ${num}
+                        </div>`
+                    ).join('')}
+                </div>`;
+
+                btn.innerHTML = html;
+                list.appendChild(btn);
+            });
+
+            block.appendChild(list);
+            container.appendChild(block);
+        }
+        generateReport();
+    }
+
+    // Логіка увімкнення/вимкнення елемента (без шкали за замовчуванням)
+    function toggleItem(id, category, name) {
+        if (selectedItems[id]) {
+            delete selectedItems[id]; 
+        } else {
+            selectedItems[id] = { category, name, scale: null }; // Шкала null (без крапки)
+        }
+        saveAndRender();
+    }
+
+    // Логіка шкали
+    function setScale(id, category, name, scaleNum) {
+        if (!selectedItems[id]) {
+            selectedItems[id] = { category, name, scale: scaleNum };
+        } else {
+            // Якщо натиснули ту саму цифру - знімаємо її
+            if (selectedItems[id].scale === scaleNum) {
+                selectedItems[id].scale = null;
+            } else {
+                selectedItems[id].scale = scaleNum;
+            }
+        }
+        saveAndRender();
+    }
+
+    // Фільтрація (Пошук)
+    function filterItems() {
+        const query = document.getElementById('search-input').value.toLowerCase();
+        const blocks = document.querySelectorAll('.category-block');
+
+        blocks.forEach(block => {
+            let hasVisibleItems = false;
+            const items = block.querySelectorAll('.option-btn');
+            const subheaders = block.querySelectorAll('.subheader');
+
+            // Ховаємо підзаголовки під час пошуку, щоб не заважали
+            subheaders.forEach(sub => { sub.style.display = query ? 'none' : 'block'; });
+
+            items.forEach(item => {
+                const text = item.innerText.toLowerCase();
+                if (text.includes(query)) {
+                    item.style.display = 'flex';
+                    hasVisibleItems = true;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            // Ховаємо всю категорію, якщо в ній немає знайдених елементів
+            block.style.display = hasVisibleItems ? 'block' : 'none';
+        });
+    }
+
+    function saveAndRender() {
+        localStorage.setItem('trackerData5', JSON.stringify(selectedItems));
+        
+        // Зберігаємо запит пошуку, щоб він не збивався при перемальовуванні
+        const query = document.getElementById('search-input').value;
+        renderApp();
+        
+        // Відновлюємо пошук, якщо він був
+        if(query) {
+            document.getElementById('search-input').value = query;
+            filterItems();
+        }
+    }
+
+    function generateReport() {
+        let reportText = "";
+        
+        for (const category of Object.keys(database)) {
+            const itemsInCat = Object.values(selectedItems).filter(i => i.category === category);
+            if (itemsInCat.length > 0) {
+                const itemsString = itemsInCat.map(i => {
+                    // Якщо scale є - додаємо крапку і цифру. Якщо немає - просто назву.
+                    return i.scale ? `${i.name}.${i.scale}` : i.name;
+                }).join(" | ");
+                reportText += `**${category}** ${itemsString}\n`;
+            }
+        }
+        document.getElementById('report').value = reportText.trim();
+    }
+
+    function clearData() {
+        selectedItems = {};
+        localStorage.removeItem('trackerData5');
+        document.getElementById('search-input').value = "";
+        renderApp();
+    }
+
+    function copyReport() {
+        const textarea = document.getElementById('report');
+        if (!textarea.value) return;
+        textarea.select();
+        document.execCommand('copy');
+        
+        const btn = document.querySelector('.copy-btn');
+        const orig = btn.innerText;
+        btn.innerText = "✓ Скопійовано!";
+        btn.style.backgroundColor = "#34c759";
+        setTimeout(() => { btn.innerText = orig; btn.style.backgroundColor = "var(--accent)"; }, 1500);
+    }
+
+    renderApp();
+</script>
+</body>
+</html>
