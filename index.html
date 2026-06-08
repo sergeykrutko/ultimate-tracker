@@ -20,7 +20,6 @@
         body { background-color: var(--bg-color); margin: 0; padding-bottom: 180px; color: var(--text-main); }
         .wrapper { max-width: 600px; margin: 0 auto; }
 
-        /* Шапка і Пошук */
         .header-container {
             position: sticky; top: 0; z-index: 10; background: var(--bg-color);
             padding: 16px 16px 10px; border-bottom: 1px solid var(--border);
@@ -36,34 +35,27 @@
         }
         .search-bar::placeholder { color: #8e8e93; }
 
-        /* Контейнер категорій */
         .container { padding: 10px 16px; }
         .category-block { margin-bottom: 16px; }
         .category-title { font-size: 18px; font-weight: 700; margin: 10px 0; text-transform: lowercase; }
         .subheader { font-size: 14px; font-weight: 600; color: var(--text-desc); margin: 12px 0 6px; grid-column: 1 / -1; }
 
-        /* Сітка */
+        /* Звичайні категорії */
         .grid-list { display: grid; grid-template-columns: 1fr; gap: 8px; }
         .grid-compact { display: grid; grid-template-columns: repeat(auto-fill, minmax(95px, 1fr)); gap: 8px; }
 
-        /* Кнопки */
         .option-btn {
             background-color: var(--card-bg); border: 1px solid var(--border);
             border-radius: 12px; padding: 10px; cursor: pointer;
             transition: all 0.15s ease; -webkit-tap-highlight-color: transparent;
             display: flex; flex-direction: column; justify-content: center;
         }
-
         .option-btn.active { background-color: var(--accent-light); border-color: var(--accent); }
         .option-name { font-size: 15px; font-weight: 600; color: var(--text-main); margin-bottom: 2px;}
         .option-btn.active .option-name { color: var(--accent); }
         .option-desc { font-size: 13px; color: var(--text-desc); line-height: 1.2; }
 
-        /* Ультракомпактна шкала 1-5 */
-        .scale-container {
-            display: none; margin-top: 8px;
-            justify-content: space-between; gap: 2px;
-        }
+        .scale-container { display: none; margin-top: 8px; justify-content: space-between; gap: 2px; }
         .option-btn.active .scale-container { display: flex; }
         
         .scale-btn {
@@ -73,6 +65,30 @@
             display: flex; align-items: center; justify-content: center;
         }
         .scale-btn.selected { background: var(--accent); color: white; }
+
+        /* Глобальна Шкала (Повзунок) */
+        .global-scale-widget {
+            background: var(--card-bg); border: 1px solid var(--border);
+            border-radius: 14px; padding: 16px; transition: border-color 0.2s;
+        }
+        .global-scale-widget.active { border-color: var(--accent); background: var(--accent-light); }
+        .global-scale-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .global-scale-value { font-size: 16px; font-weight: 600; color: var(--accent); }
+        .global-scale-value.empty { color: var(--text-desc); font-weight: 500; font-style: italic; }
+        
+        .global-slider {
+            width: 100%; -webkit-appearance: none; height: 6px;
+            background: #d1d1d6; border-radius: 3px; outline: none; margin-bottom: 10px;
+        }
+        .global-scale-widget.active .global-slider { background: #a8d1ff; }
+        .global-slider::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 26px; height: 26px;
+            background: #fff; border: 1px solid #c7c7cc; border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15); cursor: pointer;
+        }
+        .global-scale-widget.active .global-slider::-webkit-slider-thumb { border: 2px solid var(--accent); }
+        
+        .global-slider-labels { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; color: var(--text-desc); }
 
         /* Нижня панель */
         .bottom-panel-wrapper {
@@ -102,7 +118,7 @@
             <h1>Трекер</h1>
             <button class="clear-btn" onclick="clearData()">Очистити</button>
         </div>
-        <input type="text" class="search-bar" id="search-input" onkeyup="filterItems()" placeholder="Пошук (наприклад, worry або face)...">
+        <input type="text" class="search-bar" id="search-input" onkeyup="filterItems()" placeholder="Пошук (наприклад, joy або belly)...">
     </div>
     <div class="container" id="app-container"></div>
 </div>
@@ -115,35 +131,34 @@
 </div>
 
 <script>
-    // === ВАША БАЗА ДАНИХ (Markdown) ===
+    // === ВАША БАЗА ДАНИХ ===
+    // Щоб зробити повзунок, просто додайте [scale] у заголовок категорії
     const rawDatabaseText = `
-# factors
-🔁
-🚗
-🛡️
-☕
-⏳
-pa
-
-# thoughts
-## 🌟 Адаптивні та Підтримуючі думки (Yellow / Positive)
-over-thinking: Надмірне обдумування (ментальна жуйка, постійний аналіз).
-worry: Тривожність / Хвилювання (фоновий ланцюг думок про те, що може піти не так).
-should: Вимоги / «Треба» («Я повинен бути ідеальним», тиск на себе).
-
 # emotions
-## I. High-Energy Pleasant
-Connection: Зв'язок: енергія між людьми, коли вони відчувають себе побаченими.
-Joy: Радість: раптова, несподівана, інтенсивна емоція духовного зв'язку.
+### I. High-Energy Pleasant
+- **Amusement** — Веселість/Розвага: приємне, розслаблене збудження.
+- **Connection** — Зв'язок: енергія між людьми, коли вони відчувають себе побаченими.
+- **Excitement** — Збудження, піднесення: енергійний стан ентузіазму.
+- **Joy** — Радість: раптова, несподівана, інтенсивна емоція духовного зв'язку.
+- **Surprise** — Сюрприз/Несподіванка: коротке переривання через невідповідність інформації очікуванням.
 
-# affects
-SEEK
-RAGE
-FEAR
-LUST
-CARE
-GRIEF/PANIC
-PLAY
+### II. Low-Energy Pleasant
+- **Belonging** — Приналежність: невід'ємна потреба, що вимагає від нас бути тими, ким ми є.
+- **Calm** — Внутрішній спокій: створення перспективи та усвідомленості.
+- **Love** — Любов: духовний зв'язок, що зростає з вразливості, довіри та прихильності.
+
+# BODY [scale]
+- +5 ✨ Radiant
+- +4 ⚡ Energized
+- +3 🌊 Flowing
+- +2 🏹 Engaged
+- +1 🌳 Grounded
+-  0 ⚖️ Neutral
+- -1 🪫 Agitated / Drained
+- -2 🪨 Tense / Heavy
+- -3 🫨 Frantic / Exhausted
+- -4 🧊 Overstimulated / Collapsed
+- -5 🫥 Reactive / Shutdown
 
 # tensions
 Head
@@ -154,189 +169,282 @@ R-Hand
 Belly
 L-Leg
 R-Leg
-
-# pain
-gut
     `;
 
     function parseDatabase(text) {
         const lines = text.split('\n');
         const db = {};
-        let currentCategory = "";
+        let currentCat = "";
 
         lines.forEach(line => {
             line = line.trim();
             if (!line) return;
 
+            // 1. Головна категорія (шукаємо маркер [scale])
             if (line.startsWith('# ')) {
-                currentCategory = line.substring(2).trim();
-                db[currentCategory] = [];
+                let catTitle = line.substring(2).trim();
+                let isScale = false;
+                
+                // Якщо є маркер - запам'ятовуємо і прибираємо його з назви
+                if (catTitle.toLowerCase().includes('[scale]')) {
+                    isScale = true;
+                    catTitle = catTitle.replace(/\[scale\]/gi, '').trim();
+                }
+                
+                catTitle = catTitle.replace(/\*/g, '').trim(); // Прибираємо жирний шрифт
+                currentCat = catTitle;
+                db[currentCat] = { type: isScale ? 'scale-category' : 'mixed', items: [] };
                 return;
             }
-            if (!currentCategory) return;
+            
+            if (!currentCat) return;
 
+            // 2. Підзаголовок
             if (line.startsWith('## ')) {
-                db[currentCategory].push({ type: 'subheader', title: line.substring(3).trim() });
+                db[currentCat].items.push({ type: 'subheader', title: line.replace(/^#+\s+/, '').trim() });
                 return;
             }
 
-            let name = line;
-            let desc = "";
-            const separatorMatch = line.match(/[:—]/); 
-            if (separatorMatch) {
-                const idx = separatorMatch.index;
-                name = line.substring(0, idx).trim();
-                desc = line.substring(idx + 1).trim();
-            }
-            if (name.startsWith('- ')) name = name.substring(2).trim();
+            // Очищаємо рядок від маркдауну списків (- або *) і слешів (\)
+            let content = line.replace(/^[-*]\s+/, '').replace(/\\/g, '').replace(/\*/g, '').trim();
 
-            db[currentCategory].push({ type: 'item', name, desc });
+            // 3. Якщо це категорія ШКАЛИ
+            if (db[currentCat].type === 'scale-category') {
+                // Витягуємо число на початку і решту тексту
+                const scaleMatch = content.match(/^([+-]?\d+)\s+(.+)$/);
+                if (scaleMatch) {
+                    db[currentCat].items.push({
+                        type: 'scale-item',
+                        number: parseInt(scaleMatch[1]),
+                        label: scaleMatch[2].trim()
+                    });
+                }
+                return;
+            }
+
+            // 4. Якщо це звичайний пункт
+            let name = content;
+            let desc = "";
+            const sepMatch = content.match(/[—:]| - /); 
+            if (sepMatch) {
+                const idx = sepMatch.index;
+                name = content.substring(0, idx).trim();
+                desc = content.substring(idx + sepMatch[0].length).trim();
+            }
+
+            db[currentCat].items.push({ type: 'item', name, desc });
         });
+
+        // Сортуємо елементи шкали, щоб повзунок завжди йшов від мінуса до плюса
+        for (const key in db) {
+            if (db[key].type === 'scale-category') {
+                db[key].items.sort((a, b) => a.number - b.number);
+            }
+        }
+
         return db;
     }
 
     const database = parseDatabase(rawDatabaseText);
-    let selectedItems = JSON.parse(localStorage.getItem('trackerData5')) || {};
+    let selectedItems = JSON.parse(localStorage.getItem('trackerData7')) || {};
 
     function renderApp() {
         const container = document.getElementById('app-container');
         container.innerHTML = '';
 
-        for (const [category, items] of Object.entries(database)) {
-            // Створюємо блок-обгортку для кожної категорії (потрібно для пошуку)
+        for (const [category, data] of Object.entries(database)) {
             const block = document.createElement('div');
             block.className = 'category-block';
-            block.id = `cat-${category}`;
+            block.id = `cat-${category.replace(/\s+/g, '-')}`;
 
             const title = document.createElement('div');
             title.className = 'category-title';
             title.innerText = category;
             block.appendChild(title);
 
-            const hasDescriptions = items.some(i => i.desc !== "");
-            const list = document.createElement('div');
-            list.className = hasDescriptions ? 'grid-list' : 'grid-compact';
-
-            items.forEach((item) => {
-                if (item.type === 'subheader') {
-                    const sub = document.createElement('div');
-                    sub.className = 'subheader';
-                    sub.innerText = item.title;
-                    list.appendChild(sub);
-                    return;
-                }
-
-                const itemId = `${category}|${item.name}`;
-                const isSelected = !!selectedItems[itemId];
-                const currentScale = isSelected ? selectedItems[itemId].scale : null;
-
-                const btn = document.createElement('div');
-                btn.className = `option-btn ${isSelected ? 'active' : ''}`;
+            // РЕНДЕР ПОВЗУНКА
+            if (data.type === 'scale-category') {
+                const items = data.items;
+                if (items.length === 0) continue; // Захист від пустих категорій
                 
-                // Клікабельна верхня частина для увімкнення/вимкнення
-                let html = `<div onclick="toggleItem('${itemId}', '${category}', '${item.name}')">`;
-                html += `<div class="option-name">${item.name}</div>`;
-                if (item.desc) html += `<div class="option-desc">${item.desc}</div>`;
-                html += `</div>`;
+                const stateId = `scaleCat_${category}`;
+                const isSelected = selectedItems[stateId] !== undefined;
+                const currentIndex = isSelected ? selectedItems[stateId].index : Math.floor(items.length / 2);
+
+                const widget = document.createElement('div');
+                widget.className = `global-scale-widget ${isSelected ? 'active' : ''}`;
+                widget.dataset.searchText = items.map(i => i.label.toLowerCase()).join(' ');
+
+                const header = document.createElement('div');
+                header.className = 'global-scale-header';
                 
-                // Компактні кнопки шкали 1-5
-                html += `<div class="scale-container" onclick="event.stopPropagation();">
-                    ${[1,2,3,4,5].map(num => 
-                        `<div class="scale-btn ${currentScale === num ? 'selected' : ''}" 
-                              onclick="setScale('${itemId}', '${category}', '${item.name}', ${num})">
-                            ${num}
-                        </div>`
-                    ).join('')}
-                </div>`;
+                const valSpan = document.createElement('span');
+                valSpan.className = `global-scale-value ${!isSelected ? 'empty' : ''}`;
+                valSpan.innerText = isSelected 
+                    ? `${items[currentIndex].number > 0 ? '+' : ''}${items[currentIndex].number} ${items[currentIndex].label}` 
+                    : 'Не вибрано (потягніть бігунок)';
 
-                btn.innerHTML = html;
-                list.appendChild(btn);
-            });
+                const clearBtn = document.createElement('button');
+                clearBtn.className = 'clear-btn';
+                clearBtn.innerText = '✕ Скинути';
+                clearBtn.style.display = isSelected ? 'block' : 'none';
+                clearBtn.onclick = () => clearScaleCat(category);
 
-            block.appendChild(list);
+                header.appendChild(valSpan);
+                header.appendChild(clearBtn);
+                widget.appendChild(header);
+
+                const slider = document.createElement('input');
+                slider.type = 'range';
+                slider.min = 0;
+                slider.max = items.length - 1;
+                slider.value = currentIndex;
+                slider.className = 'global-slider';
+                
+                slider.oninput = (e) => {
+                    const idx = parseInt(e.target.value);
+                    const formattedNum = items[idx].number > 0 ? `+${items[idx].number}` : items[idx].number;
+                    const text = `${formattedNum} ${items[idx].label}`;
+                    
+                    selectedItems[stateId] = { category, index: idx, text: text };
+                    
+                    widget.classList.add('active');
+                    valSpan.innerText = text;
+                    valSpan.classList.remove('empty');
+                    clearBtn.style.display = 'block';
+                    generateReport();
+                };
+                slider.onchange = () => localStorage.setItem('trackerData7', JSON.stringify(selectedItems));
+
+                widget.appendChild(slider);
+                
+                const labels = document.createElement('div');
+                labels.className = 'global-slider-labels';
+                labels.innerHTML = `
+                    <span>${items[0].number}</span>
+                    <span>${items[Math.floor(items.length/2)].number}</span>
+                    <span>+${items[items.length-1].number}</span>
+                `;
+                widget.appendChild(labels);
+                block.appendChild(widget);
+            } 
+            // РЕНДЕР ЗВИЧАЙНИХ КНОПОК
+            else {
+                const hasDescriptions = data.items.some(i => i.desc !== "");
+                const list = document.createElement('div');
+                list.className = hasDescriptions ? 'grid-list' : 'grid-compact';
+
+                data.items.forEach((item) => {
+                    if (item.type === 'subheader') {
+                        const sub = document.createElement('div');
+                        sub.className = 'subheader';
+                        sub.innerText = item.title;
+                        list.appendChild(sub);
+                        return;
+                    }
+
+                    const itemId = `${category}|${item.name}`;
+                    const isSelected = !!selectedItems[itemId];
+                    const currentScale = isSelected ? selectedItems[itemId].scale : null;
+
+                    const btn = document.createElement('div');
+                    btn.className = `option-btn ${isSelected ? 'active' : ''}`;
+                    
+                    let html = `<div onclick="toggleItem('${itemId}', '${category}', '${item.name}')">`;
+                    html += `<div class="option-name">${item.name}</div>`;
+                    if (item.desc) html += `<div class="option-desc">${item.desc}</div>`;
+                    html += `</div>`;
+                    
+                    html += `<div class="scale-container" onclick="event.stopPropagation();">
+                        ${[1,2,3,4,5].map(num => 
+                            `<div class="scale-btn ${currentScale === num ? 'selected' : ''}" 
+                                  onclick="setScale('${itemId}', '${category}', '${item.name}', ${num})">${num}</div>`
+                        ).join('')}
+                    </div>`;
+
+                    btn.innerHTML = html;
+                    list.appendChild(btn);
+                });
+                block.appendChild(list);
+            }
+
             container.appendChild(block);
         }
         generateReport();
     }
 
-    // Логіка увімкнення/вимкнення елемента (без шкали за замовчуванням)
     function toggleItem(id, category, name) {
-        if (selectedItems[id]) {
-            delete selectedItems[id]; 
-        } else {
-            selectedItems[id] = { category, name, scale: null }; // Шкала null (без крапки)
-        }
+        if (selectedItems[id]) { delete selectedItems[id]; } 
+        else { selectedItems[id] = { category, name, scale: null }; }
         saveAndRender();
     }
 
-    // Логіка шкали
     function setScale(id, category, name, scaleNum) {
-        if (!selectedItems[id]) {
-            selectedItems[id] = { category, name, scale: scaleNum };
-        } else {
-            // Якщо натиснули ту саму цифру - знімаємо її
-            if (selectedItems[id].scale === scaleNum) {
-                selectedItems[id].scale = null;
-            } else {
-                selectedItems[id].scale = scaleNum;
-            }
+        if (!selectedItems[id]) { selectedItems[id] = { category, name, scale: scaleNum }; } 
+        else {
+            selectedItems[id].scale = (selectedItems[id].scale === scaleNum) ? null : scaleNum;
         }
         saveAndRender();
     }
 
-    // Фільтрація (Пошук)
+    function clearScaleCat(category) {
+        delete selectedItems[`scaleCat_${category}`];
+        saveAndRender();
+    }
+
     function filterItems() {
         const query = document.getElementById('search-input').value.toLowerCase();
         const blocks = document.querySelectorAll('.category-block');
 
         blocks.forEach(block => {
             let hasVisibleItems = false;
+            
             const items = block.querySelectorAll('.option-btn');
-            const subheaders = block.querySelectorAll('.subheader');
-
-            // Ховаємо підзаголовки під час пошуку, щоб не заважали
-            subheaders.forEach(sub => { sub.style.display = query ? 'none' : 'block'; });
-
             items.forEach(item => {
-                const text = item.innerText.toLowerCase();
-                if (text.includes(query)) {
+                if (item.innerText.toLowerCase().includes(query)) {
                     item.style.display = 'flex';
                     hasVisibleItems = true;
-                } else {
-                    item.style.display = 'none';
-                }
+                } else { item.style.display = 'none'; }
             });
 
-            // Ховаємо всю категорію, якщо в ній немає знайдених елементів
+            const scaleWidget = block.querySelector('.global-scale-widget');
+            if (scaleWidget) {
+                const searchData = scaleWidget.dataset.searchText + " " + block.querySelector('.category-title').innerText.toLowerCase();
+                if (searchData.includes(query)) {
+                    scaleWidget.style.display = 'block';
+                    hasVisibleItems = true;
+                } else { scaleWidget.style.display = 'none'; }
+            }
+
+            block.querySelectorAll('.subheader').forEach(sub => { sub.style.display = query ? 'none' : 'block'; });
             block.style.display = hasVisibleItems ? 'block' : 'none';
         });
     }
 
     function saveAndRender() {
-        localStorage.setItem('trackerData5', JSON.stringify(selectedItems));
-        
-        // Зберігаємо запит пошуку, щоб він не збивався при перемальовуванні
+        localStorage.setItem('trackerData7', JSON.stringify(selectedItems));
         const query = document.getElementById('search-input').value;
         renderApp();
-        
-        // Відновлюємо пошук, якщо він був
-        if(query) {
-            document.getElementById('search-input').value = query;
-            filterItems();
-        }
+        if(query) { document.getElementById('search-input').value = query; filterItems(); }
     }
 
     function generateReport() {
         let reportText = "";
         
         for (const category of Object.keys(database)) {
-            const itemsInCat = Object.values(selectedItems).filter(i => i.category === category);
-            if (itemsInCat.length > 0) {
-                const itemsString = itemsInCat.map(i => {
-                    // Якщо scale є - додаємо крапку і цифру. Якщо немає - просто назву.
-                    return i.scale ? `${i.name}.${i.scale}` : i.name;
-                }).join(" | ");
-                reportText += `**${category}** ${itemsString}\n`;
+            const data = database[category];
+            
+            if (data.type === 'scale-category') {
+                const stateId = `scaleCat_${category}`;
+                if (selectedItems[stateId]) {
+                    reportText += `**${category}**: ${selectedItems[stateId].text}\n`;
+                }
+            } else {
+                const itemsInCat = Object.values(selectedItems).filter(i => i.category === category);
+                if (itemsInCat.length > 0) {
+                    const itemsString = itemsInCat.map(i => i.scale ? `${i.name}.${i.scale}` : i.name).join(" | ");
+                    reportText += `**${category}** ${itemsString}\n`;
+                }
             }
         }
         document.getElementById('report').value = reportText.trim();
@@ -344,7 +452,7 @@ gut
 
     function clearData() {
         selectedItems = {};
-        localStorage.removeItem('trackerData5');
+        localStorage.removeItem('trackerData7');
         document.getElementById('search-input').value = "";
         renderApp();
     }
