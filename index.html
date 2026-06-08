@@ -4,172 +4,166 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Трекер</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #f2f2f7;
-            --card-bg: #ffffff;
-            --text-main: #000000;
-            --text-desc: #8e8e93;
-            --accent: #007aff;
-            --accent-light: #e5f1ff;
-            --border: #d1d1d6;
+            --bg-color: #f2f2f7; --card-bg: #ffffff; --text-main: #000000;
+            --text-desc: #8e8e93; --accent: #007aff; --accent-light: #e5f1ff; --border: #d1d1d6;
         }
-
-        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        * { box-sizing: border-box; font-family: 'Nunito', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
         
-        body { background-color: var(--bg-color); margin: 0; padding-bottom: 180px; color: var(--text-main); }
-        .wrapper { max-width: 600px; margin: 0 auto; }
-
-        .header-container {
-            position: sticky; top: 0; z-index: 10; background: var(--bg-color);
-            padding: 16px 16px 10px; border-bottom: 1px solid var(--border);
-        }
+        body { background-color: var(--bg-color); margin: 0; padding-bottom: 120px; color: var(--text-main); transition: padding-bottom 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .wrapper { max-width: 650px; margin: 0 auto; }
         
+        .header-container { position: sticky; top: 0; z-index: 10; background: var(--bg-color); padding: 16px 16px 10px; border-bottom: 1px solid var(--border); }
         .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        h1 { margin: 0; font-size: 24px; font-weight: 700; }
-        .clear-btn { color: var(--accent); background: none; border: none; font-size: 15px; cursor: pointer; padding: 4px 0; }
-
-        .search-bar {
-            width: 100%; background: #e3e3e8; border: none; border-radius: 10px;
-            padding: 10px 14px; font-size: 16px; color: var(--text-main); outline: none;
-        }
-        .search-bar::placeholder { color: #8e8e93; }
-
+        h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px;}
+        .clear-btn { color: var(--accent); background: none; border: none; font-size: 15px; font-weight: 700; cursor: pointer; padding: 4px 0; }
+        .search-bar { width: 100%; background: #e3e3e8; border: none; border-radius: 10px; padding: 10px 14px; font-size: 16px; outline: none; font-weight: 600;}
+        .search-bar::placeholder { font-weight: 400; }
         .container { padding: 10px 16px; }
-        .category-block { margin-bottom: 16px; }
-        .category-title { font-size: 18px; font-weight: 700; margin: 10px 0; text-transform: lowercase; }
-        .subheader { font-size: 14px; font-weight: 600; color: var(--text-desc); margin: 12px 0 6px; grid-column: 1 / -1; }
+        
+        /* Акордеон Категорій */
+        .category-block { margin-bottom: 12px; background: var(--card-bg); border-radius: 14px; overflow: hidden; border: 1px solid var(--border); }
+        .category-header { padding: 16px; display: flex; justify-content: space-between; align-items: center; font-size: 19px; font-weight: 800; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
+        .category-header-left { display: flex; align-items: center; gap: 8px; }
+        .category-badge { background: var(--accent); color: white; font-size: 13px; font-weight: bold; padding: 2px 8px; border-radius: 10px; display: none; }
+        .category-badge.has-items { display: block; }
+        .category-chevron { font-size: 14px; color: var(--text-desc); transition: transform 0.3s; }
+        .category-content { display: none; padding: 0 16px 16px; border-top: 1px solid var(--border); background: var(--bg-color); }
+        .category-block.expanded .category-content { display: block; }
+        .category-block.expanded .category-chevron { transform: rotate(180deg); }
 
-        /* Звичайні категорії */
-        .grid-list { display: grid; grid-template-columns: 1fr; gap: 8px; }
-        .grid-compact { display: grid; grid-template-columns: repeat(auto-fill, minmax(95px, 1fr)); gap: 8px; }
+        .grid-unified { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; padding-top: 8px;}
 
-        .option-btn {
-            background-color: var(--card-bg); border: 1px solid var(--border);
-            border-radius: 12px; padding: 10px; cursor: pointer;
-            transition: all 0.15s ease; -webkit-tap-highlight-color: transparent;
-            display: flex; flex-direction: column; justify-content: center;
+        /* Підзаголовки та коментарі */
+        .subheader-wrap { margin-top: 16px; grid-column: 1 / -1; }
+        .subheader-title { 
+            font-size: 14px; font-weight: 800; color: var(--text-desc); text-transform: uppercase; 
+            letter-spacing: 0.5px; cursor: pointer; display: flex; align-items: center; 
+            justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); margin-bottom: 8px;
+            -webkit-tap-highlight-color: transparent;
         }
+        .subheader-chevron { transition: transform 0.3s; font-size: 12px; }
+        .subheader-wrap.collapsed .subheader-chevron { transform: rotate(-90deg); }
+        .subheader-wrap.collapsed .sub-content { display: none; }
+        
+        .category-comment { grid-column: 1 / -1; font-size: 13px; color: var(--text-desc); font-style: italic; padding: 4px 4px 8px; line-height: 1.3; }
+
+        /* Кнопки вибору */
+        .option-btn { background-color: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px; transition: all 0.15s ease; display: flex; flex-direction: column; justify-content: flex-start; }
         .option-btn.active { background-color: var(--accent-light); border-color: var(--accent); }
-        .option-name { font-size: 15px; font-weight: 600; color: var(--text-main); margin-bottom: 2px;}
+        .option-clickable-area { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .option-name { font-size: 15px; font-weight: 700; color: var(--text-main); margin-bottom: 4px; line-height: 1.2;}
         .option-btn.active .option-name { color: var(--accent); }
-        .option-desc { font-size: 13px; color: var(--text-desc); line-height: 1.2; }
+        .option-desc { font-size: 13px; color: var(--text-desc); line-height: 1.25; font-weight: 600;}
 
-        .scale-container { display: none; margin-top: 8px; justify-content: space-between; gap: 2px; }
+        /* Шкала або Кастомні Теги */
+        .scale-container { display: none; margin-top: auto; padding-top: 8px; justify-content: space-between; gap: 4px; }
         .option-btn.active .scale-container { display: flex; }
-        
-        .scale-btn {
-            width: 100%; aspect-ratio: 1; max-height: 24px; border-radius: 6px;
-            background: var(--card-bg); border: 1px solid var(--accent);
-            color: var(--accent); font-size: 12px; font-weight: 700; 
-            display: flex; align-items: center; justify-content: center;
-        }
+        .scale-btn { width: 100%; aspect-ratio: 1; max-height: 26px; border-radius: 6px; background: var(--card-bg); border: 1px solid var(--accent); color: var(--accent); font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center; cursor: pointer; -webkit-tap-highlight-color: transparent; }
         .scale-btn.selected { background: var(--accent); color: white; }
+        .scale-btn.text-tag { width: auto; flex: 1; aspect-ratio: auto; padding: 4px; font-size: 12px; border-radius: 8px; text-transform: lowercase;}
 
-        /* Глобальна Шкала (Повзунок) */
-        .global-scale-widget {
-            background: var(--card-bg); border: 1px solid var(--border);
-            border-radius: 14px; padding: 16px; transition: border-color 0.2s;
-        }
-        .global-scale-widget.active { border-color: var(--accent); background: var(--accent-light); }
+        /* Повзунок */
+        .global-scale-widget { padding-top: 16px; }
         .global-scale-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-        .global-scale-value { font-size: 16px; font-weight: 600; color: var(--accent); }
-        .global-scale-value.empty { color: var(--text-desc); font-weight: 500; font-style: italic; }
-        
-        .global-slider {
-            width: 100%; -webkit-appearance: none; height: 6px;
-            background: #d1d1d6; border-radius: 3px; outline: none; margin-bottom: 10px;
-        }
+        .global-scale-value { font-size: 16px; font-weight: 700; color: var(--accent); }
+        .global-scale-value.empty { color: var(--text-desc); font-style: italic; }
+        .slider-container { position: relative; padding-bottom: 20px; }
+        .global-slider { width: 100%; -webkit-appearance: none; height: 6px; background: #d1d1d6; border-radius: 3px; outline: none; margin-bottom: 10px; }
         .global-scale-widget.active .global-slider { background: #a8d1ff; }
-        .global-slider::-webkit-slider-thumb {
-            -webkit-appearance: none; width: 26px; height: 26px;
-            background: #fff; border: 1px solid #c7c7cc; border-radius: 50%;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.15); cursor: pointer;
-        }
+        .global-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 28px; height: 28px; background: #fff; border: 1px solid #c7c7cc; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.2); cursor: pointer; }
         .global-scale-widget.active .global-slider::-webkit-slider-thumb { border: 2px solid var(--accent); }
-        
-        .global-slider-labels { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; color: var(--text-desc); }
+        .global-slider-labels { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; color: var(--text-desc); position: absolute; width: 100%; bottom: 0; padding: 0 10px; box-sizing: border-box;}
 
-        /* Нижня панель */
-        .bottom-panel-wrapper {
-            position: fixed; bottom: 0; left: 0; width: 100%;
-            background-color: var(--card-bg); border-top: 1px solid var(--border); z-index: 100;
-        }
-        .bottom-panel { max-width: 600px; margin: 0 auto; padding: 12px 16px; padding-bottom: env(safe-area-inset-bottom, 12px); }
+        .custom-item-input { width: 100%; border: 1px dashed var(--border); border-radius: 12px; padding: 12px 14px; font-size: 15px; font-weight: 600; color: var(--text-main); background: var(--card-bg); outline: none; margin-top: 16px; transition: border-color 0.2s;}
+        .custom-item-input:focus { border-color: var(--accent); border-style: solid;}
+        .custom-item-input::placeholder { color: #b0b0b5; font-weight: 600;}
 
-        .report-area {
-            width: 100%; height: 70px; border: 1px solid var(--border);
-            border-radius: 8px; padding: 8px; font-size: 13px;
-            background-color: var(--bg-color); resize: none; margin-bottom: 8px;
-            color: var(--text-main); font-family: monospace;
-        }
-        .copy-btn {
-            width: 100%; background-color: var(--accent); color: white;
-            border: none; border-radius: 10px; padding: 12px;
-            font-size: 16px; font-weight: 600; cursor: pointer;
-        }
+        /* Шторка звіту */
+        .bottom-sheet { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card-bg); border-top-left-radius: 20px; border-top-right-radius: 20px; box-shadow: 0 -4px 24px rgba(0,0,0,0.15); z-index: 100; transform: translateY(calc(100% - 60px - env(safe-area-inset-bottom, 0px))); transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .bottom-sheet.open { transform: translateY(0); }
+        .sheet-header { height: 60px; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; cursor: pointer; border-bottom: 1px solid transparent; font-size: 17px; font-weight: 800; color: var(--accent); padding-bottom: env(safe-area-inset-bottom, 0px); }
+        .bottom-sheet.open .sheet-header { border-bottom-color: var(--border); padding-bottom: 0; }
+        .sheet-chevron { transition: transform 0.3s; }
+        .bottom-sheet.open .sheet-chevron { transform: rotate(180deg); }
+        .sheet-content { padding: 16px 20px 24px; padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)); }
+        .report-area { width: 100%; height: 120px; border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-size: 14px; font-weight: 600; background-color: var(--bg-color); resize: none; margin-bottom: 12px; color: var(--text-main); font-family: monospace; }
+        .copy-btn { width: 100%; background-color: var(--accent); color: white; border: none; border-radius: 12px; padding: 14px; font-size: 17px; font-weight: 800; cursor: pointer; }
+
+        .scroll-top-btn { position: fixed; bottom: calc(80px + env(safe-area-inset-bottom, 0px)); right: 20px; width: 46px; height: 46px; background-color: var(--accent); color: white; border: none; border-radius: 23px; font-size: 22px; font-weight: 800; box-shadow: 0 4px 14px rgba(0,0,0,0.25); cursor: pointer; z-index: 90; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s, bottom 0.3s; }
+        .scroll-top-btn.visible { opacity: 1; pointer-events: auto; }
+        .scroll-top-btn.lifted { bottom: calc(300px + env(safe-area-inset-bottom, 0px)); }
     </style>
 </head>
 <body>
 
 <div class="wrapper">
-    <div class="header-container">
+    <div class="header-container" id="top-anchor">
         <div class="header-top">
             <h1>Трекер</h1>
-            <button class="clear-btn" onclick="clearData()">Очистити</button>
+            <button class="clear-btn" onclick="clearData()">Очистити все</button>
         </div>
-        <input type="text" class="search-bar" id="search-input" onkeyup="filterItems()" placeholder="Пошук (наприклад, joy або belly)...">
+        <input type="text" class="search-bar" id="search-input" onkeyup="filterItems()" placeholder="Пошук (емоції, потреби)...">
     </div>
-    <div class="container" id="app-container"></div>
+    <div class="container" id="app-container">
+        <p style="text-align:center; color:#8e8e93; margin-top:40px; font-weight: 700;" id="loading-text">Завантаження бази...</p>
+    </div>
 </div>
 
-<div class="bottom-panel-wrapper">
-    <div class="bottom-panel">
-        <textarea id="report" class="report-area" readonly></textarea>
+<div class="bottom-sheet" id="bottom-sheet">
+    <div class="sheet-header" onclick="toggleSheet()">
+        <span>📝 Звіт (<span id="total-selected">0</span> вибрано)</span>
+        <span class="sheet-chevron">▲</span>
+    </div>
+    <div class="sheet-content">
+        <textarea id="report" class="report-area" readonly placeholder="Ваш звіт порожній..."></textarea>
         <button class="copy-btn" onclick="copyReport()">Скопіювати звіт</button>
     </div>
 </div>
 
+<button class="scroll-top-btn" id="scroll-btn" onclick="scrollToActive()">↑</button>
+
 <script>
-    // === ВАША БАЗА ДАНИХ ===
-    // Щоб зробити повзунок, просто додайте [scale] у заголовок категорії
-    const rawDatabaseText = `
-# emotions
-### I. High-Energy Pleasant
-- **Amusement** — Веселість/Розвага: приємне, розслаблене збудження.
-- **Connection** — Зв'язок: енергія між людьми, коли вони відчувають себе побаченими.
-- **Excitement** — Збудження, піднесення: енергійний стан ентузіазму.
-- **Joy** — Радість: раптова, несподівана, інтенсивна емоція духовного зв'язку.
-- **Surprise** — Сюрприз/Несподіванка: коротке переривання через невідповідність інформації очікуванням.
+    const fallbackDB = `
 
-### II. Low-Energy Pleasant
-- **Belonging** — Приналежність: невід'ємна потреба, що вимагає від нас бути тими, ким ми є.
-- **Calm** — Внутрішній спокій: створення перспективи та усвідомленості.
-- **Love** — Любов: духовний зв'язок, що зростає з вразливості, довіри та прихильності.
 
-# BODY [scale]
-- +5 ✨ Radiant
-- +4 ⚡ Energized
-- +3 🌊 Flowing
-- +2 🏹 Engaged
-- +1 🌳 Grounded
--  0 ⚖️ Neutral
-- -1 🪫 Agitated / Drained
-- -2 🪨 Tense / Heavy
-- -3 🫨 Frantic / Exhausted
-- -4 🧊 Overstimulated / Collapsed
-- -5 🫥 Reactive / Shutdown
 
-# tensions
-Head
-Face
-Shoulders
-L-Hand
-R-Hand
-Belly
-L-Leg
-R-Leg
-    `;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+`;
+
+    let database = {};
+    let selectedItems = JSON.parse(localStorage.getItem('trackerData14')) || {};
+
+    async function initApp() {
+        try {
+            const response = await fetch('database.md');
+            if (!response.ok) throw new Error('File not found');
+            const text = await response.text();
+            database = parseDatabase(text);
+        } catch (error) {
+            database = parseDatabase(fallbackDB);
+        }
+        renderApp();
+    }
 
     function parseDatabase(text) {
         const lines = text.split('\n');
@@ -179,167 +173,194 @@ R-Leg
         lines.forEach(line => {
             line = line.trim();
             if (!line) return;
+            if (line.match(/^\\?-+\s*-*\s*-*\s*-*\s*-*$/)) return;
+            if (line.startsWith('# !')) return;
 
-            // 1. Головна категорія (шукаємо маркер [scale])
+            // Головна категорія з тегами
             if (line.startsWith('# ')) {
                 let catTitle = line.substring(2).trim();
                 let isScale = false;
-                
-                // Якщо є маркер - запам'ятовуємо і прибираємо його з назви
+                let tags = null;
+
                 if (catTitle.toLowerCase().includes('[scale]')) {
                     isScale = true;
                     catTitle = catTitle.replace(/\[scale\]/gi, '').trim();
                 }
-                
-                catTitle = catTitle.replace(/\*/g, '').trim(); // Прибираємо жирний шрифт
+
+                const tagsMatch = catTitle.match(/\[tags:\s*(.+?)\]/i);
+                if (tagsMatch) {
+                    tags = tagsMatch[1].split(',').map(s => s.trim());
+                    catTitle = catTitle.replace(tagsMatch[0], '').trim();
+                }
+
+                catTitle = catTitle.replace(/\*/g, '').trim();
                 currentCat = catTitle;
-                db[currentCat] = { type: isScale ? 'scale-category' : 'mixed', items: [] };
+                db[currentCat] = { type: isScale ? 'scale-category' : 'mixed', items: [], tags: tags };
                 return;
             }
-            
             if (!currentCat) return;
 
-            // 2. Підзаголовок
-            if (line.startsWith('## ')) {
-                db[currentCat].items.push({ type: 'subheader', title: line.replace(/^#+\s+/, '').trim() });
+            // Коментар (####)
+            if (line.match(/^#{4,}\s+/)) {
+                let commentText = line.replace(/^#{4,}\s+/, '').replace(/\*/g, '').trim();
+                db[currentCat].items.push({ type: 'comment', text: commentText });
                 return;
             }
 
-            // Очищаємо рядок від маркдауну списків (- або *) і слешів (\)
-            let content = line.replace(/^[-*]\s+/, '').replace(/\\/g, '').replace(/\*/g, '').trim();
+            // Підзаголовок (## або ###)
+            if (line.match(/^#{2,3}\s+/)) {
+                let cleanTitle = line.replace(/^#{2,3}\s+/, '').replace(/\*/g, '').trim();
+                db[currentCat].items.push({ type: 'subheader', title: cleanTitle });
+                return;
+            }
 
-            // 3. Якщо це категорія ШКАЛИ
+            let content = line.replace(/^\\?[-*]\s+/, '').replace(/\\/g, '').replace(/\*/g, '').trim();
+            if(!content) return;
+
             if (db[currentCat].type === 'scale-category') {
-                // Витягуємо число на початку і решту тексту
                 const scaleMatch = content.match(/^([+-]?\d+)\s+(.+)$/);
-                if (scaleMatch) {
-                    db[currentCat].items.push({
-                        type: 'scale-item',
-                        number: parseInt(scaleMatch[1]),
-                        label: scaleMatch[2].trim()
-                    });
-                }
+                if (scaleMatch) db[currentCat].items.push({ type: 'scale-item', number: parseInt(scaleMatch[1]), label: scaleMatch[2].trim() });
                 return;
             }
 
-            // 4. Якщо це звичайний пункт
             let name = content;
             let desc = "";
-            const sepMatch = content.match(/[—:]| - /); 
+            const sepMatch = content.match(/ — | - |: /); 
             if (sepMatch) {
                 const idx = sepMatch.index;
                 name = content.substring(0, idx).trim();
                 desc = content.substring(idx + sepMatch[0].length).trim();
             }
-
             db[currentCat].items.push({ type: 'item', name, desc });
         });
 
-        // Сортуємо елементи шкали, щоб повзунок завжди йшов від мінуса до плюса
+        // Безпечне сортування шкал (щоб коментарі були зверху повзунка)
         for (const key in db) {
             if (db[key].type === 'scale-category') {
-                db[key].items.sort((a, b) => a.number - b.number);
+                db[key].items.sort((a, b) => {
+                    if (a.type === 'comment') return -1;
+                    if (b.type === 'comment') return 1;
+                    return a.number - b.number;
+                });
             }
         }
-
         return db;
     }
-
-    const database = parseDatabase(rawDatabaseText);
-    let selectedItems = JSON.parse(localStorage.getItem('trackerData7')) || {};
 
     function renderApp() {
         const container = document.getElementById('app-container');
         container.innerHTML = '';
 
         for (const [category, data] of Object.entries(database)) {
+            let selectedInCat = 0;
+            if (data.type === 'scale-category') {
+                if (selectedItems[`scaleCat_${category}`]) selectedInCat = 1;
+            } else {
+                selectedInCat = Object.values(selectedItems).filter(i => i.category === category).length;
+            }
+            if (selectedItems[`custom_${category}`]) selectedInCat++; 
+
             const block = document.createElement('div');
-            block.className = 'category-block';
+            block.className = 'category-block'; 
             block.id = `cat-${category.replace(/\s+/g, '-')}`;
 
-            const title = document.createElement('div');
-            title.className = 'category-title';
-            title.innerText = category;
-            block.appendChild(title);
+            const header = document.createElement('div');
+            header.className = 'category-header';
+            header.onclick = () => block.classList.toggle('expanded');
+            header.innerHTML = `
+                <div class="category-header-left">
+                    <span>${category}</span>
+                    <span class="category-badge ${selectedInCat > 0 ? 'has-items' : ''}">${selectedInCat}</span>
+                </div>
+                <div class="category-chevron">▼</div>
+            `;
+            block.appendChild(header);
 
-            // РЕНДЕР ПОВЗУНКА
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'category-content';
+
             if (data.type === 'scale-category') {
-                const items = data.items;
-                if (items.length === 0) continue; // Захист від пустих категорій
+                const scaleItems = data.items.filter(i => i.type === 'scale-item');
+                const comments = data.items.filter(i => i.type === 'comment');
                 
-                const stateId = `scaleCat_${category}`;
-                const isSelected = selectedItems[stateId] !== undefined;
-                const currentIndex = isSelected ? selectedItems[stateId].index : Math.floor(items.length / 2);
+                // Рендер коментарів над повзунком
+                if (comments.length > 0) {
+                    comments.forEach(c => {
+                        const cDiv = document.createElement('div');
+                        cDiv.className = 'category-comment';
+                        cDiv.innerText = c.text;
+                        contentDiv.appendChild(cDiv);
+                    });
+                }
 
-                const widget = document.createElement('div');
-                widget.className = `global-scale-widget ${isSelected ? 'active' : ''}`;
-                widget.dataset.searchText = items.map(i => i.label.toLowerCase()).join(' ');
+                if (scaleItems.length > 0) {
+                    const items = scaleItems;
+                    const stateId = `scaleCat_${category}`;
+                    const isSelected = selectedItems[stateId] !== undefined;
+                    const currentIndex = isSelected ? selectedItems[stateId].index : Math.floor(items.length / 2);
 
-                const header = document.createElement('div');
-                header.className = 'global-scale-header';
-                
-                const valSpan = document.createElement('span');
-                valSpan.className = `global-scale-value ${!isSelected ? 'empty' : ''}`;
-                valSpan.innerText = isSelected 
-                    ? `${items[currentIndex].number > 0 ? '+' : ''}${items[currentIndex].number} ${items[currentIndex].label}` 
-                    : 'Не вибрано (потягніть бігунок)';
+                    const widget = document.createElement('div');
+                    widget.className = `global-scale-widget ${isSelected ? 'active' : ''}`;
+                    widget.dataset.searchText = items.map(i => i.label.toLowerCase()).join(' ');
 
-                const clearBtn = document.createElement('button');
-                clearBtn.className = 'clear-btn';
-                clearBtn.innerText = '✕ Скинути';
-                clearBtn.style.display = isSelected ? 'block' : 'none';
-                clearBtn.onclick = () => clearScaleCat(category);
+                    const firstNum = items[0].number;
+                    const midNum = items[Math.floor(items.length/2)].number;
+                    const lastNum = items[items.length-1].number;
 
-                header.appendChild(valSpan);
-                header.appendChild(clearBtn);
-                widget.appendChild(header);
-
-                const slider = document.createElement('input');
-                slider.type = 'range';
-                slider.min = 0;
-                slider.max = items.length - 1;
-                slider.value = currentIndex;
-                slider.className = 'global-slider';
-                
-                slider.oninput = (e) => {
-                    const idx = parseInt(e.target.value);
-                    const formattedNum = items[idx].number > 0 ? `+${items[idx].number}` : items[idx].number;
-                    const text = `${formattedNum} ${items[idx].label}`;
-                    
-                    selectedItems[stateId] = { category, index: idx, text: text };
-                    
-                    widget.classList.add('active');
-                    valSpan.innerText = text;
-                    valSpan.classList.remove('empty');
-                    clearBtn.style.display = 'block';
-                    generateReport();
-                };
-                slider.onchange = () => localStorage.setItem('trackerData7', JSON.stringify(selectedItems));
-
-                widget.appendChild(slider);
-                
-                const labels = document.createElement('div');
-                labels.className = 'global-slider-labels';
-                labels.innerHTML = `
-                    <span>${items[0].number}</span>
-                    <span>${items[Math.floor(items.length/2)].number}</span>
-                    <span>+${items[items.length-1].number}</span>
-                `;
-                widget.appendChild(labels);
-                block.appendChild(widget);
+                    widget.innerHTML = `
+                        <div class="global-scale-header">
+                            <span class="global-scale-value ${!isSelected ? 'empty' : ''}" id="val-${stateId}">
+                                ${isSelected ? (items[currentIndex].number > 0 ? '+' : '') + items[currentIndex].number + ' ' + items[currentIndex].label : 'Потягніть бігунок'}
+                            </span>
+                            <button class="clear-btn" style="display:${isSelected ? 'block' : 'none'}; font-size:14px;" onclick="clearScaleCat('${category}', event)">✕ Скинути</button>
+                        </div>
+                        <div class="slider-container">
+                            <input type="range" min="0" max="${items.length - 1}" value="${currentIndex}" class="global-slider" 
+                                   oninput="updateScaleSlider('${category}', this.value)" onchange="saveData()">
+                            <div class="global-slider-labels">
+                                <span>${firstNum}</span><span>${midNum}</span><span>${lastNum > 0 ? '+'+lastNum : lastNum}</span>
+                            </div>
+                        </div>
+                    `;
+                    contentDiv.appendChild(widget);
+                }
             } 
-            // РЕНДЕР ЗВИЧАЙНИХ КНОПОК
             else {
-                const hasDescriptions = data.items.some(i => i.desc !== "");
-                const list = document.createElement('div');
-                list.className = hasDescriptions ? 'grid-list' : 'grid-compact';
+                const containerWrap = document.createElement('div');
+                let currentGrid = document.createElement('div');
+                currentGrid.className = 'grid-unified';
+                containerWrap.appendChild(currentGrid);
+
+                let hasSubheaders = false;
+                let subheaderWraps = [];
 
                 data.items.forEach((item) => {
+                    // Рендер коментарів у звичайній категорії
+                    if (item.type === 'comment') {
+                        const commentDiv = document.createElement('div');
+                        commentDiv.className = 'category-comment';
+                        commentDiv.innerText = item.text;
+                        currentGrid.appendChild(commentDiv);
+                        return;
+                    }
+
                     if (item.type === 'subheader') {
-                        const sub = document.createElement('div');
-                        sub.className = 'subheader';
-                        sub.innerText = item.title;
-                        list.appendChild(sub);
+                        hasSubheaders = true;
+                        const subWrap = document.createElement('div');
+                        subWrap.className = 'subheader-wrap'; 
+
+                        const subTitle = document.createElement('div');
+                        subTitle.className = 'subheader-title';
+                        subTitle.innerHTML = `<span>${item.title}</span><span class="subheader-chevron">▼</span>`;
+                        subTitle.onclick = () => subWrap.classList.toggle('collapsed');
+
+                        currentGrid = document.createElement('div');
+                        currentGrid.className = 'grid-unified sub-content';
+
+                        subWrap.appendChild(subTitle);
+                        subWrap.appendChild(currentGrid);
+                        containerWrap.appendChild(subWrap);
+                        subheaderWraps.push(subWrap);
                         return;
                     }
 
@@ -350,127 +371,232 @@ R-Leg
                     const btn = document.createElement('div');
                     btn.className = `option-btn ${isSelected ? 'active' : ''}`;
                     
-                    let html = `<div onclick="toggleItem('${itemId}', '${category}', '${item.name}')">`;
-                    html += `<div class="option-name">${item.name}</div>`;
-                    if (item.desc) html += `<div class="option-desc">${item.desc}</div>`;
-                    html += `</div>`;
-                    
-                    html += `<div class="scale-container" onclick="event.stopPropagation();">
-                        ${[1,2,3,4,5].map(num => 
-                            `<div class="scale-btn ${currentScale === num ? 'selected' : ''}" 
-                                  onclick="setScale('${itemId}', '${category}', '${item.name}', ${num})">${num}</div>`
-                        ).join('')}
-                    </div>`;
+                    const clickableArea = document.createElement('div');
+                    clickableArea.className = 'option-clickable-area';
+                    clickableArea.onclick = () => toggleItem(itemId, category, item.name);
+                    clickableArea.innerHTML = `
+                        <div class="option-name">${item.name}</div>
+                        ${item.desc ? `<div class="option-desc">${item.desc}</div>` : ''}
+                    `;
+                    btn.appendChild(clickableArea);
 
-                    btn.innerHTML = html;
-                    list.appendChild(btn);
+                    const scaleDiv = document.createElement('div');
+                    scaleDiv.className = 'scale-container';
+                    scaleDiv.onclick = (e) => e.stopPropagation();
+
+                    const tagsToUse = data.tags || [1, 2, 3, 4, 5];
+                    
+                    tagsToUse.forEach(tagVal => {
+                        const scaleBtn = document.createElement('div');
+                        scaleBtn.className = `scale-btn ${currentScale === String(tagVal) ? 'selected' : ''}`;
+                        if (isNaN(tagVal)) scaleBtn.classList.add('text-tag'); 
+                        scaleBtn.innerText = tagVal;
+                        scaleBtn.onclick = () => setScale(itemId, category, item.name, String(tagVal));
+                        scaleDiv.appendChild(scaleBtn);
+                    });
+
+                    btn.appendChild(scaleDiv);
+                    currentGrid.appendChild(btn);
                 });
-                block.appendChild(list);
+
+                if (hasSubheaders) {
+                    const toggleAllBtn = document.createElement('button');
+                    toggleAllBtn.className = 'clear-btn';
+                    toggleAllBtn.innerHTML = '↕ Згорнути/Розгорнути всі групи';
+                    toggleAllBtn.style.fontSize = '14px';
+                    toggleAllBtn.style.marginBottom = '8px';
+                    toggleAllBtn.style.display = 'block';
+                    toggleAllBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        const anyExpanded = subheaderWraps.some(w => !w.classList.contains('collapsed'));
+                        subheaderWraps.forEach(w => {
+                            if (anyExpanded) w.classList.add('collapsed');
+                            else w.classList.remove('collapsed');
+                        });
+                    };
+                    contentDiv.appendChild(toggleAllBtn);
+                }
+
+                contentDiv.appendChild(containerWrap);
+
+                const customInput = document.createElement('input');
+                customInput.type = 'text';
+                customInput.className = 'custom-item-input';
+                customInput.placeholder = '➕ Свій варіант... (впишіть сюди)';
+                customInput.value = selectedItems[`custom_${category}`] || '';
+                customInput.oninput = (e) => {
+                    const val = e.target.value.trim();
+                    if (val) selectedItems[`custom_${category}`] = val;
+                    else delete selectedItems[`custom_${category}`];
+                    saveData();
+                    updateReport();
+                    
+                    let count = Object.values(selectedItems).filter(i => i.category === category).length;
+                    if(selectedItems[`custom_${category}`]) count++;
+                    const badge = block.querySelector('.category-badge');
+                    if (count > 0) { badge.classList.add('has-items'); badge.innerText = count; } 
+                    else { badge.classList.remove('has-items'); }
+                };
+                contentDiv.appendChild(customInput);
             }
 
+            block.appendChild(contentDiv);
             container.appendChild(block);
         }
-        generateReport();
+        updateReport();
     }
 
     function toggleItem(id, category, name) {
-        if (selectedItems[id]) { delete selectedItems[id]; } 
-        else { selectedItems[id] = { category, name, scale: null }; }
+        if (selectedItems[id]) delete selectedItems[id]; 
+        else selectedItems[id] = { category, name, scale: null };
         saveAndRender();
     }
 
     function setScale(id, category, name, scaleNum) {
-        if (!selectedItems[id]) { selectedItems[id] = { category, name, scale: scaleNum }; } 
-        else {
-            selectedItems[id].scale = (selectedItems[id].scale === scaleNum) ? null : scaleNum;
-        }
+        if (!selectedItems[id]) selectedItems[id] = { category, name, scale: scaleNum };
+        else selectedItems[id].scale = (selectedItems[id].scale === scaleNum) ? null : scaleNum;
         saveAndRender();
     }
 
-    function clearScaleCat(category) {
+    function updateScaleSlider(category, val) {
+        const items = database[category].items.filter(i => i.type === 'scale-item');
+        const idx = parseInt(val);
+        const formattedNum = items[idx].number > 0 ? `+${items[idx].number}` : items[idx].number;
+        const text = `${formattedNum} ${items[idx].label}`;
+        
+        selectedItems[`scaleCat_${category}`] = { category, index: idx, text: text };
+        
+        document.getElementById(`val-scaleCat_${category}`).innerText = text;
+        document.getElementById(`val-scaleCat_${category}`).classList.remove('empty');
+        updateReport();
+    }
+
+    function clearScaleCat(category, event) {
+        event.stopPropagation();
         delete selectedItems[`scaleCat_${category}`];
         saveAndRender();
     }
 
-    function filterItems() {
-        const query = document.getElementById('search-input').value.toLowerCase();
-        const blocks = document.querySelectorAll('.category-block');
-
-        blocks.forEach(block => {
-            let hasVisibleItems = false;
-            
-            const items = block.querySelectorAll('.option-btn');
-            items.forEach(item => {
-                if (item.innerText.toLowerCase().includes(query)) {
-                    item.style.display = 'flex';
-                    hasVisibleItems = true;
-                } else { item.style.display = 'none'; }
-            });
-
-            const scaleWidget = block.querySelector('.global-scale-widget');
-            if (scaleWidget) {
-                const searchData = scaleWidget.dataset.searchText + " " + block.querySelector('.category-title').innerText.toLowerCase();
-                if (searchData.includes(query)) {
-                    scaleWidget.style.display = 'block';
-                    hasVisibleItems = true;
-                } else { scaleWidget.style.display = 'none'; }
-            }
-
-            block.querySelectorAll('.subheader').forEach(sub => { sub.style.display = query ? 'none' : 'block'; });
-            block.style.display = hasVisibleItems ? 'block' : 'none';
-        });
-    }
-
     function saveAndRender() {
-        localStorage.setItem('trackerData7', JSON.stringify(selectedItems));
+        saveData();
+        const expandedIds = Array.from(document.querySelectorAll('.category-block.expanded')).map(el => el.id);
         const query = document.getElementById('search-input').value;
+        
+        const collapsedSubgroups = [];
+        document.querySelectorAll('.subheader-wrap.collapsed .subheader-title span:first-child').forEach(el => {
+            collapsedSubgroups.push(el.innerText);
+        });
+
         renderApp();
+        
+        expandedIds.forEach(id => {
+            const el = document.getElementById(id);
+            if(el) el.classList.add('expanded');
+        });
+        
+        document.querySelectorAll('.subheader-wrap').forEach(wrap => {
+            const title = wrap.querySelector('.subheader-title span:first-child').innerText;
+            if (collapsedSubgroups.includes(title)) wrap.classList.add('collapsed');
+        });
+
         if(query) { document.getElementById('search-input').value = query; filterItems(); }
     }
 
-    function generateReport() {
+    function saveData() { localStorage.setItem('trackerData14', JSON.stringify(selectedItems)); }
+
+    function updateReport() {
         let reportText = "";
+        let totalCount = 0;
         
         for (const category of Object.keys(database)) {
             const data = database[category];
-            
+            let catParts = [];
+
             if (data.type === 'scale-category') {
-                const stateId = `scaleCat_${category}`;
-                if (selectedItems[stateId]) {
-                    reportText += `**${category}**: ${selectedItems[stateId].text}\n`;
-                }
+                const state = selectedItems[`scaleCat_${category}`];
+                if (state) { catParts.push(state.text); totalCount++; }
             } else {
                 const itemsInCat = Object.values(selectedItems).filter(i => i.category === category);
                 if (itemsInCat.length > 0) {
-                    const itemsString = itemsInCat.map(i => i.scale ? `${i.name}.${i.scale}` : i.name).join(" | ");
-                    reportText += `**${category}** ${itemsString}\n`;
+                    catParts.push(...itemsInCat.map(i => {
+                        if (!i.scale) return i.name;
+                        return isNaN(i.scale) ? `${i.name} (${i.scale})` : `${i.name}.${i.scale}`;
+                    }));
+                    totalCount += itemsInCat.length;
                 }
+            }
+
+            if (selectedItems[`custom_${category}`]) {
+                catParts.push(selectedItems[`custom_${category}`]);
+                totalCount++;
+            }
+
+            if (catParts.length > 0) {
+                reportText += `**${category}** ` + catParts.join(" | ") + `\n`;
             }
         }
         document.getElementById('report').value = reportText.trim();
+        document.getElementById('total-selected').innerText = totalCount;
     }
 
-    function clearData() {
-        selectedItems = {};
-        localStorage.removeItem('trackerData7');
-        document.getElementById('search-input').value = "";
-        renderApp();
+    function filterItems() {
+        const query = document.getElementById('search-input').value.toLowerCase();
+        document.querySelectorAll('.category-block').forEach(block => {
+            let hasVisible = false;
+            block.querySelectorAll('.option-btn').forEach(item => {
+                if (item.innerText.toLowerCase().includes(query)) { item.style.display = 'flex'; hasVisible = true; } 
+                else { item.style.display = 'none'; }
+            });
+            const scaleWidget = block.querySelector('.global-scale-widget');
+            if (scaleWidget && scaleWidget.dataset.searchText.includes(query)) {
+                scaleWidget.style.display = 'block'; hasVisible = true;
+            }
+            if (query && hasVisible) {
+                block.classList.add('expanded');
+                block.querySelectorAll('.subheader-wrap').forEach(w => w.classList.remove('collapsed'));
+            }
+            block.style.display = hasVisible || !query ? 'block' : 'none';
+        });
     }
+
+    function toggleSheet() { 
+        const sheet = document.getElementById('bottom-sheet');
+        const isOpen = sheet.classList.toggle('open');
+        document.body.style.paddingBottom = isOpen ? '280px' : '120px';
+        const scrollBtn = document.getElementById('scroll-btn');
+        if (isOpen) scrollBtn.classList.add('lifted');
+        else scrollBtn.classList.remove('lifted');
+    }
+    
+    function clearData() { selectedItems = {}; saveData(); document.getElementById('search-input').value = ""; renderApp(); }
 
     function copyReport() {
-        const textarea = document.getElementById('report');
-        if (!textarea.value) return;
-        textarea.select();
-        document.execCommand('copy');
-        
+        const ta = document.getElementById('report');
+        if (!ta.value) return;
+        ta.select(); document.execCommand('copy');
         const btn = document.querySelector('.copy-btn');
         const orig = btn.innerText;
-        btn.innerText = "✓ Скопійовано!";
-        btn.style.backgroundColor = "#34c759";
+        btn.innerText = "✓ Скопійовано!"; btn.style.backgroundColor = "#34c759";
         setTimeout(() => { btn.innerText = orig; btn.style.backgroundColor = "var(--accent)"; }, 1500);
     }
 
-    renderApp();
+    const scrollBtn = document.getElementById('scroll-btn');
+    window.onscroll = function() {
+        if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) { scrollBtn.classList.add('visible'); } 
+        else { scrollBtn.classList.remove('visible'); }
+    };
+    
+    function scrollToActive() {
+        const expandedBlock = document.querySelector('.category-block.expanded');
+        if (expandedBlock) {
+            const y = expandedBlock.getBoundingClientRect().top + window.scrollY - 80;
+            window.scrollTo({ top: y, behavior: 'smooth' });
+        } else {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+
+    initApp();
 </script>
 </body>
 </html>
