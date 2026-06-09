@@ -498,32 +498,59 @@ let isSmartSortEnabled = true;
                 return;
             }
 
-            let selectedInCat = Object.values(selectedItems).filter(i => i.category === category).length;
+let selectedInCat = Object.values(selectedItems).filter(i => i.category === category).length;
             const customArr = selectedItems[`custom_${category}`] || [];
             selectedInCat += customArr.length;
 
-            // РАХУЄМО РЕКОМЕНДОВАНІ ПРАКТИКИ (ЖОРСТКИЙ ФІЛЬТР)
+            // --- ПСИХОЛОГІЧНИЙ ТРІАЖ: ЗБІР ДАНИХ ---
+            let globalMin = null;
+            let activeTriggers = [];
+            
+            if (category.toLowerCase() === 'practices') {
+                // 1. Survival First: Шукаємо найнижчий стан
+                let activeScaleVals = [];
+                Object.keys(selectedItems).forEach(k => {
+                    if (k.toLowerCase().startsWith('scalecat_')) activeScaleVals.push(parseInt(selectedItems[k].text));
+                });
+                if (activeScaleVals.length > 0) globalMin = Math.min(...activeScaleVals);
+                
+                // 2. Sniper: Збираємо всі натиснуті тригери (слова довші за 3 літери, щоб відсіяти "m", "sex" тощо)
+                Object.values(selectedItems).forEach(i => {
+                    if (i && typeof i === 'object' && !Array.isArray(i) && !i.scale && i.category.toLowerCase() !== 'practices' && i.name.length > 3) {
+                        activeTriggers.push(i.name.toLowerCase());
+                    }
+                });
+            }
+
+            // РАХУЄМО АКТУАЛЬНІ ПРАКТИКИ (ЖОРСТКИЙ ФІЛЬТР)
             let recCount = 0;
             if (category.toLowerCase() === 'practices') {
                 blockData.items.forEach(i => {
-                    if (i.ranges && i.ranges.length > 0) {
-                        let matchCount = 0; let mismatchCount = 0; let hasActive = false;
-                        i.ranges.forEach(r => {
-                            let sKey = Object.keys(selectedItems).find(k => k.toLowerCase() === `scalecat_${r.scale}`);
-                            if (sKey) { 
-                                hasActive = true; 
-                                let v = parseInt(selectedItems[sKey].text); 
-                                if (v >= r.min && v <= r.max) matchCount++;
-                                else mismatchCount++;
-                            }
-                        });
-                        // Рекомендуємо ТІЛЬКИ якщо є збіги і ЖОДНОГО протиріччя
-                        if (hasActive && matchCount > 0 && mismatchCount === 0) recCount++;
+                    if (i.type === 'item') {
+                        let hasScaleMatch = globalMin === null; // Якщо шкали не крутили - пускаємо
+                        if (globalMin !== null && i.ranges && i.ranges.length > 0) {
+                            hasScaleMatch = i.ranges.some(r => globalMin >= r.min && globalMin <= r.max);
+                        } else if (globalMin !== null && (!i.ranges || i.ranges.length === 0)) {
+                            hasScaleMatch = false; // Практики без тегів не пускаємо в глибокий мінус
+                        }
+
+                        let hasTriggerMatch = activeTriggers.length === 0; // Якщо тригери не вибрані - пускаємо
+                        if (activeTriggers.length > 0) {
+                            let combinedText = (i.name + " " + i.desc).toLowerCase();
+                            hasTriggerMatch = activeTriggers.some(t => combinedText.includes(t));
+                        }
+
+                        // Рахуємо лише ті, що пройшли ОБИДВА фільтри
+                        if ((globalMin !== null || activeTriggers.length > 0) && hasScaleMatch && hasTriggerMatch) {
+                            recCount++;
+                        }
                     }
                 });
             }
 
             const block = document.createElement('div');
+
+
             block.className = 'category-block'; 
             block.id = `cat-${category.replace(/\s+/g, '-')}`;
 
@@ -610,39 +637,50 @@ let isSmartSortEnabled = true;
 let smartClass = 'neutral';
                 let tagsHtml = '';
                 let isRecommended = false;
-                let activeScalesCount = 0;
                 
-                // Аналізуємо теги шкал
-                if (category.toLowerCase() === 'practices' && item.ranges && item.ranges.length > 0) {
-                    let matchCount = 0; let mismatchCount = 0;
-                    item.ranges.forEach(r => {
-                        let scaleKey = Object.keys(selectedItems).find(k => k.toLowerCase() === `scalecat_${r.scale}`);
-                        if (scaleKey) {
-                            activeScalesCount++;
-                            let val = parseInt(selectedItems[scaleKey].text);
-                            if (val >= r.min && val <= r.max) matchCount++;
-                            else mismatchCount++;
+                if (category.toLowerCase() === 'practices') {
+                    // Перевірка шкал
+                    let hasScaleMatch = globalMin === null;
+                    if (globalMin !== null && item.ranges && item.ranges.length > 0) {
+                        hasScaleMatch = item.ranges.some(r => globalMin >= r.min && globalMin <= r.max);
+                    } else if (globalMin !== null && (!item.ranges || item.ranges.length === 0)) {
+                        hasScaleMatch = false;
+                    }
+
+                    // Перевірка тригерів
+                    let hasTriggerMatch = activeTriggers.length === 0;
+                    if (activeTriggers.length > 0) {
+                        let combinedText = (item.name + " " + item.desc).toLowerCase();
+                        hasTriggerMatch = activeTriggers.some(t => combinedText.includes(t));
+                    }
+
+                    let isFilteringActive = globalMin !== null || activeTriggers.length > 0;
+
+                    // Вердикт
+                    if (isFilteringActive) {
+                        if (hasScaleMatch && hasTriggerMatch) {
+                            smartClass = 'recommended';
+                            isRecommended = true;
+                        } else {
+                            smartClass = 'dimmed';
                         }
-                    });
-                    
-                    if (activeScalesCount > 0) {
-                        // Рекомендуємо ТІЛЬКИ якщо є збіги і ЖОДНОГО протиріччя
-                        if (matchCount > 0 && mismatchCount === 0) { smartClass = 'recommended'; isRecommended = true; }
-                        else smartClass = 'dimmed';
                     }
                     
-                    // Рендеримо мінімалістичні теги
-                    tagsHtml = `<div class="practice-tags-wrap">` + 
-                               item.ranges.map(r => `<span class="p-tag">${r.text.replace(/`/g, '')}</span>`).join('') + 
-                               `</div>`;
+                    if (item.ranges && item.ranges.length > 0) {
+                        tagsHtml = `<div class="practice-tags-wrap">` + 
+                                   item.ranges.map(r => `<span class="p-tag">${r.text.replace(/`/g, '')}</span>`).join('') + 
+                                   `</div>`;
+                    }
                 }
 
-                // ЯКЩО ФІЛЬТР УВІМКНЕНО І ПРАКТИКА НЕ ПІДХОДИТЬ — ВЗАГАЛІ ЇЇ НЕ МАЛЮЄМО
-                if (category.toLowerCase() === 'practices' && isSmartSortEnabled && activeScalesCount > 0 && !isRecommended) {
+                // ПРАВИЛО ТРІАЖУ: ХОВАЄМО ВСЕ, ЩО НЕ ПІДХОДИТЬ АБО СУПЕРЕЧИТЬ
+                if (category.toLowerCase() === 'practices' && isSmartSortEnabled && (globalMin !== null || activeTriggers.length > 0) && !isRecommended) {
                     return; 
                 }
 
                 const btn = document.createElement('div');
+
+
                 btn.className = `option-btn ${isSelected ? 'active' : ''} ${item.desc ? 'has-desc' : ''} ${smartClass}`;
                 
                 const clickableArea = document.createElement('div');
