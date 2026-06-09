@@ -502,61 +502,83 @@ let selectedInCat = Object.values(selectedItems).filter(i => i.category === cate
             const customArr = selectedItems[`custom_${category}`] || [];
             selectedInCat += customArr.length;
 
-            // --- ПСИХОЛОГІЧНИЙ ТРІАЖ: ЗБІР ДАНИХ ---
+            // --- ПСИХОЛОГІЧНИЙ ТРІАЖ 2.0 (Рейтинг + Квота) ---
             let globalMin = null;
             let activeTriggers = [];
+            let topPractices = []; // Сюди запишемо переможців
+            let recCount = 0;
             
             if (category.toLowerCase() === 'practices') {
-                // 1. Survival First: Шукаємо найнижчий стан серед шкал
+                // 1. Шукаємо активні шкали і найнижчий стан
                 let activeScaleVals = [];
                 Object.keys(selectedItems).forEach(k => {
-                    if (k.toLowerCase().startsWith('scalecat_')) activeScaleVals.push(parseInt(selectedItems[k].text));
+                    if (k.toLowerCase().startsWith('scalecat_')) activeScaleVals.push({ name: k.split('_')[1].toLowerCase(), val: parseInt(selectedItems[k].text) });
                 });
-                if (activeScaleVals.length > 0) globalMin = Math.min(...activeScaleVals);
+                if (activeScaleVals.length > 0) globalMin = Math.min(...activeScaleVals.map(s => s.val));
                 
-                // 2. Розумний Снайпер (Фікс фатальної помилки та пустого екрана)
+                // 2. Збираємо тригери
                 let rawTriggers = [];
                 Object.values(selectedItems).forEach(i => {
-                    // Строга перевірка наявності i.name (щоб шкали не ламали код!)
                     if (i && typeof i === 'object' && !Array.isArray(i) && i.name && typeof i.name === 'string' && i.name.length > 3 && i.category && i.category.toLowerCase() !== 'practices') {
                         rawTriggers.push(i.name.toLowerCase());
                     }
                 });
-                
-                // ЗАХИСТ ВІД ПУСТОГО ЕКРАНУ: застосовуємо Снайпер ТІЛЬКИ для тих тригерів, які РЕАЛЬНО згадуються в текстах практик
                 rawTriggers.forEach(t => {
-                    let hasMatchInPractices = blockData.items.some(p => p.type === 'item' && (p.name + " " + p.desc).toLowerCase().includes(t));
-                    if (hasMatchInPractices) activeTriggers.push(t);
+                    if (blockData.items.some(p => p.type === 'item' && (p.name + " " + p.desc).toLowerCase().includes(t))) activeTriggers.push(t);
                 });
-            }
 
-            // РАХУЄМО АКТУАЛЬНІ ПРАКТИКИ (ЖОРСТКИЙ ФІЛЬТР)
-            let recCount = 0;
-            if (category.toLowerCase() === 'practices') {
+                // 3. БАЛЬНА СИСТЕМА (Scoring)
+                let scoredPractices = [];
                 blockData.items.forEach(i => {
                     if (i.type === 'item') {
-                        let hasScaleMatch = globalMin === null; // Якщо шкали не крутили - пускаємо
-                        if (globalMin !== null && i.ranges && i.ranges.length > 0) {
-                            hasScaleMatch = i.ranges.some(r => globalMin >= r.min && globalMin <= r.max);
-                        } else if (globalMin !== null && (!i.ranges || i.ranges.length === 0)) {
-                            hasScaleMatch = false; // Практики без тегів не пускаємо в глибокий мінус
+                        let score = 0;
+                        let isMismatch = false;
+
+                        if (i.ranges && i.ranges.length > 0) {
+                            // Перевірка безпеки по всіх активних шкалах
+                            activeScaleVals.forEach(activeScale => {
+                                let range = i.ranges.find(r => r.scale === activeScale.name);
+                                if (range) {
+                                    if (activeScale.val >= range.min && activeScale.val <= range.max) {
+                                        score += 1; // Легкий бонус за те, що підходить
+                                    } else {
+                                        isMismatch = true; // ПРОТИПОКАЗАНО для цієї шкали!
+                                    }
+                                }
+                            });
+
+                            // Survival First: Рятує при найнижчому стані
+                            if (globalMin !== null && !isMismatch) {
+                                if (i.ranges.some(r => globalMin >= r.min && globalMin <= r.max)) score += 10;
+                            }
+                        } else if (globalMin !== null) {
+                            isMismatch = true; // Безпека: якщо шкали покручені, універсальні без тегів ховаємо
                         }
 
-                        let hasTriggerMatch = activeTriggers.length === 0; // Якщо тригери не вибрані - пускаємо
-                        if (activeTriggers.length > 0) {
+                        // Sniper: Влучання в тригер
+                        if (!isMismatch && activeTriggers.length > 0) {
                             let combinedText = (i.name + " " + i.desc).toLowerCase();
-                            hasTriggerMatch = activeTriggers.some(t => combinedText.includes(t));
+                            activeTriggers.forEach(t => {
+                                if (combinedText.includes(t)) score += 50; // Гігантський бонус за точне влучання
+                            });
                         }
 
-                        // Рахуємо лише ті, що пройшли ОБИДВА фільтри
-                        if ((globalMin !== null || activeTriggers.length > 0) && hasScaleMatch && hasTriggerMatch) {
-                            recCount++;
+                        if (score > 0 && !isMismatch) {
+                            scoredPractices.push({ name: i.name, score: score });
                         }
                     }
                 });
+
+                // 4. КВОТА: Сортуємо і беремо тільки ТОП-6
+                scoredPractices.sort((a, b) => b.score - a.score);
+                topPractices = scoredPractices.slice(0, 6).map(sp => sp.name);
+                recCount = topPractices.length;
             }
 
             const block = document.createElement('div');
+
+
+
 
 
             block.className = 'category-block'; 
@@ -642,38 +664,21 @@ let selectedInCat = Object.values(selectedItems).filter(i => i.category === cate
                 const isSelected = !!selectedItems[itemId];
                 const currentScale = isSelected ? selectedItems[itemId].scale : null;
 
-let smartClass = 'neutral';
+	let smartClass = 'neutral';
                 let tagsHtml = '';
-                let isRecommended = false;
-                
+                let isFilteringActive = (category.toLowerCase() === 'practices' && isSmartSortEnabled && (globalMin !== null || activeTriggers.length > 0));
+
                 if (category.toLowerCase() === 'practices') {
-                    // Перевірка шкал
-                    let hasScaleMatch = globalMin === null;
-                    if (globalMin !== null && item.ranges && item.ranges.length > 0) {
-                        hasScaleMatch = item.ranges.some(r => globalMin >= r.min && globalMin <= r.max);
-                    } else if (globalMin !== null && (!item.ranges || item.ranges.length === 0)) {
-                        hasScaleMatch = false;
-                    }
-
-                    // Перевірка тригерів
-                    let hasTriggerMatch = activeTriggers.length === 0;
-                    if (activeTriggers.length > 0) {
-                        let combinedText = (item.name + " " + item.desc).toLowerCase();
-                        hasTriggerMatch = activeTriggers.some(t => combinedText.includes(t));
-                    }
-
-                    let isFilteringActive = globalMin !== null || activeTriggers.length > 0;
-
-                    // Вердикт
                     if (isFilteringActive) {
-                        if (hasScaleMatch && hasTriggerMatch) {
+                        // Якщо фільтр активний, показуємо ТІЛЬКИ ті, що потрапили в ТОП-6
+                        if (topPractices.includes(item.name)) {
                             smartClass = 'recommended';
-                            isRecommended = true;
                         } else {
-                            smartClass = 'dimmed';
+                            return; // Безжально ховаємо все інше!
                         }
                     }
                     
+                    // Рендеримо маркдаун-теги під описом
                     if (item.ranges && item.ranges.length > 0) {
                         tagsHtml = `<div class="practice-tags-wrap">` + 
                                    item.ranges.map(r => `<span class="p-tag">${r.text.replace(/`/g, '')}</span>`).join('') + 
@@ -681,12 +686,10 @@ let smartClass = 'neutral';
                     }
                 }
 
-                // ПРАВИЛО ТРІАЖУ: ХОВАЄМО ВСЕ, ЩО НЕ ПІДХОДИТЬ АБО СУПЕРЕЧИТЬ
-                if (category.toLowerCase() === 'practices' && isSmartSortEnabled && (globalMin !== null || activeTriggers.length > 0) && !isRecommended) {
-                    return; 
-                }
-
                 const btn = document.createElement('div');
+
+
+
 
 
                 btn.className = `option-btn ${isSelected ? 'active' : ''} ${item.desc ? 'has-desc' : ''} ${smartClass}`;
