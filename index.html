@@ -507,18 +507,26 @@ let selectedInCat = Object.values(selectedItems).filter(i => i.category === cate
             let activeTriggers = [];
             
             if (category.toLowerCase() === 'practices') {
-                // 1. Survival First: Шукаємо найнижчий стан
+                // 1. Survival First: Шукаємо найнижчий стан серед шкал
                 let activeScaleVals = [];
                 Object.keys(selectedItems).forEach(k => {
                     if (k.toLowerCase().startsWith('scalecat_')) activeScaleVals.push(parseInt(selectedItems[k].text));
                 });
                 if (activeScaleVals.length > 0) globalMin = Math.min(...activeScaleVals);
                 
-                // 2. Sniper: Збираємо всі натиснуті тригери (слова довші за 3 літери, щоб відсіяти "m", "sex" тощо)
+                // 2. Розумний Снайпер (Фікс фатальної помилки та пустого екрана)
+                let rawTriggers = [];
                 Object.values(selectedItems).forEach(i => {
-                    if (i && typeof i === 'object' && !Array.isArray(i) && !i.scale && i.category.toLowerCase() !== 'practices' && i.name.length > 3) {
-                        activeTriggers.push(i.name.toLowerCase());
+                    // Строга перевірка наявності i.name (щоб шкали не ламали код!)
+                    if (i && typeof i === 'object' && !Array.isArray(i) && i.name && typeof i.name === 'string' && i.name.length > 3 && i.category && i.category.toLowerCase() !== 'practices') {
+                        rawTriggers.push(i.name.toLowerCase());
                     }
+                });
+                
+                // ЗАХИСТ ВІД ПУСТОГО ЕКРАНУ: застосовуємо Снайпер ТІЛЬКИ для тих тригерів, які РЕАЛЬНО згадуються в текстах практик
+                rawTriggers.forEach(t => {
+                    let hasMatchInPractices = blockData.items.some(p => p.type === 'item' && (p.name + " " + p.desc).toLowerCase().includes(t));
+                    if (hasMatchInPractices) activeTriggers.push(t);
                 });
             }
 
