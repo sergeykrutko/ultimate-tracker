@@ -48,7 +48,7 @@
 
 \- - - - -
 
-# AWRSIn [scale]
+# AWRI [scale]
 
 - \+5 🌊 Presence
 - \+4 🌐 Panoramic
@@ -708,7 +708,7 @@
 
 \- - - - -
 
-# AWRSOut [scale]
+# AWRI [scale]
 
 - \+5 🌊 Presence
 - \+4 🌐 Panoramic
