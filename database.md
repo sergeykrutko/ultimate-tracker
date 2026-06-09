@@ -1,4 +1,4 @@
-> Привіт! Вітаю в **Ultimate Tracker**.
+\> Привіт! Вітаю в **Ultimate Tracker**.
 
 # BODY [scale]
 
@@ -49,22 +49,6 @@
 \- - - - -
 
 # AWRSIn [scale]
-
-- \+5 🌊 Presence
-- \+4 🌐 Panoramic
-- \+3 ⚓ Triangulation
-- \+2 👁️ Disidentification
-- \+1 💡 Awakening
-- 0 🤖 Autopilot
-- \-1 🪝 Hooked
-- \-2 🌪️ Fusion
-- \-3 ⚡ Reactivity
-- \-4 🧩 Fragmentation
-- \-5 😶‍🌫️ Dissociation
-
-\- - - - -
-
-# AWRSOut [scale]
 
 - \+5 🌊 Presence
 - \+4 🌐 Panoramic
@@ -724,3 +708,18 @@
 
 \- - - - -
 
+# AWRSOut [scale]
+
+- \+5 🌊 Presence
+- \+4 🌐 Panoramic
+- \+3 ⚓ Triangulation
+- \+2 👁️ Disidentification
+- \+1 💡 Awakening
+- 0 🤖 Autopilot
+- \-1 🪝 Hooked
+- \-2 🌪️ Fusion
+- \-3 ⚡ Reactivity
+- \-4 🧩 Fragmentation
+- \-5 😶‍🌫️ Dissociation
+
+\- - - - -
