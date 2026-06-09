@@ -948,12 +948,6 @@ function saveAndRender() {
                 }
             });
 
-
-                });
-                wrap.style.display = (hasVisibleChild || !isSearching) ? 'block' : 'none';
-                if (isSearching && hasVisibleChild) wrap.classList.remove('collapsed');
-            });
-
             block.querySelectorAll('.category-comment').forEach(c => { c.style.display = isSearching ? 'none' : 'block'; });
 
             if (isSearching && hasVisible) {
