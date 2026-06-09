@@ -494,19 +494,32 @@ let isSmartSortEnabled = true;
             const customArr = selectedItems[`custom_${category}`] || [];
             selectedInCat += customArr.length;
 
+            // РАХУЄМО РЕКОМЕНДОВАНІ ПРАКТИКИ
+            let recCount = 0;
+            if (category.toLowerCase() === 'practices') {
+                blockData.items.forEach(i => {
+                    if (i.ranges && i.ranges.length > 0) {
+                        let hasMatch = false; let hasActive = false;
+                        i.ranges.forEach(r => {
+                            let sKey = Object.keys(selectedItems).find(k => k.toLowerCase() === `scalecat_${r.scale}`);
+                            if (sKey) { hasActive = true; let v = parseInt(selectedItems[sKey].text); if (v >= r.min && v <= r.max) hasMatch = true; }
+                        });
+                        if (hasActive && hasMatch) recCount++;
+                    }
+                });
+            }
+
             const block = document.createElement('div');
             block.className = 'category-block'; 
             block.id = `cat-${category.replace(/\s+/g, '-')}`;
 
             let hasSubheaders = blockData.items.some(i => i.type === 'subheader');
 
- // Додаємо кнопку Смарт-Фільтру ТІЛЬКИ для практик
+            // Кнопка Смарт-Фільтру з лічильником
             let smartBtnHtml = '';
             if (category.toLowerCase() === 'practices') {
-                smartBtnHtml = `<button class="smart-toggle ${isSmartSortEnabled ? 'active' : ''}" onclick="toggleSmartSort(event)">✨ Фільтр</button>`;
+                smartBtnHtml = `<button class="smart-toggle ${isSmartSortEnabled ? 'active' : ''}" onclick="toggleSmartSort(event)">✨ Актуальні (${recCount})</button>`;
             }
-
-
 
             const header = document.createElement('div');
             header.className = 'category-header';
@@ -580,33 +593,37 @@ let isSmartSortEnabled = true;
                 const isSelected = !!selectedItems[itemId];
                 const currentScale = isSelected ? selectedItems[itemId].scale : null;
 
-let smartClass = '';
+let smartClass = 'neutral';
                 let tagsHtml = '';
+                let isRecommended = false;
+                let activeScalesCount = 0;
                 
-                // Якщо це практики, ввімкнено фільтр і є теги шкал
+                // Аналізуємо теги шкал
                 if (category.toLowerCase() === 'practices' && item.ranges && item.ranges.length > 0) {
-                    if (isSmartSortEnabled) {
-                        let hasMatch = false; let hasMismatch = false; let activeScalesCount = 0;
-                        item.ranges.forEach(r => {
-                            let scaleKey = Object.keys(selectedItems).find(k => k.toLowerCase() === `scalecat_${r.scale}`);
-                            if (scaleKey) {
-                                activeScalesCount++;
-                                let val = parseInt(selectedItems[scaleKey].text);
-                                if (val >= r.min && val <= r.max) hasMatch = true;
-                                else hasMismatch = true;
-                            }
-                        });
-                        // Аналіз: якщо є активна шкала
-                        if (activeScalesCount > 0) {
-                            if (hasMatch) smartClass = 'recommended';
-                            else if (hasMismatch) smartClass = 'dimmed';
+                    let hasMatch = false;
+                    item.ranges.forEach(r => {
+                        let scaleKey = Object.keys(selectedItems).find(k => k.toLowerCase() === `scalecat_${r.scale}`);
+                        if (scaleKey) {
+                            activeScalesCount++;
+                            let val = parseInt(selectedItems[scaleKey].text);
+                            if (val >= r.min && val <= r.max) hasMatch = true;
                         }
+                    });
+                    
+                    if (activeScalesCount > 0) {
+                        if (hasMatch) { smartClass = 'recommended'; isRecommended = true; }
+                        else smartClass = 'dimmed';
                     }
                     
                     // Рендеримо мінімалістичні теги
                     tagsHtml = `<div class="practice-tags-wrap">` + 
                                item.ranges.map(r => `<span class="p-tag">${r.text.replace(/`/g, '')}</span>`).join('') + 
                                `</div>`;
+                }
+
+                // ЯКЩО ФІЛЬТР УВІМКНЕНО І ПРАКТИКА НЕ ПІДХОДИТЬ — ВЗАГАЛІ ЇЇ НЕ МАЛЮЄМО
+                if (category.toLowerCase() === 'practices' && isSmartSortEnabled && activeScalesCount > 0 && !isRecommended) {
+                    return; 
                 }
 
                 const btn = document.createElement('div');
@@ -693,6 +710,16 @@ let smartClass = '';
             inputDiv.appendChild(addBtn);
             customWrap.appendChild(inputDiv);
             contentDiv.appendChild(customWrap);
+
+
+// Видаляємо підзаголовки, які залишилися порожніми після фільтрації
+            containerWrap.querySelectorAll('.subheader-wrap').forEach(wrap => {
+                if (wrap.querySelector('.grid-unified.sub-content').children.length === 0) {
+                    wrap.remove();
+                }
+            });
+
+
 
             block.appendChild(contentDiv);
             container.appendChild(block);
@@ -903,11 +930,11 @@ function saveAndRender() {
                 if (item.innerText.toLowerCase().includes(query)) { item.style.display = 'flex'; hasVisible = true; } 
                 else { item.style.display = 'none'; }
             });
+
+
+
             
             block.querySelectorAll('.subheader-wrap').forEach(wrap => {
-                let hasVisibleChild = false;
-                wrap.querySelectorAll('.option-btn').forEach(btn => {
-                    block.querySelectorAll('.subheader-wrap').forEach(wrap => {
                 let hasVisibleChild = false;
                 wrap.querySelectorAll('.option-btn').forEach(btn => {
                     if (btn.style.display !== 'none') hasVisibleChild = true;
@@ -920,6 +947,8 @@ function saveAndRender() {
                     wrap.classList.add('collapsed');
                 }
             });
+
+
                 });
                 wrap.style.display = (hasVisibleChild || !isSearching) ? 'block' : 'none';
                 if (isSearching && hasVisibleChild) wrap.classList.remove('collapsed');
