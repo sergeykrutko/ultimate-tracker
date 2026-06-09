@@ -511,7 +511,7 @@
 
 # needs [tags: ✓, ✘]
 
-#### ✓ Met-needs, ✘ Un-met-needs ######
+#### ✓ Met-needs, ✘ Un-met-needs
 
 ### 🫂 Стосунки та Зв'язок (Connection & Relational)
 
@@ -537,7 +537,7 @@
 ### 🔋 Ресурс та Благополуччя (Well-being & Physical)
 
 - **Well-being** — Базовий стан здоров'я, гармонії та енергії.
-- **Basic-needs** — Фізіологічні потреби (їжа, вода, дах над головою).
+- **Basics** — Фізіологічні потреби (їжа, вода, дах над головою).
 - **Comfort** — Фізичний затишок та відсутність болю.
 - **Safety** — Відчуття захищеності від зовнішніх загроз.
 - **Sex** — Сексуальне задоволення та інтимність.
@@ -708,6 +708,9 @@
 
 \- - - - -
 
+ > *Оціни свій стан зараз*
+ > 🪷
+
 # AWRO [scale]
 
 - \+5 🌊 Presence
@@ -723,3 +726,28 @@
 - \-5 😶‍🌫️ Dissociation
 
 \- - - - -
+
+# ULTS [scale]
+
+\+5 🌊 Flow
+
+\+4 🔥 Drive
+
+\+3 🍃 Ease
+
+\+2 ⚙️ Tone / Focus
+
+\+1 👣 🔋 Grounded / Balanced
+
+ 0 ⚖️ Neutral
+
+\-1 🍂 Friction / Fade
+
+\-2 🪨 Resistance / Viscosity
+
+\-3 ⚡ Tension / 🪫 Panic / Exhaustion
+
+\-4 💔 Distress / 🧊 Freeze
+
+\-5 ❌ Collapse
+
