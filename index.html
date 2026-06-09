@@ -91,7 +91,7 @@
 
         /* Глобальні Шкали (2 в ряд для ширини > 400px, 1 в ряд для вузьких) */
         .global-scale-widget { 
-            width: 100%; padding: 12px; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border);
+            width: 100%; padding: 10px 12px; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border);
         }
 
 /*
@@ -110,11 +110,12 @@
         }
 
 
-        .global-scale-header { display: flex; flex-direction: column; align-items: flex-start; margin-bottom: 8px; gap: 2px;}
-        .global-scale-title { font-size: 15px; font-weight: 800; color: var(--text-main); }
-       .global-scale-value-row { display: flex; justify-content: space-between; width: 100%; align-items: flex-start; min-height: 32px; gap: 6px; }
-	.global-scale-value { font-size: 12px; font-weight: 700; color: var(--accent); line-height: 1.2; flex: 1; }
+       .global-scale-header { display: flex; flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 4px; gap: 8px;}
+        .global-scale-title { font-size: 14px; font-weight: 800; color: var(--text-main); margin: 0; white-space: nowrap; }
+        .global-scale-value-row { display: flex; justify-content: flex-end; width: auto; align-items: center; min-height: auto; gap: 6px; flex: 1;}
+        .global-scale-value { font-size: 13px; font-weight: 700; color: var(--accent); line-height: 1.1; text-align: right; }
         .global-scale-value.empty { color: var(--text-desc); font-style: italic; font-weight: 600; font-size: 13px;}
+
         
         .slider-container { position: relative; padding-bottom: 16px; margin-top: 4px;}
         .global-slider { width: 100%; -webkit-appearance: none; height: 5px; background: var(--border); border-radius: 3px; outline: none; margin-bottom: 8px; border: 1px solid transparent; }
@@ -662,34 +663,38 @@
 function saveAndRender() {
         saveData();
         
-        // 1. Запам'ятовуємо, які саме категорії були відкриті користувачем
+        // МАГІЯ ТУТ: Жорстко фіксуємо висоту контейнера перед перемальовкою
+        const container = document.getElementById('app-container');
+        container.style.minHeight = container.offsetHeight + 'px';
+        const currentScroll = window.scrollY;
+
         const expandedIds = Array.from(document.querySelectorAll('.category-block.expanded')).map(el => el.id);
         const expandedSubgroups = Array.from(document.querySelectorAll('.subheader-wrap:not(.collapsed) .subheader-title span:first-child')).map(el => el.innerText);
 
-        // 2. Перемальовуємо інтерфейс БЕЗ скидання позиції вікна
         renderApp();
         
-        // 3. Точково повертаємо класи назад
         document.querySelectorAll('.category-block').forEach(block => {
             if (expandedIds.includes(block.id)) block.classList.add('expanded');
-            else block.classList.remove('expanded'); // переконуємось, що зайве не відкриється
         });
-        
         document.querySelectorAll('.subheader-wrap').forEach(wrap => {
             const title = wrap.querySelector('.subheader-title span:first-child').innerText;
-            if (expandedSubgroups.includes(title)) {
-                wrap.classList.remove('collapsed');
-            } else {
-                wrap.classList.add('collapsed');
-            }
+            if (expandedSubgroups.includes(title)) wrap.classList.remove('collapsed');
         });
 
-        // 4. Оновлюємо пошук, якщо він був активний, але НЕ чіпаємо скрол
         const query = document.getElementById('search-input').value;
-        if (query) { 
-            filterItems(); 
-        }
+        if(query) { filterItems(); }
+        
+        // Тримаємо скрол на місці
+        window.scrollTo(0, currentScroll);
+
+        // Знімаємо фіксацію висоти, коли браузер все відмалював
+        requestAnimationFrame(() => {
+            container.style.minHeight = 'auto';
+        });
     }
+
+
+
 
     function saveData() { localStorage.setItem('trackerData_v7', JSON.stringify(selectedItems)); }
 
@@ -823,23 +828,20 @@ function saveAndRender() {
                 else { item.style.display = 'none'; }
             });
             
-            block.querySelectorAll('.subheader-wrap').forEach(wrap => {
-                let hasVisibleChild = false;
-                wrap.querySelectorAll('.option-btn').forEach(btn => {
-                    block.querySelectorAll('.subheader-wrap').forEach(wrap => {
+		block.querySelectorAll('.subheader-wrap').forEach(wrap => {
                 let hasVisibleChild = false;
                 wrap.querySelectorAll('.option-btn').forEach(btn => {
                     if (btn.style.display !== 'none') hasVisibleChild = true;
                 });
                 wrap.style.display = (hasVisibleChild || !isSearching) ? 'block' : 'none';
                 
-                // Якщо шукаємо - розгортаємо. Якщо очистили пошук - згортаємо назад!
                 if (isSearching && hasVisibleChild) {
                     wrap.classList.remove('collapsed');
                 } else if (!isSearching) {
                     wrap.classList.add('collapsed');
                 }
             });
+
                 });
                 wrap.style.display = (hasVisibleChild || !isSearching) ? 'block' : 'none';
                 if (isSearching && hasVisibleChild) wrap.classList.remove('collapsed');
