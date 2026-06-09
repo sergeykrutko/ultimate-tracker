@@ -502,10 +502,10 @@ let selectedInCat = Object.values(selectedItems).filter(i => i.category === cate
             const customArr = selectedItems[`custom_${category}`] || [];
             selectedInCat += customArr.length;
 
-            // --- ПСИХОЛОГІЧНИЙ ТРІАЖ 2.0 (Рейтинг + Квота) ---
+           // --- ПСИХОЛОГІЧНИЙ ТРІАЖ 3.0 (Диверсифікація + Анти-універсальність) ---
             let globalMin = null;
             let activeTriggers = [];
-            let topPractices = []; // Сюди запишемо переможців
+            let topPractices = []; 
             let recCount = 0;
             
             if (category.toLowerCase() === 'practices') {
@@ -529,53 +529,77 @@ let selectedInCat = Object.values(selectedItems).filter(i => i.category === cate
 
                 // 3. БАЛЬНА СИСТЕМА (Scoring)
                 let scoredPractices = [];
+                let currentSub = "Інше"; // Відстежуємо підкатегорію (Breathing, Somatic і тд)
+                
                 blockData.items.forEach(i => {
+                    if (i.type === 'subheader') currentSub = i.title; // Запам'ятовуємо, в якій ми групі
                     if (i.type === 'item') {
                         let score = 0;
                         let isMismatch = false;
 
                         if (i.ranges && i.ranges.length > 0) {
-                            // Перевірка безпеки по всіх активних шкалах
                             activeScaleVals.forEach(activeScale => {
                                 let range = i.ranges.find(r => r.scale === activeScale.name);
                                 if (range) {
                                     if (activeScale.val >= range.min && activeScale.val <= range.max) {
-                                        score += 1; // Легкий бонус за те, що підходить
+                                        score += 1; 
                                     } else {
-                                        isMismatch = true; // ПРОТИПОКАЗАНО для цієї шкали!
+                                        isMismatch = true; 
                                     }
                                 }
                             });
 
-                            // Survival First: Рятує при найнижчому стані
                             if (globalMin !== null && !isMismatch) {
-                                if (i.ranges.some(r => globalMin >= r.min && globalMin <= r.max)) score += 10;
+                                let survivalRange = i.ranges.find(r => globalMin >= r.min && globalMin <= r.max);
+                                if (survivalRange) {
+                                    score += 10;
+                                    // БОНУС ЗА ВУЗЬКІСТЬ: Спеціалізовані практики виштовхуються вгору над універсальними
+                                    let rSize = survivalRange.max - survivalRange.min;
+                                    if (rSize <= 1) score += 5; // Снайперська вузькість (напр. -4:-5)
+                                    else if (rSize <= 2) score += 3; // Середня
+                                }
                             }
                         } else if (globalMin !== null) {
-                            isMismatch = true; // Безпека: якщо шкали покручені, універсальні без тегів ховаємо
+                            isMismatch = true; 
                         }
 
-                        // Sniper: Влучання в тригер
                         if (!isMismatch && activeTriggers.length > 0) {
                             let combinedText = (i.name + " " + i.desc).toLowerCase();
                             activeTriggers.forEach(t => {
-                                if (combinedText.includes(t)) score += 50; // Гігантський бонус за точне влучання
+                                if (combinedText.includes(t)) score += 50; 
                             });
                         }
 
                         if (score > 0 && !isMismatch) {
-                            scoredPractices.push({ name: i.name, score: score });
+                            scoredPractices.push({ name: i.name, score: score, sub: currentSub });
                         }
                     }
                 });
 
-                // 4. КВОТА: Сортуємо і беремо тільки ТОП-6
+                // 4. КВОТА З ДИВЕРСИФІКАЦІЄЮ: Беремо кращі з різних підгруп
                 scoredPractices.sort((a, b) => b.score - a.score);
-                topPractices = scoredPractices.slice(0, 6).map(sp => sp.name);
+                
+                let finalSelection = [];
+                let subCount = {}; // Рахуємо скільки практик ми вже взяли з кожної групи
+                
+                scoredPractices.forEach(p => {
+                    if (!subCount[p.sub]) subCount[p.sub] = 0;
+                    // Дозволяємо максимум 3 практики з однієї групи (щоб "універсальні" не з'їли весь список)
+                    // АЛЕ якщо це пряме влучання в ваш Тригер (score >= 50) - пускаємо поза будь-якою чергою!
+                    if (subCount[p.sub] < 3 || p.score >= 50) {
+                        finalSelection.push(p.name);
+                        subCount[p.sub]++;
+                    }
+                });
+
+                // Загальний ліміт - 15 різноманітних і найефективніших практик
+                topPractices = finalSelection.slice(0, 15);
                 recCount = topPractices.length;
             }
 
             const block = document.createElement('div');
+
+
 
 
 
