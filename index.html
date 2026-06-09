@@ -381,7 +381,13 @@ let isSmartSortEnabled = true;
                 return;
             }
 
- let name = content; let desc = "";
+ // --- НОВИЙ СУПЕР-ПАРСЕР ---
+            let name = content; 
+            let desc = "";
+            let ranges = [];
+            let triggersList = [];
+            
+            // Спочатку розділимо назву і опис
             const sepMatch = content.match(/ — | - |: /); 
             if (sepMatch) {
                 const idx = sepMatch.index;
@@ -389,12 +395,7 @@ let isSmartSortEnabled = true;
                 desc = content.substring(idx + sepMatch[0].length).trim();
             }
             
-            // ПАРСИНГ ТЕГІВ: витягуємо шкали ТА тригери
-            let ranges = [];
-            let triggersList = [];
-            let cleanDesc = desc;
-            
-            // 1. Витягуємо шкали
+            // 1. Витягуємо шкали `[mind -1:-2]` (з лапками або без)
             const scaleRegex = /`?\[([a-z]+)\s+([+-]?\d+)(?::([+-]?\d+))?\]`?/gi;
             let match;
             while ((match = scaleRegex.exec(desc)) !== null) {
@@ -402,23 +403,22 @@ let isSmartSortEnabled = true;
                 let val1 = parseInt(match[2]);
                 let val2 = match[3] ? parseInt(match[3]) : val1;
                 ranges.push({ scale, min: Math.min(val1, val2), max: Math.max(val1, val2), text: match[0] });
-                cleanDesc = cleanDesc.replace(match[0], '').trim();
             }
+            // Видаляємо шкали з опису
+            let tempDesc = desc.replace(scaleRegex, '');
 
-            // 2. Витягуємо тригери (всі інші дужки, розбиваючи через кому)
+            // 2. Витягуємо тригери `[trigger]`
             const triggerRegex = /`?\[(.*?)\]`?/g;
-            let newDesc = cleanDesc;
-            while ((match = triggerRegex.exec(cleanDesc)) !== null) {
+            while ((match = triggerRegex.exec(tempDesc)) !== null) {
                 let tagsStr = match[1];
-                
-                // ЗАХИСТ: Якщо в дужках ТІЛЬКИ цифри, плюси, мінуси чи двокрапки (напр. [-1]) - ігноруємо!
-                if (/^[+\-:\d\s]+$/.test(tagsStr)) continue;
-                
-                let tagsArr = tagsStr.split(',').map(t => t.trim()).filter(t => t);
-                triggersList.push(...tagsArr);
-                newDesc = newDesc.replace(match[0], '').trim();
+                // Якщо це не шкала (тільки цифри/плюси/мінуси), то це тригер
+                if (!/^[+\-:\d\s]+$/.test(tagsStr)) {
+                    let tagsArr = tagsStr.split(',').map(t => t.trim()).filter(t => t);
+                    triggersList.push(...tagsArr);
+                }
             }
-            cleanDesc = newDesc;
+            // Видаляємо тригери з опису
+            let cleanDesc = tempDesc.replace(triggerRegex, '').trim();
 
             currentCat.items.push({ type: 'item', name, desc: cleanDesc, ranges, triggers: triggersList });
 
@@ -437,6 +437,16 @@ let isSmartSortEnabled = true;
         });
         return blocks;
     }
+
+
+function renderInlineMarkdown(text) {
+        return text
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/_(.*?)_/g, '<em>$1</em>')
+            .replace(/`(.*?)`/g, '<code>$1</code>');
+    }
+
 
     function renderApp() {
         const container = document.getElementById('app-container');
@@ -762,6 +772,8 @@ let selectedInCat = Object.values(selectedItems).filter(i => i.category === cate
                 clickableArea.innerHTML = `
                     <div class="option-name">${item.name}</div>
                     ${item.desc ? `<div class="option-desc">${item.desc}</div>` : ''}
+		${item.desc ? `<div class="option-desc">${renderInlineMarkdown(item.desc)}</div>` : ''}
+
                     ${tagsHtml}
                 `;
                 btn.appendChild(clickableArea);
