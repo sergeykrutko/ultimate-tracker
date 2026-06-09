@@ -3,98 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Трекер</title>
+    <title>Трекер Станів</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
+        /* СВІТЛА ТЕМА (Wellness / Spa Palette) */
         :root {
-            --bg-color: #f2f2f7; --card-bg: #ffffff; --text-main: #000000;
-            --text-desc: #8e8e93; --accent: #007aff; --accent-light: #e5f1ff; --border: #d1d1d6;
+            --bg-color: #F4F5F4;       /* Дуже м'який сіро-зелений фон (Steam) */
+            --card-bg: #FFFFFF;        /* Чисті білі картки */
+            --text-main: #2D3331;      /* Глибокий сірий для тексту */
+            --text-desc: #7A8B88;      /* Шавлієво-сірий для описів */
+            --accent: #6C8270;         /* Cushing Green (М'який акцент) */
+            --accent-light: #E8EDE9;   /* Світлий акцент для вибраних кнопок */
+            --border: #D3D9D7;         /* М'які межі */
         }
-        * { box-sizing: border-box; font-family: 'Nunito', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-        
-        body { background-color: var(--bg-color); margin: 0; padding-bottom: 120px; color: var(--text-main); transition: padding-bottom 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        /* ТЕМНА ТЕМА (Relaxing Dark) */
+        [data-theme="dark"] {
+            --bg-color: #1A1C1B;       /* Глибокий графіт */
+            --card-bg: #232625;        /* Трохи світліші картки */
+            --text-main: #E4E8E6;      /* Світлий текст */
+            --text-desc: #8B9996;      /* Приглушений текст */
+            --accent: #8FA994;         /* Світлий шавлієвий */
+            --accent-light: rgba(143, 169, 148, 0.15); 
+            --border: #3A403E;
+        }
+
+        * { box-sizing: border-box; font-family: 'Nunito', -apple-system, sans-serif; }
+        body { background-color: var(--bg-color); margin: 0; padding-bottom: 120px; color: var(--text-main); transition: background-color 0.3s, color 0.3s; }
         .wrapper { max-width: 650px; margin: 0 auto; }
         
-        .header-container { position: sticky; top: 0; z-index: 10; background: var(--bg-color); padding: 16px 16px 10px; border-bottom: 1px solid var(--border); }
+        .header-container { position: sticky; top: 0; z-index: 10; background: var(--bg-color); padding: 16px 16px 10px; border-bottom: 1px solid var(--border); transition: background-color 0.3s; }
         .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px;}
-        .clear-btn { color: var(--accent); background: none; border: none; font-size: 15px; font-weight: 700; cursor: pointer; padding: 4px 0; }
-        .search-bar { width: 100%; background: #e3e3e8; border: none; border-radius: 10px; padding: 10px 14px; font-size: 16px; outline: none; font-weight: 600;}
-        .search-bar::placeholder { font-weight: 400; }
+        
+        .header-actions { display: flex; gap: 12px; align-items: center; }
+        .icon-btn { background: none; border: none; color: var(--text-main); font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; transition: background 0.2s;}
+        .icon-btn:active { background: var(--border); }
+        .icon-btn.active-toggle { color: var(--accent); }
+        .clear-btn { color: var(--accent); background: none; border: none; font-size: 15px; font-weight: 700; cursor: pointer; }
+        
+        .search-bar { width: 100%; background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; font-size: 16px; outline: none; font-weight: 600; color: var(--text-main); transition: border-color 0.2s;}
+        .search-bar:focus { border-color: var(--accent); }
+        .search-bar::placeholder { font-weight: 500; color: var(--text-desc); }
         .container { padding: 10px 16px; }
+
+        /* Плашка Markdown (Просто текст, без фону) */
+        .md-quote { padding: 4px 16px; font-size: 15px; line-height: 1.5; margin: 8px 0 20px; color: var(--text-main); font-weight: 600; opacity: 0.85;}
+        .md-quote code { background: var(--border); padding: 2px 5px; border-radius: 4px; font-family: monospace; font-size: 13px; color: var(--text-main);}
         
         /* Акордеон Категорій */
-        .category-block { margin-bottom: 12px; background: var(--card-bg); border-radius: 14px; overflow: hidden; border: 1px solid var(--border); }
-        .category-header { padding: 16px; display: flex; justify-content: space-between; align-items: center; font-size: 19px; font-weight: 800; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
+        .category-block { margin-bottom: 14px; background: var(--card-bg); border-radius: 16px; overflow: hidden; border: 1px solid var(--border); transition: background-color 0.3s, border-color 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.02);}
+        .category-header { padding: 18px 16px; display: flex; justify-content: space-between; align-items: center; font-size: 19px; font-weight: 800; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
         .category-header-left { display: flex; align-items: center; gap: 8px; }
         .category-badge { background: var(--accent); color: white; font-size: 13px; font-weight: bold; padding: 2px 8px; border-radius: 10px; display: none; }
         .category-badge.has-items { display: block; }
+        
+        .category-header-right { display: flex; align-items: center; gap: 14px; }
+        .subgroups-toggle-btn { font-size: 17px; color: var(--accent); opacity: 0.8; transition: opacity 0.2s; padding: 4px;}
+        .subgroups-toggle-btn:active { opacity: 1; }
         .category-chevron { font-size: 14px; color: var(--text-desc); transition: transform 0.3s; }
-        .category-content { display: none; padding: 0 16px 16px; border-top: 1px solid var(--border); background: var(--bg-color); }
+        
+        .category-content { display: none; padding: 0 16px 16px; border-top: 1px solid var(--border); }
         .category-block.expanded .category-content { display: block; }
         .category-block.expanded .category-chevron { transform: rotate(180deg); }
 
+        /* Сітка та Список */
         .grid-unified { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; padding-top: 8px;}
+        [data-layout="list"] .option-btn.has-desc { grid-column: 1 / -1; }
 
-        /* Підзаголовки та коментарі */
+        /* Підзаголовки (###) та Коментарі (######) */
         .subheader-wrap { margin-top: 16px; grid-column: 1 / -1; }
-        .subheader-title { 
-            font-size: 14px; font-weight: 800; color: var(--text-desc); text-transform: uppercase; 
-            letter-spacing: 0.5px; cursor: pointer; display: flex; align-items: center; 
-            justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); margin-bottom: 8px;
-            -webkit-tap-highlight-color: transparent;
-        }
+        .subheader-title { font-size: 14px; font-weight: 800; color: var(--text-desc); text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); margin-bottom: 8px; -webkit-tap-highlight-color: transparent; }
         .subheader-chevron { transition: transform 0.3s; font-size: 12px; }
         .subheader-wrap.collapsed .subheader-chevron { transform: rotate(-90deg); }
         .subheader-wrap.collapsed .sub-content { display: none; }
-        
-        .category-comment { grid-column: 1 / -1; font-size: 13px; color: var(--text-desc); font-style: italic; padding: 4px 4px 8px; line-height: 1.3; }
+        .category-comment { grid-column: 1 / -1; font-size: 13.5px; color: var(--text-desc); font-style: italic; padding: 4px 4px 8px; line-height: 1.4; font-weight: 600;}
 
         /* Кнопки вибору */
-        .option-btn { background-color: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px; transition: all 0.15s ease; display: flex; flex-direction: column; justify-content: flex-start; }
+        .option-btn { background-color: var(--bg-color); border: 1px solid transparent; border-radius: 12px; padding: 12px; transition: all 0.15s ease; display: flex; flex-direction: column; justify-content: flex-start; }
         .option-btn.active { background-color: var(--accent-light); border-color: var(--accent); }
         .option-clickable-area { cursor: pointer; -webkit-tap-highlight-color: transparent; }
         .option-name { font-size: 15px; font-weight: 700; color: var(--text-main); margin-bottom: 4px; line-height: 1.2;}
         .option-btn.active .option-name { color: var(--accent); }
-        .option-desc { font-size: 13px; color: var(--text-desc); line-height: 1.25; font-weight: 600;}
+        .option-desc { font-size: 13px; color: var(--text-desc); line-height: 1.3; font-weight: 600;}
 
-        /* Шкала або Кастомні Теги */
-        .scale-container { display: none; margin-top: auto; padding-top: 8px; justify-content: space-between; gap: 4px; }
+        /* Шкала всередині кнопок */
+        .scale-container { display: none; margin-top: auto; padding-top: 10px; justify-content: space-between; gap: 4px; }
         .option-btn.active .scale-container { display: flex; }
-        .scale-btn { width: 100%; aspect-ratio: 1; max-height: 26px; border-radius: 6px; background: var(--card-bg); border: 1px solid var(--accent); color: var(--accent); font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-        .scale-btn.selected { background: var(--accent); color: white; }
-        .scale-btn.text-tag { width: auto; flex: 1; aspect-ratio: auto; padding: 4px; font-size: 12px; border-radius: 8px; text-transform: lowercase;}
+        .scale-btn { width: 100%; aspect-ratio: 1; max-height: 28px; border-radius: 8px; background: var(--card-bg); border: 1px solid var(--border); color: var(--text-desc); font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: all 0.15s;}
+        .scale-btn.selected { background: var(--accent); color: white; border-color: var(--accent);}
+        .scale-btn.text-tag { width: auto; flex: 1; aspect-ratio: auto; padding: 4px; font-size: 11px; border-radius: 8px; text-transform: lowercase; line-height: 1.1; overflow-wrap: break-word; text-align: center; }
 
-        /* Повзунок */
-        .global-scale-widget { padding-top: 16px; }
-        .global-scale-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-        .global-scale-value { font-size: 16px; font-weight: 700; color: var(--accent); }
-        .global-scale-value.empty { color: var(--text-desc); font-style: italic; }
+        /* Глобальний Повзунок */
+        .global-scale-widget { padding-bottom: 12px; margin-bottom: 14px;}
+        .global-scale-header { display: flex; flex-direction: column; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .global-scale-title { font-size: 19px; font-weight: 800; color: var(--text-main); }
+        .global-scale-value { font-size: 14px; font-weight: 700; color: var(--accent); }
         .slider-container { position: relative; padding-bottom: 20px; }
-        .global-slider { width: 100%; -webkit-appearance: none; height: 6px; background: #d1d1d6; border-radius: 3px; outline: none; margin-bottom: 10px; }
-        .global-scale-widget.active .global-slider { background: #a8d1ff; }
-        .global-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 28px; height: 28px; background: #fff; border: 1px solid #c7c7cc; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.2); cursor: pointer; }
+        .global-slider { width: 100%; -webkit-appearance: none; height: 6px; background: var(--border); border-radius: 3px; outline: none; margin-bottom: 10px; }
+        .global-scale-widget.active .global-slider { background: var(--accent-light); border: 1px solid var(--accent); }
+        .global-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 28px; height: 28px; background: #fff; border: 1px solid var(--border); border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.15); cursor: pointer; }
         .global-scale-widget.active .global-slider::-webkit-slider-thumb { border: 2px solid var(--accent); }
-        .global-slider-labels { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; color: var(--text-desc); position: absolute; width: 100%; bottom: 0; padding: 0 10px; box-sizing: border-box;}
+       .global-slider-labels { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: var(--text-desc); position: absolute; width: 100%; bottom: 0; padding: 0 5px; box-sizing: border-box; white-space: nowrap; }
+.global-slider-labels span { text-overflow: ellipsis; overflow: hidden; max-width: 32%; text-align: center; }
+.global-slider-labels span:first-child { text-align: left; }
+.global-slider-labels span:last-child { text-align: right; }
 
-        .custom-item-input { width: 100%; border: 1px dashed var(--border); border-radius: 12px; padding: 12px 14px; font-size: 15px; font-weight: 600; color: var(--text-main); background: var(--card-bg); outline: none; margin-top: 16px; transition: border-color 0.2s;}
-        .custom-item-input:focus { border-color: var(--accent); border-style: solid;}
-        .custom-item-input::placeholder { color: #b0b0b5; font-weight: 600;}
+        /* Кастомне віконце (Новий дизайн) */
+        .custom-items-wrap { margin-top: 16px; border-top: 1px dashed var(--border); padding-top: 16px; }
+        .custom-tags-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+        .custom-tag { background: var(--accent); color: white; padding: 6px 12px; border-radius: 16px; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1);}
+        .custom-tag span { font-size: 11px; opacity: 0.8; }
+        .custom-input-row { display: flex; gap: 8px; }
+        .custom-item-input { flex: 1; border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; font-size: 15px; font-weight: 600; background: var(--bg-color); color: var(--text-main); outline: none; transition: border-color 0.2s;}
+        .custom-item-input:focus { border-color: var(--accent); }
+        .custom-item-input::placeholder { color: var(--text-desc); font-weight: 500;}
+        .add-custom-btn { background: var(--bg-color); border: 1px solid var(--border); border-radius: 12px; width: 48px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-main); font-size: 18px; transition: all 0.2s;}
+        .add-custom-btn:active { background: var(--border); }
 
         /* Шторка звіту */
-        .bottom-sheet { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card-bg); border-top-left-radius: 20px; border-top-right-radius: 20px; box-shadow: 0 -4px 24px rgba(0,0,0,0.15); z-index: 100; transform: translateY(calc(100% - 60px - env(safe-area-inset-bottom, 0px))); transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .bottom-sheet { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card-bg); border-top-left-radius: 24px; border-top-right-radius: 24px; box-shadow: 0 -4px 30px rgba(0,0,0,0.08); z-index: 100; transform: translateY(calc(100% - 64px - env(safe-area-inset-bottom, 0px))); transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
         .bottom-sheet.open { transform: translateY(0); }
-        .sheet-header { height: 60px; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; cursor: pointer; border-bottom: 1px solid transparent; font-size: 17px; font-weight: 800; color: var(--accent); padding-bottom: env(safe-area-inset-bottom, 0px); }
+        .sheet-header { height: 64px; display: flex; justify-content: space-between; align-items: center; padding: 0 24px; cursor: pointer; border-bottom: 1px solid transparent; font-size: 17px; font-weight: 800; color: var(--accent); padding-bottom: env(safe-area-inset-bottom, 0px); }
+        .sheet-header-actions { display: flex; gap: 16px; align-items: center; }
         .bottom-sheet.open .sheet-header { border-bottom-color: var(--border); padding-bottom: 0; }
         .sheet-chevron { transition: transform 0.3s; }
         .bottom-sheet.open .sheet-chevron { transform: rotate(180deg); }
-        .sheet-content { padding: 16px 20px 24px; padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)); }
-        .report-area { width: 100%; height: 120px; border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-size: 14px; font-weight: 200; background-color: var(--bg-color); resize: none; margin-bottom: 12px; color: var(--text-main); font-family: monospace; }
-        .copy-btn { width: 100%; background-color: var(--accent); color: white; border: none; border-radius: 12px; padding: 14px; font-size: 17px; font-weight: 800; cursor: pointer; }
+        .sheet-content { padding: 16px 24px 24px; padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)); }
+        
+        .report-area { width: 100%; height: 140px; border: 1px solid var(--border); border-radius: 12px; padding: 14px; font-size: 13px; font-weight: 400; background-color: var(--bg-color); resize: none; margin-bottom: 16px; color: var(--text-main); font-family: monospace; white-space: pre; overflow-x: auto;}
+        
+        .copy-btn { width: 100%; background-color: var(--accent); color: white; border: none; border-radius: 14px; padding: 16px; font-size: 17px; font-weight: 800; cursor: pointer; transition: background-color 0.2s;}
 
-        .scroll-top-btn { position: fixed; bottom: calc(80px + env(safe-area-inset-bottom, 0px)); right: 20px; width: 46px; height: 46px; background-color: var(--accent); color: white; border: none; border-radius: 23px; font-size: 22px; font-weight: 800; box-shadow: 0 4px 14px rgba(0,0,0,0.25); cursor: pointer; z-index: 90; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s, bottom 0.3s; }
+        .scroll-top-btn { position: fixed; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); right: 20px; width: 48px; height: 48px; background-color: var(--accent); color: white; border: none; border-radius: 24px; font-size: 22px; font-weight: 800; box-shadow: 0 4px 14px rgba(108, 130, 112, 0.3); cursor: pointer; z-index: 90; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s, bottom 0.3s; }
         .scroll-top-btn.visible { opacity: 1; pointer-events: auto; }
-        .scroll-top-btn.lifted { bottom: calc(300px + env(safe-area-inset-bottom, 0px)); }
+        .scroll-top-btn.lifted { bottom: calc(320px + env(safe-area-inset-bottom, 0px)); }
+
+/* Адаптивна сітка для головного екрана */
+        @media (min-width: 550px) {
+            #app-container {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 14px;
+            }
+            .category-block, .md-quote {
+                width: 100%;
+                margin-bottom: 0; /* Відступи тепер контролює gap */
+            }
+            .global-scale-widget {
+                width: calc(50% - 7px); /* Шкали займають рівно половину мінус відступ */
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -103,19 +162,26 @@
     <div class="header-container" id="top-anchor">
         <div class="header-top">
             <h1>Трекер</h1>
-            <button class="clear-btn" onclick="clearData()">Очистити все</button>
+            <div class="header-actions">
+                <button class="icon-btn" id="layout-toggle" onclick="toggleLayout()" title="Сітка/Список">⊞</button>
+                <button class="icon-btn" id="theme-toggle" onclick="toggleTheme()" title="Тема">🌙</button>
+                <button class="clear-btn" onclick="clearData()">Очистити</button>
+            </div>
         </div>
         <input type="text" class="search-bar" id="search-input" onkeyup="filterItems()" placeholder="Пошук (емоції, потреби)...">
     </div>
     <div class="container" id="app-container">
-        <p style="text-align:center; color:#8e8e93; margin-top:40px; font-weight: 700;" id="loading-text">Завантаження бази...</p>
+        <p style="text-align:center; color:var(--text-desc); margin-top:40px; font-weight: 700;">Завантаження бази...</p>
     </div>
 </div>
 
 <div class="bottom-sheet" id="bottom-sheet">
-    <div class="sheet-header" onclick="toggleSheet()">
-        <span>📝 Звіт (<span id="total-selected">0</span> вибрано)</span>
-        <span class="sheet-chevron">▲</span>
+    <div class="sheet-header" onclick="toggleSheet(event)">
+        <span>📝 Звіт (<span id="total-selected">0</span>)</span>
+        <div class="sheet-header-actions">
+            <button class="icon-btn" id="align-toggle" onclick="toggleAlign(event)" title="Вирівняти як таблицю" style="width: 28px; height: 28px; font-size: 16px;">⇥</button>
+            <span class="sheet-chevron">▲</span>
+        </div>
     </div>
     <div class="sheet-content">
         <textarea id="report" class="report-area" readonly placeholder="Ваш звіт порожній..."></textarea>
@@ -126,49 +192,69 @@
 <button class="scroll-top-btn" id="scroll-btn" onclick="scrollToActive()">↑</button>
 
 <script>
+    // =========================================================================
+    // ⬇️ ВСТАВТЕ СЮДИ ВАШУ БАЗУ ДАНИХ (MARKDOWN) МІЖ ЗВОРОТНИМИ ЛАПКАМИ ⬇️
+    // =========================================================================
     const fallbackDB = `
 
 
 
+    `;
 
+    // =========================================================================
 
+    let parsedBlocks = [];
+    let selectedItems = JSON.parse(localStorage.getItem('trackerData_v4')) || {}; // Скинуто кеш для нової структури
+    let isAligned = localStorage.getItem('trackerAlign') === 'true';
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-`;
-
-    let database = {};
-    let selectedItems = JSON.parse(localStorage.getItem('trackerData14')) || {};
+    let currentTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    let currentLayout = localStorage.getItem('layout') || 'grid';
+    
+    function applyTheme() {
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        document.getElementById('theme-toggle').innerText = currentTheme === 'dark' ? '☀️' : '🌙';
+    }
+    function toggleTheme() {
+        currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        localStorage.setItem('theme', currentTheme);
+        applyTheme();
+    }
+    function applyLayout() {
+        document.documentElement.setAttribute('data-layout', currentLayout);
+        document.getElementById('layout-toggle').innerText = currentLayout === 'grid' ? '☰' : '⊞';
+    }
+    function toggleLayout() {
+        currentLayout = currentLayout === 'grid' ? 'list' : 'grid';
+        localStorage.setItem('layout', currentLayout);
+        applyLayout();
+    }
+    applyTheme(); applyLayout();
 
     async function initApp() {
+        if (isAligned) document.getElementById('align-toggle').classList.add('active-toggle');
         try {
             const response = await fetch('database.md');
             if (!response.ok) throw new Error('File not found');
             const text = await response.text();
-            database = parseDatabase(text);
+            parsedBlocks = parseDatabase(text);
         } catch (error) {
-            database = parseDatabase(fallbackDB);
+            parsedBlocks = parseDatabase(fallbackDB);
         }
         renderApp();
     }
 
+    function renderMarkdown(text) {
+        return text
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/_(.*?)_/g, '<em>$1</em>')
+            .replace(/`(.*?)`/g, '<code>$1</code>');
+    }
+
     function parseDatabase(text) {
         const lines = text.split('\n');
-        const db = {};
-        let currentCat = "";
+        const blocks = [];
+        let currentCat = null;
 
         lines.forEach(line => {
             line = line.trim();
@@ -176,17 +262,20 @@
             if (line.match(/^\\?-+\s*-*\s*-*\s*-*\s*-*$/)) return;
             if (line.startsWith('# !')) return;
 
-            // Головна категорія з тегами
+            if (line.startsWith('>')) {
+                let mdText = line.substring(1).trim();
+                blocks.push({ type: 'markdown', content: mdText });
+                currentCat = null; 
+                return;
+            }
+
             if (line.startsWith('# ')) {
                 let catTitle = line.substring(2).trim();
-                let isScale = false;
-                let tags = null;
+                let isScale = false; let tags = null;
 
                 if (catTitle.toLowerCase().includes('[scale]')) {
-                    isScale = true;
-                    catTitle = catTitle.replace(/\[scale\]/gi, '').trim();
+                    isScale = true; catTitle = catTitle.replace(/\[scale\]/gi, '').trim();
                 }
-
                 const tagsMatch = catTitle.match(/\[tags:\s*(.+?)\]/i);
                 if (tagsMatch) {
                     tags = tagsMatch[1].split(',').map(s => s.trim());
@@ -194,75 +283,147 @@
                 }
 
                 catTitle = catTitle.replace(/\*/g, '').trim();
-                currentCat = catTitle;
-                db[currentCat] = { type: isScale ? 'scale-category' : 'mixed', items: [], tags: tags };
+                currentCat = { type: isScale ? 'scale-category' : 'category', title: catTitle, items: [], tags: tags };
+                blocks.push(currentCat);
                 return;
             }
             if (!currentCat) return;
 
-            // Коментар (####)
-            if (line.match(/^#{4,}\s+/)) {
-                let commentText = line.replace(/^#{4,}\s+/, '').replace(/\*/g, '').trim();
-                db[currentCat].items.push({ type: 'comment', text: commentText });
+            if (line.match(/^#{6,}\s+/)) {
+                let commentText = line.replace(/^#{6,}\s+/, '').replace(/\*/g, '').trim();
+                currentCat.items.push({ type: 'comment', text: commentText });
                 return;
             }
 
-            // Підзаголовок (## або ###)
             if (line.match(/^#{2,3}\s+/)) {
                 let cleanTitle = line.replace(/^#{2,3}\s+/, '').replace(/\*/g, '').trim();
-                db[currentCat].items.push({ type: 'subheader', title: cleanTitle });
+                currentCat.items.push({ type: 'subheader', title: cleanTitle });
                 return;
             }
 
             let content = line.replace(/^\\?[-*]\s+/, '').replace(/\\/g, '').replace(/\*/g, '').trim();
             if(!content) return;
 
-            if (db[currentCat].type === 'scale-category') {
+            if (currentCat.type === 'scale-category') {
                 const scaleMatch = content.match(/^([+-]?\d+)\s+(.+)$/);
-                if (scaleMatch) db[currentCat].items.push({ type: 'scale-item', number: parseInt(scaleMatch[1]), label: scaleMatch[2].trim() });
+                if (scaleMatch) currentCat.items.push({ type: 'scale-item', number: parseInt(scaleMatch[1]), label: scaleMatch[2].trim() });
                 return;
             }
 
-            let name = content;
-            let desc = "";
+            let name = content; let desc = "";
             const sepMatch = content.match(/ — | - |: /); 
             if (sepMatch) {
                 const idx = sepMatch.index;
                 name = content.substring(0, idx).trim();
                 desc = content.substring(idx + sepMatch[0].length).trim();
             }
-            db[currentCat].items.push({ type: 'item', name, desc });
+            currentCat.items.push({ type: 'item', name, desc });
         });
 
-        // Безпечне сортування шкал (щоб коментарі були зверху повзунка)
-        for (const key in db) {
-            if (db[key].type === 'scale-category') {
-                db[key].items.sort((a, b) => {
-                    if (a.type === 'comment') return -1;
-                    if (b.type === 'comment') return 1;
-                    return a.number - b.number;
-                });
-            }
-        }
-        return db;
+        blocks.forEach(b => {
+            if (b.type === 'scale-category') b.items.sort((a, b) => {
+                if (a.type === 'comment' || a.type === 'markdown') return -1;
+                if (b.type === 'comment' || b.type === 'markdown') return 1;
+                return a.number - b.number;
+            });
+        });
+        return blocks;
     }
 
     function renderApp() {
         const container = document.getElementById('app-container');
         container.innerHTML = '';
 
-        for (const [category, data] of Object.entries(database)) {
-            let selectedInCat = 0;
-            if (data.type === 'scale-category') {
-                if (selectedItems[`scaleCat_${category}`]) selectedInCat = 1;
-            } else {
-                selectedInCat = Object.values(selectedItems).filter(i => i.category === category).length;
+        parsedBlocks.forEach(blockData => {
+            if (blockData.type === 'markdown') {
+                const mdDiv = document.createElement('div');
+                mdDiv.className = 'md-quote';
+                mdDiv.innerHTML = renderMarkdown(blockData.content);
+                container.appendChild(mdDiv);
+                return;
             }
-            if (selectedItems[`custom_${category}`]) selectedInCat++; 
+
+            const category = blockData.title;
+            
+            if (blockData.type === 'scale-category') {
+                const scaleItems = blockData.items.filter(i => i.type === 'scale-item');
+                const others = blockData.items.filter(i => i.type !== 'scale-item');
+                if (scaleItems.length === 0) return;
+
+                const widget = document.createElement('div');
+                widget.className = 'category-block global-scale-widget';
+                widget.dataset.searchText = scaleItems.map(i => i.label.toLowerCase()).join(' ') + ' ' + category.toLowerCase();
+                widget.style.padding = '16px';
+
+                const stateId = `scaleCat_${category}`;
+                const isSelected = selectedItems[stateId] !== undefined;
+                const currentIndex = isSelected ? selectedItems[stateId].index : Math.floor(scaleItems.length / 2);
+
+                if (isSelected) widget.classList.add('active');
+
+                others.forEach(c => {
+                    const cDiv = document.createElement('div');
+                    if (c.type === 'markdown') { cDiv.className = 'md-quote'; cDiv.innerHTML = renderMarkdown(c.content); }
+                    else { cDiv.className = 'category-comment'; cDiv.innerText = c.text; cDiv.style.marginBottom = '12px'; }
+                    widget.appendChild(cDiv);
+                });
+
+                const header = document.createElement('div');
+                header.className = 'global-scale-header';
+                
+                const titleSpan = document.createElement('span');
+                titleSpan.className = 'global-scale-title';
+                titleSpan.innerText = category;
+                
+                const valSpan = document.createElement('span');
+                valSpan.className = `global-scale-value ${!isSelected ? 'empty' : ''}`;
+                valSpan.id = `val-${stateId}`;
+                valSpan.innerText = isSelected ? `${scaleItems[currentIndex].number > 0 ? '+' : ''}${scaleItems[currentIndex].number} ${scaleItems[currentIndex].label}` : '';
+              
+
+  // кнопка "✕ скинути"
+                const clearBtn = document.createElement('button');
+                clearBtn.className = 'clear-btn';
+                clearBtn.style.display = isSelected ? 'block' : 'none';
+                clearBtn.style.fontSize = '12px';
+                clearBtn.innerText = '✕';
+                clearBtn.onclick = (e) => clearScaleCat(category, e);
+
+                const rightWrapper = document.createElement('div');
+                rightWrapper.style.display = 'flex'; rightWrapper.style.alignItems = 'center'; rightWrapper.style.gap = '12px';
+                rightWrapper.appendChild(valSpan); rightWrapper.appendChild(clearBtn);
+
+                header.appendChild(titleSpan);
+                header.appendChild(rightWrapper);
+                widget.appendChild(header);
+
+                const firstNum = scaleItems[0].number;
+                const midNum = scaleItems[Math.floor(scaleItems.length/2)].number;
+                const lastNum = scaleItems[scaleItems.length-1].number;
+
+                const sliderContainer = document.createElement('div');
+                sliderContainer.className = 'slider-container';
+                sliderContainer.innerHTML = `
+                    <input type="range" min="0" max="${scaleItems.length - 1}" value="${currentIndex}" class="global-slider" 
+                           oninput="updateScaleSlider('${category}', this.value)" onchange="saveData()">
+                    <div class="global-slider-labels">
+                        <span>${firstNum}</span><span>${midNum}</span><span>${lastNum > 0 ? '+'+lastNum : lastNum}</span>
+                    </div>
+                `;
+                widget.appendChild(sliderContainer);
+                container.appendChild(widget);
+                return;
+            }
+
+            let selectedInCat = Object.values(selectedItems).filter(i => i.category === category).length;
+            const customArr = selectedItems[`custom_${category}`] || [];
+            selectedInCat += customArr.length;
 
             const block = document.createElement('div');
             block.className = 'category-block'; 
             block.id = `cat-${category.replace(/\s+/g, '-')}`;
+
+            let hasSubheaders = blockData.items.some(i => i.type === 'subheader');
 
             const header = document.createElement('div');
             header.className = 'category-header';
@@ -272,177 +433,159 @@
                     <span>${category}</span>
                     <span class="category-badge ${selectedInCat > 0 ? 'has-items' : ''}">${selectedInCat}</span>
                 </div>
-                <div class="category-chevron">▼</div>
+                <div class="category-header-right">
+                    ${hasSubheaders ? `<div class="subgroups-toggle-btn" title="Всі підгрупи">⇕</div>` : ''}
+                    <div class="category-chevron">▼</div>
+                </div>
             `;
             block.appendChild(header);
 
             const contentDiv = document.createElement('div');
             contentDiv.className = 'category-content';
 
-            if (data.type === 'scale-category') {
-                const scaleItems = data.items.filter(i => i.type === 'scale-item');
-                const comments = data.items.filter(i => i.type === 'comment');
+            const containerWrap = document.createElement('div');
+            let currentGrid = document.createElement('div');
+            currentGrid.className = 'grid-unified';
+            containerWrap.appendChild(currentGrid);
+
+            let subheaderWraps = [];
+
+            if (hasSubheaders) {
+                setTimeout(() => {
+                    const toggleBtn = block.querySelector('.subgroups-toggle-btn');
+                    if(toggleBtn) {
+                        toggleBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            const anyExpanded = subheaderWraps.some(w => !w.classList.contains('collapsed'));
+                            subheaderWraps.forEach(w => {
+                                if (anyExpanded) w.classList.add('collapsed');
+                                else w.classList.remove('collapsed');
+                            });
+                        };
+                    }
+                }, 0);
+            }
+
+            blockData.items.forEach((item) => {
+                if (item.type === 'markdown') {
+                    const mdDiv = document.createElement('div'); mdDiv.className = 'md-quote'; mdDiv.style.gridColumn = '1/-1';
+                    mdDiv.innerHTML = renderMarkdown(item.content); currentGrid.appendChild(mdDiv); return;
+                }
+                if (item.type === 'comment') {
+                    const commentDiv = document.createElement('div'); commentDiv.className = 'category-comment';
+                    commentDiv.innerText = item.text; currentGrid.appendChild(commentDiv); return;
+                }
+
+                if (item.type === 'subheader') {
+                    const subWrap = document.createElement('div');
+                    subWrap.className = 'subheader-wrap'; 
+
+                    const subTitle = document.createElement('div');
+                    subTitle.className = 'subheader-title';
+                    subTitle.innerHTML = `<span>${item.title}</span><span class="subheader-chevron">▼</span>`;
+                    subTitle.onclick = () => subWrap.classList.toggle('collapsed');
+
+                    currentGrid = document.createElement('div');
+                    currentGrid.className = 'grid-unified sub-content';
+
+                    subWrap.appendChild(subTitle); subWrap.appendChild(currentGrid);
+                    containerWrap.appendChild(subWrap); subheaderWraps.push(subWrap); return;
+                }
+
+                if (item.type !== 'item') return;
+
+                const itemId = `${category}|${item.name}`;
+                const isSelected = !!selectedItems[itemId];
+                const currentScale = isSelected ? selectedItems[itemId].scale : null;
+
+                const btn = document.createElement('div');
+                btn.className = `option-btn ${isSelected ? 'active' : ''} ${item.desc ? 'has-desc' : ''}`;
                 
-                // Рендер коментарів над повзунком
-                if (comments.length > 0) {
-                    comments.forEach(c => {
-                        const cDiv = document.createElement('div');
-                        cDiv.className = 'category-comment';
-                        cDiv.innerText = c.text;
-                        contentDiv.appendChild(cDiv);
-                    });
-                }
+                const clickableArea = document.createElement('div');
+                clickableArea.className = 'option-clickable-area';
+                clickableArea.onclick = () => toggleItem(itemId, category, item.name);
+                clickableArea.innerHTML = `
+                    <div class="option-name">${item.name}</div>
+                    ${item.desc ? `<div class="option-desc">${item.desc}</div>` : ''}
+                `;
+                btn.appendChild(clickableArea);
 
-                if (scaleItems.length > 0) {
-                    const items = scaleItems;
-                    const stateId = `scaleCat_${category}`;
-                    const isSelected = selectedItems[stateId] !== undefined;
-                    const currentIndex = isSelected ? selectedItems[stateId].index : Math.floor(items.length / 2);
+                const scaleDiv = document.createElement('div');
+                scaleDiv.className = 'scale-container';
+                scaleDiv.onclick = (e) => e.stopPropagation();
 
-                    const widget = document.createElement('div');
-                    widget.className = `global-scale-widget ${isSelected ? 'active' : ''}`;
-                    widget.dataset.searchText = items.map(i => i.label.toLowerCase()).join(' ');
-
-                    const firstNum = items[0].number;
-                    const midNum = items[Math.floor(items.length/2)].number;
-                    const lastNum = items[items.length-1].number;
-
-                    widget.innerHTML = `
-                        <div class="global-scale-header">
-                            <span class="global-scale-value ${!isSelected ? 'empty' : ''}" id="val-${stateId}">
-                                ${isSelected ? (items[currentIndex].number > 0 ? '+' : '') + items[currentIndex].number + ' ' + items[currentIndex].label : 'Потягніть бігунок'}
-                            </span>
-                            <button class="clear-btn" style="display:${isSelected ? 'block' : 'none'}; font-size:14px;" onclick="clearScaleCat('${category}', event)">✕ Скинути</button>
-                        </div>
-                        <div class="slider-container">
-                            <input type="range" min="0" max="${items.length - 1}" value="${currentIndex}" class="global-slider" 
-                                   oninput="updateScaleSlider('${category}', this.value)" onchange="saveData()">
-                            <div class="global-slider-labels">
-                                <span>${firstNum}</span><span>${midNum}</span><span>${lastNum > 0 ? '+'+lastNum : lastNum}</span>
-                            </div>
-                        </div>
-                    `;
-                    contentDiv.appendChild(widget);
-                }
-            } 
-            else {
-                const containerWrap = document.createElement('div');
-                let currentGrid = document.createElement('div');
-                currentGrid.className = 'grid-unified';
-                containerWrap.appendChild(currentGrid);
-
-                let hasSubheaders = false;
-                let subheaderWraps = [];
-
-                data.items.forEach((item) => {
-                    // Рендер коментарів у звичайній категорії
-                    if (item.type === 'comment') {
-                        const commentDiv = document.createElement('div');
-                        commentDiv.className = 'category-comment';
-                        commentDiv.innerText = item.text;
-                        currentGrid.appendChild(commentDiv);
-                        return;
-                    }
-
-                    if (item.type === 'subheader') {
-                        hasSubheaders = true;
-                        const subWrap = document.createElement('div');
-                        subWrap.className = 'subheader-wrap'; 
-
-                        const subTitle = document.createElement('div');
-                        subTitle.className = 'subheader-title';
-                        subTitle.innerHTML = `<span>${item.title}</span><span class="subheader-chevron">▼</span>`;
-                        subTitle.onclick = () => subWrap.classList.toggle('collapsed');
-
-                        currentGrid = document.createElement('div');
-                        currentGrid.className = 'grid-unified sub-content';
-
-                        subWrap.appendChild(subTitle);
-                        subWrap.appendChild(currentGrid);
-                        containerWrap.appendChild(subWrap);
-                        subheaderWraps.push(subWrap);
-                        return;
-                    }
-
-                    const itemId = `${category}|${item.name}`;
-                    const isSelected = !!selectedItems[itemId];
-                    const currentScale = isSelected ? selectedItems[itemId].scale : null;
-
-                    const btn = document.createElement('div');
-                    btn.className = `option-btn ${isSelected ? 'active' : ''}`;
-                    
-                    const clickableArea = document.createElement('div');
-                    clickableArea.className = 'option-clickable-area';
-                    clickableArea.onclick = () => toggleItem(itemId, category, item.name);
-                    clickableArea.innerHTML = `
-                        <div class="option-name">${item.name}</div>
-                        ${item.desc ? `<div class="option-desc">${item.desc}</div>` : ''}
-                    `;
-                    btn.appendChild(clickableArea);
-
-                    const scaleDiv = document.createElement('div');
-                    scaleDiv.className = 'scale-container';
-                    scaleDiv.onclick = (e) => e.stopPropagation();
-
-                    const tagsToUse = data.tags || [1, 2, 3, 4, 5];
-                    
-                    tagsToUse.forEach(tagVal => {
-                        const scaleBtn = document.createElement('div');
-                        scaleBtn.className = `scale-btn ${currentScale === String(tagVal) ? 'selected' : ''}`;
-                        if (isNaN(tagVal)) scaleBtn.classList.add('text-tag'); 
-                        scaleBtn.innerText = tagVal;
-                        scaleBtn.onclick = () => setScale(itemId, category, item.name, String(tagVal));
-                        scaleDiv.appendChild(scaleBtn);
-                    });
-
-                    btn.appendChild(scaleDiv);
-                    currentGrid.appendChild(btn);
+                const tagsToUse = blockData.tags || [1, 2, 3, 4, 5];
+                tagsToUse.forEach(tagVal => {
+                    const scaleBtn = document.createElement('div');
+                    scaleBtn.className = `scale-btn ${currentScale === String(tagVal) ? 'selected' : ''}`;
+                    if (isNaN(tagVal)) scaleBtn.classList.add('text-tag'); 
+                    scaleBtn.innerText = tagVal;
+                    scaleBtn.onclick = () => setScale(itemId, category, item.name, String(tagVal));
+                    scaleDiv.appendChild(scaleBtn);
                 });
 
-                if (hasSubheaders) {
-                    const toggleAllBtn = document.createElement('button');
-                    toggleAllBtn.className = 'clear-btn';
-                    toggleAllBtn.innerHTML = '↕ Згорнути/Розгорнути всі групи';
-                    toggleAllBtn.style.fontSize = '14px';
-                    toggleAllBtn.style.marginBottom = '8px';
-                    toggleAllBtn.style.display = 'block';
-                    toggleAllBtn.onclick = (e) => {
-                        e.stopPropagation();
-                        const anyExpanded = subheaderWraps.some(w => !w.classList.contains('collapsed'));
-                        subheaderWraps.forEach(w => {
-                            if (anyExpanded) w.classList.add('collapsed');
-                            else w.classList.remove('collapsed');
-                        });
+                btn.appendChild(scaleDiv);
+                currentGrid.appendChild(btn);
+            });
+
+            contentDiv.appendChild(containerWrap);
+
+            // КАСТОМНЕ ПОЛЕ (Нова логіка)
+            const customWrap = document.createElement('div');
+            customWrap.className = 'custom-items-wrap';
+
+            if (customArr.length > 0) {
+                const tagsDiv = document.createElement('div');
+                tagsDiv.className = 'custom-tags-list';
+                customArr.forEach((txt, idx) => {
+                    const tag = document.createElement('div');
+                    tag.className = 'custom-tag active';
+                    tag.innerHTML = `${txt} <span>✕</span>`;
+                    tag.onclick = () => {
+                        customArr.splice(idx, 1);
+                        if(customArr.length === 0) delete selectedItems[`custom_${category}`];
+                        else selectedItems[`custom_${category}`] = customArr;
+                        saveAndRender();
                     };
-                    contentDiv.appendChild(toggleAllBtn);
-                }
-
-                contentDiv.appendChild(containerWrap);
-
-                const customInput = document.createElement('input');
-                customInput.type = 'text';
-                customInput.className = 'custom-item-input';
-                customInput.placeholder = '➕ Свій варіант... (впишіть сюди)';
-                customInput.value = selectedItems[`custom_${category}`] || '';
-                customInput.oninput = (e) => {
-                    const val = e.target.value.trim();
-                    if (val) selectedItems[`custom_${category}`] = val;
-                    else delete selectedItems[`custom_${category}`];
-                    saveData();
-                    updateReport();
-                    
-                    let count = Object.values(selectedItems).filter(i => i.category === category).length;
-                    if(selectedItems[`custom_${category}`]) count++;
-                    const badge = block.querySelector('.category-badge');
-                    if (count > 0) { badge.classList.add('has-items'); badge.innerText = count; } 
-                    else { badge.classList.remove('has-items'); }
-                };
-                contentDiv.appendChild(customInput);
+                    tagsDiv.appendChild(tag);
+                });
+                customWrap.appendChild(tagsDiv);
             }
+
+            const inputDiv = document.createElement('div');
+            inputDiv.className = 'custom-input-row';
+            
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'custom-item-input';
+            input.placeholder = 'Свій варіант...';
+            
+            const addBtn = document.createElement('button');
+            addBtn.className = 'add-custom-btn';
+            addBtn.innerText = '➕';
+            
+            const addFunc = () => {
+                const val = input.value.trim();
+                if (val) {
+                    if (!selectedItems[`custom_${category}`]) selectedItems[`custom_${category}`] = [];
+                    if (!selectedItems[`custom_${category}`].includes(val)) {
+                        selectedItems[`custom_${category}`].push(val);
+                        saveAndRender();
+                    }
+                }
+            };
+            
+            addBtn.onclick = addFunc;
+            input.onkeypress = (e) => { if(e.key === 'Enter') { e.preventDefault(); addFunc(); } };
+
+            inputDiv.appendChild(input);
+            inputDiv.appendChild(addBtn);
+            customWrap.appendChild(inputDiv);
+            contentDiv.appendChild(customWrap);
 
             block.appendChild(contentDiv);
             container.appendChild(block);
-        }
+        });
         updateReport();
     }
 
@@ -459,15 +602,20 @@
     }
 
     function updateScaleSlider(category, val) {
-        const items = database[category].items.filter(i => i.type === 'scale-item');
+        const block = parsedBlocks.find(b => b.title === category);
+        const items = block.items.filter(i => i.type === 'scale-item');
         const idx = parseInt(val);
         const formattedNum = items[idx].number > 0 ? `+${items[idx].number}` : items[idx].number;
-        const text = `${formattedNum} ${items[idx].label}`;
         
-        selectedItems[`scaleCat_${category}`] = { category, index: idx, text: text };
+        selectedItems[`scaleCat_${category}`] = { category, index: idx, text: formattedNum };
         
-        document.getElementById(`val-scaleCat_${category}`).innerText = text;
+        document.getElementById(`val-scaleCat_${category}`).innerText = `${formattedNum} ${items[idx].label}`;
         document.getElementById(`val-scaleCat_${category}`).classList.remove('empty');
+        const widget = document.getElementById(`val-scaleCat_${category}`).closest('.global-scale-widget');
+        if(widget) widget.classList.add('active');
+        const clearBtn = widget.querySelector('.clear-btn');
+        if(clearBtn) clearBtn.style.display = 'block';
+
         updateReport();
     }
 
@@ -481,19 +629,12 @@
         saveData();
         const expandedIds = Array.from(document.querySelectorAll('.category-block.expanded')).map(el => el.id);
         const query = document.getElementById('search-input').value;
-        
         const collapsedSubgroups = [];
-        document.querySelectorAll('.subheader-wrap.collapsed .subheader-title span:first-child').forEach(el => {
-            collapsedSubgroups.push(el.innerText);
-        });
+        document.querySelectorAll('.subheader-wrap.collapsed .subheader-title span:first-child').forEach(el => collapsedSubgroups.push(el.innerText));
 
         renderApp();
         
-        expandedIds.forEach(id => {
-            const el = document.getElementById(id);
-            if(el) el.classList.add('expanded');
-        });
-        
+        expandedIds.forEach(id => { const el = document.getElementById(id); if(el) el.classList.add('expanded'); });
         document.querySelectorAll('.subheader-wrap').forEach(wrap => {
             const title = wrap.querySelector('.subheader-title span:first-child').innerText;
             if (collapsedSubgroups.includes(title)) wrap.classList.add('collapsed');
@@ -502,17 +643,30 @@
         if(query) { document.getElementById('search-input').value = query; filterItems(); }
     }
 
-    function saveData() { localStorage.setItem('trackerData14', JSON.stringify(selectedItems)); }
+    function saveData() { localStorage.setItem('trackerData_v4', JSON.stringify(selectedItems)); }
+
+    function toggleAlign(event) {
+        if(event) event.stopPropagation();
+        isAligned = !isAligned;
+        localStorage.setItem('trackerAlign', isAligned);
+        const btn = document.getElementById('align-toggle');
+        if(isAligned) btn.classList.add('active-toggle'); else btn.classList.remove('active-toggle');
+        updateReport();
+    }
 
     function updateReport() {
-        let reportText = "";
+        let scalesResult = [];
+        let othersResult = [];
+        let maxScaleLen = 0;
+        let maxOtherLen = 0;
         let totalCount = 0;
-        
-        for (const category of Object.keys(database)) {
-            const data = database[category];
+
+        parsedBlocks.forEach(block => {
+            if (block.type !== 'category' && block.type !== 'scale-category') return;
+            const category = block.title;
             let catParts = [];
 
-            if (data.type === 'scale-category') {
+            if (block.type === 'scale-category') {
                 const state = selectedItems[`scaleCat_${category}`];
                 if (state) { catParts.push(state.text); totalCount++; }
             } else {
@@ -524,42 +678,104 @@
                     }));
                     totalCount += itemsInCat.length;
                 }
-            }
-
-            if (selectedItems[`custom_${category}`]) {
-                catParts.push(selectedItems[`custom_${category}`]);
-                totalCount++;
+                
+                const customArr = selectedItems[`custom_${category}`] || [];
+                if (customArr.length > 0) {
+                    const customMapped = customArr.map(c => `*${c}*`);
+                    catParts.push(...customMapped);
+                    totalCount += customMapped.length;
+                }
             }
 
             if (catParts.length > 0) {
-                reportText += `**${category}** ` + catParts.join(" | ") + `\n`;
+                if (block.type === 'scale-category') {
+                    scalesResult.push({ cat: category, text: catParts[0] });
+                    if (category.length > maxScaleLen) maxScaleLen = category.length;
+                } else {
+                    othersResult.push({ cat: category, text: catParts.join(" | ") });
+                    if (category.length > maxOtherLen) maxOtherLen = category.length;
+                }
             }
+        });
+
+        let displayText = "";
+        let copyText = "";
+        
+        if (isAligned) {
+            scalesResult.forEach(s => { 
+                const pad = ' '.repeat(Math.max(0, maxScaleLen - s.cat.length));
+                displayText += `${s.cat.padEnd(maxScaleLen, ' ')} ${s.text}\n`; 
+                copyText += `**${s.cat}**${pad} ${s.text}\n`; 
+            });
+            if (scalesResult.length > 0 && othersResult.length > 0) {
+                displayText += "\n"; copyText += "\n";
+            }
+            othersResult.forEach(s => { 
+                const pad = ' '.repeat(Math.max(0, maxOtherLen - s.cat.length));
+                displayText += `${s.cat.padEnd(maxOtherLen, ' ')} ${s.text}\n`; 
+                copyText += `**${s.cat}**${pad} ${s.text}\n`; 
+            });
+
+        } else {
+            scalesResult.forEach(s => { 
+                displayText += `${s.cat} ${s.text}\n`; 
+                copyText += `**${s.cat}** ${s.text}\n`; 
+            });
+            if (scalesResult.length > 0 && othersResult.length > 0) {
+                displayText += "\n"; copyText += "\n";
+            }
+            othersResult.forEach(s => { 
+                displayText += `${s.cat} ${s.text}\n`; 
+                copyText += `**${s.cat}** ${s.text}\n`; 
+            });
         }
-        document.getElementById('report').value = reportText.trim();
+
+        const reportEl = document.getElementById('report');
+        reportEl.value = displayText.trim();
+        reportEl.dataset.copyText = copyText.trim();
         document.getElementById('total-selected').innerText = totalCount;
     }
 
     function filterItems() {
         const query = document.getElementById('search-input').value.toLowerCase();
+        
+        // Ховаємо нагадування (>) при пошуку
+        document.querySelectorAll('.md-quote').forEach(quote => {
+            quote.style.display = query ? 'none' : 'block';
+        });
+
         document.querySelectorAll('.category-block').forEach(block => {
             let hasVisible = false;
+            
+            if (block.classList.contains('global-scale-widget')) {
+                if (block.dataset.searchText.includes(query)) { block.style.display = 'block'; }
+                else { block.style.display = 'none'; }
+                return;
+            }
+
             block.querySelectorAll('.option-btn').forEach(item => {
                 if (item.innerText.toLowerCase().includes(query)) { item.style.display = 'flex'; hasVisible = true; } 
                 else { item.style.display = 'none'; }
             });
-            const scaleWidget = block.querySelector('.global-scale-widget');
-            if (scaleWidget && scaleWidget.dataset.searchText.includes(query)) {
-                scaleWidget.style.display = 'block'; hasVisible = true;
-            }
-            if (query && hasVisible) {
-                block.classList.add('expanded');
-                block.querySelectorAll('.subheader-wrap').forEach(w => w.classList.remove('collapsed'));
-            }
+            
+            block.querySelectorAll('.subheader-wrap').forEach(wrap => {
+                let hasVisibleChild = false;
+                wrap.querySelectorAll('.option-btn').forEach(btn => {
+                    if (btn.style.display !== 'none') hasVisibleChild = true;
+                });
+                wrap.style.display = (hasVisibleChild || !query) ? 'block' : 'none';
+                if (query && hasVisibleChild) wrap.classList.remove('collapsed');
+            });
+
+            block.querySelectorAll('.category-comment').forEach(c => { c.style.display = query ? 'none' : 'block'; });
+
+            if (query && hasVisible) block.classList.add('expanded');
             block.style.display = hasVisible || !query ? 'block' : 'none';
         });
     }
 
-    function toggleSheet() { 
+    function toggleSheet(e) { 
+        if(e.target.closest('#align-toggle')) return;
         const sheet = document.getElementById('bottom-sheet');
         const isOpen = sheet.classList.toggle('open');
         document.body.style.paddingBottom = isOpen ? '280px' : '120px';
@@ -571,13 +787,26 @@
     function clearData() { selectedItems = {}; saveData(); document.getElementById('search-input').value = ""; renderApp(); }
 
     function copyReport() {
-        const ta = document.getElementById('report');
-        if (!ta.value) return;
-        ta.select(); document.execCommand('copy');
-        const btn = document.querySelector('.copy-btn');
-        const orig = btn.innerText;
-        btn.innerText = "✓ Скопійовано!"; btn.style.backgroundColor = "#34c759";
-        setTimeout(() => { btn.innerText = orig; btn.style.backgroundColor = "var(--accent)"; }, 1500);
+        const reportEl = document.getElementById('report');
+        const textToCopy = reportEl.dataset.copyText;
+        if (!textToCopy) return;
+        
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            const btn = document.querySelector('.copy-btn');
+            const orig = btn.innerText;
+            btn.innerText = "✓ Скопійовано!"; 
+            btn.style.backgroundColor = "#34c759";
+            setTimeout(() => { btn.innerText = orig; btn.style.backgroundColor = "var(--accent)"; }, 1500);
+        }).catch(err => {
+            // Фолбек для старих браузерів
+            reportEl.value = textToCopy;
+            reportEl.select(); 
+            document.execCommand('copy');
+            reportEl.value = reportEl.dataset.displayText; // Повертаємо вигляд
+            const btn = document.querySelector('.copy-btn');
+            btn.innerText = "✓ Скопійовано!"; btn.style.backgroundColor = "#34c759";
+            setTimeout(() => { btn.innerText = "Скопіювати звіт"; btn.style.backgroundColor = "var(--accent)"; }, 1500);
+        });
     }
 
     const scrollBtn = document.getElementById('scroll-btn');
@@ -585,7 +814,6 @@
         if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) { scrollBtn.classList.add('visible'); } 
         else { scrollBtn.classList.remove('visible'); }
     };
-    
     function scrollToActive() {
         const expandedBlock = document.querySelector('.category-block.expanded');
         if (expandedBlock) {

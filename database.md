@@ -1,4 +1,4 @@
-
+> Привіт! Це **Ultimate Tracker**
 
 # BODY [scale]
 
@@ -79,6 +79,9 @@
 - \-5 😶‍🌫️ Dissociation
 
 \- - - - -
+
+> "Practice the pause. When you're in doubt, pause and breathe." ~ *Lori Deschene*
+
 
 # factors
 
@@ -524,7 +527,7 @@
 
 # needs [tags: ✓, ✘]
 
-#### ✓ **Met-needs,** ✘ **Un-met-needs**
+✓ **Met-needs,** ✘ **Un-met-needs**
 
 ### 🫂 Стосунки та Зв'язок (Connection & Relational)
 
@@ -577,9 +580,9 @@
 
 # boundaries [tags: ✓, ✘]
 
-#### Кордони: передумова для співчуття; розуміння, де закінчуємося ми, а починається інша людина.
+Кордони: передумова для співчуття; розуміння, де закінчуємося ми, а починається інша людина.
 
-#### ✓ - hold, ✘ - violated
+✓ - hold, ✘ - violated
 
 - **Physical** — Кордони тіла, доторків та особистої території.
 - **Emotional** — Відповідальність за власні емоції; не вбирання емоцій інших.
