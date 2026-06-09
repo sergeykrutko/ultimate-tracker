@@ -96,9 +96,9 @@
         .smart-toggle.active { color: #d48a49; border-color: #d48a49; background: #fffdfa;}
         [data-theme="dark"] .smart-toggle.active { color: #e5b388; border-color: #e5b388; background: rgba(229, 179, 136, 0.1); }
         
-        .practice-tags-wrap { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
-        .p-tag { font-size: 10px; font-family: monospace; background: var(--bg-color); padding: 2px 5px; border-radius: 4px; color: var(--text-desc); font-weight: 700; border: 1px solid var(--border); opacity: 0.8;}
-
+        .practice-tags-wrap { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 4px; }
+        .p-tag { font-size: 8.5px; line-height: 1; font-family: monospace; background: var(--bg-color); padding: 2px 4px; border-radius: 4px; color: var(--text-desc); font-weight: 700; border: 1px solid var(--border); opacity: 0.8; letter-spacing: -0.2px; white-space: nowrap;}
+        .p-tag.t-tag { background: transparent; border: 1px dashed var(--border); font-style: italic; opacity: 0.6;}
 
         .scale-btn { width: 100%; aspect-ratio: 1; max-height: 24px; border-radius: 6px; background: var(--card-bg); border: 1px solid var(--border); color: var(--text-desc); font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; cursor: pointer; -webkit-tap-highlight-color: transparent;}
         .scale-btn.selected { background: var(--accent); color: white; border-color: var(--accent);}
@@ -387,19 +387,34 @@ let isSmartSortEnabled = true;
                 desc = content.substring(idx + sepMatch[0].length).trim();
             }
             
-            // ПАРСИНГ ТЕГІВ: витягуємо [mind -1:-2] у масив
+            // ПАРСИНГ ТЕГІВ: витягуємо шкали ТА тригери
             let ranges = [];
+            let triggersList = [];
             let cleanDesc = desc;
-            const tagRegex = /`\[([a-z]+)\s+([+-]?\d+)(?::([+-]?\d+))?\]`/gi;
+            
+            // 1. Витягуємо шкали
+            const scaleRegex = /`?\[([a-z]+)\s+([+-]?\d+)(?::([+-]?\d+))?\]`?/gi;
             let match;
-            while ((match = tagRegex.exec(desc)) !== null) {
+            while ((match = scaleRegex.exec(desc)) !== null) {
                 let scale = match[1].toLowerCase();
                 let val1 = parseInt(match[2]);
                 let val2 = match[3] ? parseInt(match[3]) : val1;
                 ranges.push({ scale, min: Math.min(val1, val2), max: Math.max(val1, val2), text: match[0] });
                 cleanDesc = cleanDesc.replace(match[0], '').trim();
             }
-            currentCat.items.push({ type: 'item', name, desc: cleanDesc, ranges });
+
+            // 2. Витягуємо тригери (всі інші дужки, розбиваючи через кому)
+            const triggerRegex = /`?\[(.*?)\]`?/g;
+            while ((match = triggerRegex.exec(cleanDesc)) !== null) {
+                let tagsStr = match[1];
+                let tagsArr = tagsStr.split(',').map(t => t.trim()).filter(t => t);
+                triggersList.push(...tagsArr);
+                cleanDesc = cleanDesc.replace(match[0], '').trim();
+            }
+
+            currentCat.items.push({ type: 'item', name, desc: cleanDesc, ranges, triggers: triggersList });
+
+
 
         });
 
@@ -524,7 +539,12 @@ let selectedInCat = Object.values(selectedItems).filter(i => i.category === cate
                     }
                 });
                 rawTriggers.forEach(t => {
-                    if (blockData.items.some(p => p.type === 'item' && (p.name + " " + p.desc).toLowerCase().includes(t))) activeTriggers.push(t);
+                    let hasMatch = blockData.items.some(p => {
+                        if (p.type !== 'item') return false;
+                        let textToSearch = (p.name + " " + p.desc + " " + (p.triggers ? p.triggers.join(" ") : "")).toLowerCase();
+                        return textToSearch.includes(t);
+                    });
+                    if (hasMatch) activeTriggers.push(t);
                 });
 
                 // 3. БАЛЬНА СИСТЕМА (Scoring)
@@ -563,8 +583,9 @@ let selectedInCat = Object.values(selectedItems).filter(i => i.category === cate
                             isMismatch = true; 
                         }
 
+                        // Sniper: Влучання в тригер
                         if (!isMismatch && activeTriggers.length > 0) {
-                            let combinedText = (i.name + " " + i.desc).toLowerCase();
+                            let combinedText = (i.name + " " + i.desc + " " + (i.triggers ? i.triggers.join(" ") : "")).toLowerCase();
                             activeTriggers.forEach(t => {
                                 if (combinedText.includes(t)) score += 50; 
                             });
@@ -702,11 +723,16 @@ let selectedInCat = Object.values(selectedItems).filter(i => i.category === cate
                         }
                     }
                     
-                    // Рендеримо маркдаун-теги під описом
-                    if (item.ranges && item.ranges.length > 0) {
-                        tagsHtml = `<div class="practice-tags-wrap">` + 
-                                   item.ranges.map(r => `<span class="p-tag">${r.text.replace(/`/g, '')}</span>`).join('') + 
-                                   `</div>`;
+                    // Рендеримо маркдаун-теги шкал ТА тригерів
+                    let allTags = [];
+                    if (item.ranges) {
+                        item.ranges.forEach(r => allTags.push(`<span class="p-tag">${r.text.replace(/`/g, '')}</span>`));
+                    }
+                    if (item.triggers) {
+                        item.triggers.forEach(t => allTags.push(`<span class="p-tag t-tag">[${t}]</span>`));
+                    }
+                    if (allTags.length > 0) {
+                        tagsHtml = `<div class="practice-tags-wrap">${allTags.join('')}</div>`;
                     }
                 }
 
