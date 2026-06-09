@@ -51,7 +51,7 @@
         
         /* Акордеон Категорій (Компактний) */
         .category-block { width: 100%; background: var(--card-bg); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); transition: background-color 0.3s, border-color 0.3s; }
-        .category-header { padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; font-size: 15px; font-weight: 700; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
+        .category-header { padding: 5px 14px; display: flex; justify-content: space-between; align-items: center; font-size: 16px; font-weight: 700; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
         .category-header-left { display: flex; align-items: center; gap: 8px; }
         .category-badge { background: var(--accent); color: white; font-size: 12px; font-weight: bold; padding: 2px 6px; border-radius: 8px; display: none; }
         .category-badge.has-items { display: block; }
@@ -60,11 +60,11 @@
         .subgroups-toggle-btn { font-size: 16px; color: var(--accent); opacity: 0.8; padding: 4px;}
         .category-chevron { font-size: 13px; color: var(--text-desc); transition: transform 0.3s; }
         
-        .category-content { display: none; padding: 0 10px 10px; border-top: 1px solid var(--border); }
+        .category-content { display: none; padding: 0 12px 12px; border-top: 1px solid var(--border); }
         .category-block.expanded .category-content { display: block; }
         .category-block.expanded .category-chevron { transform: rotate(180deg); }
 
-        .grid-unified { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 4px; padding-top: 4px;}
+        .grid-unified { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px; padding-top: 8px;}
         [data-layout="list"] .option-btn.has-desc { grid-column: 1 / -1; }
 
         /* Підзаголовки (###) та Коментарі (####) */
@@ -76,12 +76,12 @@
         .category-comment { grid-column: 1 / -1; font-size: 12px; color: var(--text-desc); font-style: italic; padding: 2px 4px 4px; line-height: 1.3; font-weight: 600;}
 
         /* Кнопки вибору */
-        .option-btn { background-color: var(--bg-color); border: 1px solid transparent; border-radius: 10px; padding: 8px; transition: all 0.15s ease; display: flex; flex-direction: column; justify-content: flex-start; }
+        .option-btn { background-color: var(--bg-color); border: 1px solid transparent; border-radius: 10px; padding: 10px; transition: all 0.15s ease; display: flex; flex-direction: column; justify-content: flex-start; }
         .option-btn.active { background-color: var(--accent-light); border-color: var(--accent); }
         .option-clickable-area { cursor: pointer; -webkit-tap-highlight-color: transparent; }
-        .option-name { font-size: 13px; font-weight: 700; color: var(--text-main); margin-bottom: 2px; line-height: 1.2;}
+        .option-name { font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 2px; line-height: 1.2;}
         .option-btn.active .option-name { color: var(--accent); }
-        .option-desc { font-size: 11px; color: var(--text-desc); line-height: 1.2; font-weight: 600;}
+        .option-desc { font-size: 12px; color: var(--text-desc); line-height: 1.2; font-weight: 600;}
 
         .scale-container { display: none; margin-top: auto; padding-top: 8px; justify-content: space-between; gap: 4px; }
         .option-btn.active .scale-container { display: flex; }
@@ -91,7 +91,7 @@
 
         /* Глобальні Шкали (2 в ряд для ширини > 400px, 1 в ряд для вузьких) */
         .global-scale-widget { 
-            width: 100%; padding: 8px; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border);
+            width: 100%; padding: 12px; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border);
         }
 
 /*
@@ -110,14 +110,14 @@
         }
 
 
-        .global-scale-header { display: flex; flex-direction: column; align-items: flex-start; margin-bottom: 4px; gap: 2px;}
+        .global-scale-header { display: flex; flex-direction: column; align-items: flex-start; margin-bottom: 8px; gap: 2px;}
         .global-scale-title { font-size: 15px; font-weight: 800; color: var(--text-main); }
        .global-scale-value-row { display: flex; justify-content: space-between; width: 100%; align-items: flex-start; min-height: 32px; gap: 6px; }
 	.global-scale-value { font-size: 12px; font-weight: 700; color: var(--accent); line-height: 1.2; flex: 1; }
         .global-scale-value.empty { color: var(--text-desc); font-style: italic; font-weight: 600; font-size: 13px;}
         
-        .slider-container { position: relative; padding-bottom: 14px; margin-top: 0px;}
-        .global-slider { width: 100%; -webkit-appearance: none; height: 4px; background: var(--border); border-radius: 3px; outline: none; margin-bottom: 4px; border: 1px solid transparent; }
+        .slider-container { position: relative; padding-bottom: 16px; margin-top: 4px;}
+        .global-slider { width: 100%; -webkit-appearance: none; height: 5px; background: var(--border); border-radius: 3px; outline: none; margin-bottom: 8px; border: 1px solid transparent; }
         .global-scale-widget.active .global-slider { background: var(--accent-light); border: 1px solid var(--accent); }
         .global-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; background: #fff; border: 1px solid var(--border); border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.15); cursor: pointer; }
         .global-scale-widget.active .global-slider::-webkit-slider-thumb { border: 2px solid var(--accent); }
