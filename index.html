@@ -148,6 +148,14 @@
         .custom-item-input { flex: 1; border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px; font-size: 14px; font-weight: 600; background: var(--bg-color); color: var(--text-main); outline: none;}
         .add-custom-btn { background: var(--bg-color); border: 1px solid var(--border); border-radius: 10px; width: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-main); font-size: 16px;}
 
+
+/* Колір тексту для рекомендованих практик */
+        .option-btn.recommended .option-name { color: #d47724; font-weight: 800; }
+        [data-theme="dark"] .option-btn.recommended .option-name { color: #e59f49; }
+
+
+
+
         /* ПАНЕЛЬ ЗВІТУ (Праворуч, компактна, плаваюча) */
         .report-fab {
             position: fixed; bottom: 20px; right: 20px;
@@ -480,7 +488,7 @@ let isSmartSortEnabled = true;
                 sliderContainer.className = 'slider-container';
                 sliderContainer.innerHTML = `
                     <input type="range" min="0" max="${scaleItems.length - 1}" value="${currentIndex}" class="global-slider" 
-                           oninput="updateScaleSlider('${category}', this.value)" onchange="saveData()">
+                           oninput="updateScaleSlider('${category}', this.value)" onchange="saveAndRender()">
                     <div class="global-slider-labels">
                         <span>${firstNum}</span><span>${midNum}</span><span>${lastNum > 0 ? '+'+lastNum : lastNum}</span>
                     </div>
@@ -494,17 +502,23 @@ let isSmartSortEnabled = true;
             const customArr = selectedItems[`custom_${category}`] || [];
             selectedInCat += customArr.length;
 
-            // РАХУЄМО РЕКОМЕНДОВАНІ ПРАКТИКИ
+            // РАХУЄМО РЕКОМЕНДОВАНІ ПРАКТИКИ (ЖОРСТКИЙ ФІЛЬТР)
             let recCount = 0;
             if (category.toLowerCase() === 'practices') {
                 blockData.items.forEach(i => {
                     if (i.ranges && i.ranges.length > 0) {
-                        let hasMatch = false; let hasActive = false;
+                        let matchCount = 0; let mismatchCount = 0; let hasActive = false;
                         i.ranges.forEach(r => {
                             let sKey = Object.keys(selectedItems).find(k => k.toLowerCase() === `scalecat_${r.scale}`);
-                            if (sKey) { hasActive = true; let v = parseInt(selectedItems[sKey].text); if (v >= r.min && v <= r.max) hasMatch = true; }
+                            if (sKey) { 
+                                hasActive = true; 
+                                let v = parseInt(selectedItems[sKey].text); 
+                                if (v >= r.min && v <= r.max) matchCount++;
+                                else mismatchCount++;
+                            }
                         });
-                        if (hasActive && hasMatch) recCount++;
+                        // Рекомендуємо ТІЛЬКИ якщо є збіги і ЖОДНОГО протиріччя
+                        if (hasActive && matchCount > 0 && mismatchCount === 0) recCount++;
                     }
                 });
             }
@@ -600,18 +614,20 @@ let smartClass = 'neutral';
                 
                 // Аналізуємо теги шкал
                 if (category.toLowerCase() === 'practices' && item.ranges && item.ranges.length > 0) {
-                    let hasMatch = false;
+                    let matchCount = 0; let mismatchCount = 0;
                     item.ranges.forEach(r => {
                         let scaleKey = Object.keys(selectedItems).find(k => k.toLowerCase() === `scalecat_${r.scale}`);
                         if (scaleKey) {
                             activeScalesCount++;
                             let val = parseInt(selectedItems[scaleKey].text);
-                            if (val >= r.min && val <= r.max) hasMatch = true;
+                            if (val >= r.min && val <= r.max) matchCount++;
+                            else mismatchCount++;
                         }
                     });
                     
                     if (activeScalesCount > 0) {
-                        if (hasMatch) { smartClass = 'recommended'; isRecommended = true; }
+                        // Рекомендуємо ТІЛЬКИ якщо є збіги і ЖОДНОГО протиріччя
+                        if (matchCount > 0 && mismatchCount === 0) { smartClass = 'recommended'; isRecommended = true; }
                         else smartClass = 'dimmed';
                     }
                     
