@@ -85,6 +85,21 @@
 
         .scale-container { display: none; margin-top: auto; padding-top: 8px; justify-content: space-between; gap: 4px; }
         .option-btn.active .scale-container { display: flex; }
+
+
+/* --- СМАРТ-ФІЛЬТР ПРАКТИК --- */
+        .option-btn.recommended { background-color: #fff9f0; border-color: #e5c9a8; box-shadow: 0 2px 8px rgba(229, 201, 168, 0.2); }
+        .option-btn.dimmed { opacity: 0.35; filter: grayscale(100%); }
+        [data-theme="dark"] .option-btn.recommended { background-color: rgba(229, 201, 168, 0.08); border-color: rgba(229, 201, 168, 0.3); box-shadow: none; }
+        
+        .smart-toggle { background: var(--card-bg); border: 1px solid var(--border); padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 800; color: var(--text-desc); cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.05);}
+        .smart-toggle.active { color: #d48a49; border-color: #d48a49; background: #fffdfa;}
+        [data-theme="dark"] .smart-toggle.active { color: #e5b388; border-color: #e5b388; background: rgba(229, 179, 136, 0.1); }
+        
+        .practice-tags-wrap { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+        .p-tag { font-size: 10px; font-family: monospace; background: var(--bg-color); padding: 2px 5px; border-radius: 4px; color: var(--text-desc); font-weight: 700; border: 1px solid var(--border); opacity: 0.8;}
+
+
         .scale-btn { width: 100%; aspect-ratio: 1; max-height: 24px; border-radius: 6px; background: var(--card-bg); border: 1px solid var(--border); color: var(--text-desc); font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; cursor: pointer; -webkit-tap-highlight-color: transparent;}
         .scale-btn.selected { background: var(--accent); color: white; border-color: var(--accent);}
         .scale-btn.text-tag { width: auto; flex: 1; aspect-ratio: auto; padding: 4px; font-size: 11px; border-radius: 6px; text-transform: lowercase; line-height: 1.1; overflow-wrap: break-word; text-align: center;}
@@ -232,6 +247,13 @@
 
     let currentTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     let currentLayout = localStorage.getItem('layout') || 'grid';
+
+
+
+let isSmartSortEnabled = true;
+    function toggleSmartSort(event) { event.stopPropagation(); isSmartSortEnabled = !isSmartSortEnabled; saveAndRender(); }
+
+
     
     function applyTheme() {
         document.documentElement.setAttribute('data-theme', currentTheme);
@@ -349,14 +371,28 @@
                 return;
             }
 
-            let name = content; let desc = "";
+ let name = content; let desc = "";
             const sepMatch = content.match(/ — | - |: /); 
             if (sepMatch) {
                 const idx = sepMatch.index;
                 name = content.substring(0, idx).trim();
                 desc = content.substring(idx + sepMatch[0].length).trim();
             }
-            currentCat.items.push({ type: 'item', name, desc });
+            
+            // ПАРСИНГ ТЕГІВ: витягуємо [mind -1:-2] у масив
+            let ranges = [];
+            let cleanDesc = desc;
+            const tagRegex = /`\[([a-z]+)\s+([+-]?\d+)(?::([+-]?\d+))?\]`/gi;
+            let match;
+            while ((match = tagRegex.exec(desc)) !== null) {
+                let scale = match[1].toLowerCase();
+                let val1 = parseInt(match[2]);
+                let val2 = match[3] ? parseInt(match[3]) : val1;
+                ranges.push({ scale, min: Math.min(val1, val2), max: Math.max(val1, val2), text: match[0] });
+                cleanDesc = cleanDesc.replace(match[0], '').trim();
+            }
+            currentCat.items.push({ type: 'item', name, desc: cleanDesc, ranges });
+
         });
 
         flushQuoteBuffer();
@@ -464,6 +500,14 @@
 
             let hasSubheaders = blockData.items.some(i => i.type === 'subheader');
 
+ // Додаємо кнопку Смарт-Фільтру ТІЛЬКИ для практик
+            let smartBtnHtml = '';
+            if (category.toLowerCase() === 'practices') {
+                smartBtnHtml = `<button class="smart-toggle ${isSmartSortEnabled ? 'active' : ''}" onclick="toggleSmartSort(event)">✨ Фільтр</button>`;
+            }
+
+
+
             const header = document.createElement('div');
             header.className = 'category-header';
             header.onclick = () => block.classList.toggle('expanded');
@@ -473,11 +517,14 @@
                     <span class="category-badge ${selectedInCat > 0 ? 'has-items' : ''}">${selectedInCat}</span>
                 </div>
                 <div class="category-header-right">
+                    ${smartBtnHtml}
                     ${hasSubheaders ? `<div class="subgroups-toggle-btn" title="Всі підгрупи">⇕</div>` : ''}
                     <div class="category-chevron">▼</div>
                 </div>
             `;
             block.appendChild(header);
+
+
 
             const contentDiv = document.createElement('div');
             contentDiv.className = 'category-content';
@@ -533,8 +580,37 @@
                 const isSelected = !!selectedItems[itemId];
                 const currentScale = isSelected ? selectedItems[itemId].scale : null;
 
+let smartClass = '';
+                let tagsHtml = '';
+                
+                // Якщо це практики, ввімкнено фільтр і є теги шкал
+                if (category.toLowerCase() === 'practices' && item.ranges && item.ranges.length > 0) {
+                    if (isSmartSortEnabled) {
+                        let hasMatch = false; let hasMismatch = false; let activeScalesCount = 0;
+                        item.ranges.forEach(r => {
+                            let scaleKey = Object.keys(selectedItems).find(k => k.toLowerCase() === `scalecat_${r.scale}`);
+                            if (scaleKey) {
+                                activeScalesCount++;
+                                let val = parseInt(selectedItems[scaleKey].text);
+                                if (val >= r.min && val <= r.max) hasMatch = true;
+                                else hasMismatch = true;
+                            }
+                        });
+                        // Аналіз: якщо є активна шкала
+                        if (activeScalesCount > 0) {
+                            if (hasMatch) smartClass = 'recommended';
+                            else if (hasMismatch) smartClass = 'dimmed';
+                        }
+                    }
+                    
+                    // Рендеримо мінімалістичні теги
+                    tagsHtml = `<div class="practice-tags-wrap">` + 
+                               item.ranges.map(r => `<span class="p-tag">${r.text.replace(/`/g, '')}</span>`).join('') + 
+                               `</div>`;
+                }
+
                 const btn = document.createElement('div');
-                btn.className = `option-btn ${isSelected ? 'active' : ''} ${item.desc ? 'has-desc' : ''}`;
+                btn.className = `option-btn ${isSelected ? 'active' : ''} ${item.desc ? 'has-desc' : ''} ${smartClass}`;
                 
                 const clickableArea = document.createElement('div');
                 clickableArea.className = 'option-clickable-area';
@@ -542,6 +618,7 @@
                 clickableArea.innerHTML = `
                     <div class="option-name">${item.name}</div>
                     ${item.desc ? `<div class="option-desc">${item.desc}</div>` : ''}
+                    ${tagsHtml}
                 `;
                 btn.appendChild(clickableArea);
 
@@ -837,7 +914,6 @@ function saveAndRender() {
                 });
                 wrap.style.display = (hasVisibleChild || !isSearching) ? 'block' : 'none';
                 
-                // Якщо шукаємо - розгортаємо. Якщо очистили пошук - згортаємо назад!
                 if (isSearching && hasVisibleChild) {
                     wrap.classList.remove('collapsed');
                 } else if (!isSearching) {
