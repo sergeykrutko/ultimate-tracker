@@ -1,4 +1,4 @@
-> Привіт! Це **Ultimate Tracker**
+> Привіт! Вітаю в **Ultimate Tracker**.
 
 # BODY [scale]
 
@@ -80,8 +80,8 @@
 
 \- - - - -
 
-> "Practice the pause. When you're in doubt, pause and breathe." ~ *Lori Deschene*
-
+ > **"Practice the pause. When you're in doubt, pause and breathe."**  ~*Lori Deschene*
+ > 🌸
 
 # factors
 
@@ -527,7 +527,7 @@
 
 # needs [tags: ✓, ✘]
 
-✓ **Met-needs,** ✘ **Un-met-needs**
+#### ✓ Met-needs, ✘ Un-met-needs ######
 
 ### 🫂 Стосунки та Зв'язок (Connection & Relational)
 
@@ -580,9 +580,9 @@
 
 # boundaries [tags: ✓, ✘]
 
-Кордони: передумова для співчуття; розуміння, де закінчуємося ми, а починається інша людина.
+#### Кордони: передумова для співчуття; розуміння, де закінчуємося ми, а починається інша людина.
 
-✓ - hold, ✘ - violated
+#### ✓ - hold, ✘ - violated
 
 - **Physical** — Кордони тіла, доторків та особистої території.
 - **Emotional** — Відповідальність за власні емоції; не вбирання емоцій інших.
@@ -601,6 +601,7 @@
 - Abandoned Child — who holds grief, sadness and loneliness from emotional neglect or loss of a caregiver early in life
 - Bullied Teenager — The bullied teenager who carries shame, inadequacy and mistrust from being victimized
 - Heartbroken Teenager — The heartbroken young adult who harbours unprocessed grief from a difficult breakup or divorce
+- Insecure Child
 - UNNAMED-Exile
 
 ### MANAGERS:
@@ -722,3 +723,4 @@
 - Wander / Daydream - Практика свідомого блукання думками (мрійливість). Легальний "розфокус", щоб дати нервовій системі відпочити від гіперконтролю та стану over-thinking.
 
 \- - - - -
+
