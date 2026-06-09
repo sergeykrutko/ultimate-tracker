@@ -93,9 +93,23 @@
         .global-scale-widget { 
             width: 100%; padding: 12px; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border);
         }
+
+/*
         @media (min-width: 400px) {
             .global-scale-widget { width: calc(50% - 3px); }
+        }  */
+
+
+	/* Якщо екранів багато (наприклад, альбомна орієнтація або планшет), ставимо 2 в ряд */
+        @media (min-width: 600px) {
+            .global-scale-widget { width: calc(50% - 4px); }
         }
+        /* Якщо екран вузький (телефон), шкала займає 100% ширини */
+        @media (max-width: 599px) {
+            .global-scale-widget { width: 100%; }
+        }
+
+
         .global-scale-header { display: flex; flex-direction: column; align-items: flex-start; margin-bottom: 8px; gap: 2px;}
         .global-scale-title { font-size: 15px; font-weight: 800; color: var(--text-main); }
        .global-scale-value-row { display: flex; justify-content: space-between; width: 100%; align-items: flex-start; min-height: 32px; gap: 6px; }
