@@ -98,7 +98,9 @@
         
         .practice-tags-wrap { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 4px; }
         .p-tag { font-size: 8.5px; line-height: 1; font-family: monospace; background: var(--bg-color); padding: 2px 4px; border-radius: 4px; color: var(--text-desc); font-weight: 700; border: 1px solid var(--border); opacity: 0.8; letter-spacing: -0.2px; white-space: nowrap;}
-        .p-tag.t-tag { background: transparent; border: 1px dashed var(--border); font-style: italic; opacity: 0.6;}
+        /* Підсвічування активного тригеру (Снайперське влучання) */
+        .p-tag.active-trigger { background-color: #e8f5e9; color: #2e7d32; border-color: #4caf50; }
+        [data-theme="dark"] .p-tag.active-trigger { background-color: rgba(76, 175, 80, 0.15); color: #81c784; border-color: #388e3c; }
 
         .scale-btn { width: 100%; aspect-ratio: 1; max-height: 24px; border-radius: 6px; background: var(--card-bg); border: 1px solid var(--border); color: var(--text-desc); font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; cursor: pointer; -webkit-tap-highlight-color: transparent;}
         .scale-btn.selected { background: var(--accent); color: white; border-color: var(--accent);}
@@ -405,12 +407,18 @@ let isSmartSortEnabled = true;
 
             // 2. Витягуємо тригери (всі інші дужки, розбиваючи через кому)
             const triggerRegex = /`?\[(.*?)\]`?/g;
+            let newDesc = cleanDesc;
             while ((match = triggerRegex.exec(cleanDesc)) !== null) {
                 let tagsStr = match[1];
+                
+                // ЗАХИСТ: Якщо в дужках ТІЛЬКИ цифри, плюси, мінуси чи двокрапки (напр. [-1]) - ігноруємо!
+                if (/^[+\-:\d\s]+$/.test(tagsStr)) continue;
+                
                 let tagsArr = tagsStr.split(',').map(t => t.trim()).filter(t => t);
                 triggersList.push(...tagsArr);
-                cleanDesc = cleanDesc.replace(match[0], '').trim();
+                newDesc = newDesc.replace(match[0], '').trim();
             }
+            cleanDesc = newDesc;
 
             currentCat.items.push({ type: 'item', name, desc: cleanDesc, ranges, triggers: triggersList });
 
@@ -728,11 +736,15 @@ let selectedInCat = Object.values(selectedItems).filter(i => i.category === cate
                     if (item.ranges) {
                         item.ranges.forEach(r => allTags.push(`<span class="p-tag">${r.text.replace(/`/g, '')}</span>`));
                     }
+
+
                     if (item.triggers) {
-                        item.triggers.forEach(t => allTags.push(`<span class="p-tag t-tag">[${t}]</span>`));
-                    }
-                    if (allTags.length > 0) {
-                        tagsHtml = `<div class="practice-tags-wrap">${allTags.join('')}</div>`;
+                        item.triggers.forEach(t => {
+                            // Перевіряємо, чи цей тригер зараз натиснутий у трекері
+                            let isHit = activeTriggers.includes(t.toLowerCase());
+                            let hitClass = isHit ? 'active-trigger' : '';
+                            allTags.push(`<span class="p-tag ${hitClass}">[${t}]</span>`);
+                        });
                     }
                 }
 
