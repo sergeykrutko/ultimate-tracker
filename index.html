@@ -747,7 +747,7 @@
                 const padHtml = '&nbsp;'.repeat(Math.max(0, maxScaleLen - s.cat.length));
                 const padCopy = ' '.repeat(Math.max(0, maxScaleLen - s.cat.length));
                 displayText += `<strong>${s.cat}</strong>${padHtml}&nbsp;${s.text}<br>`; 
-                copyText += `**${s.cat}**${padCopy}   ${s.text}\n`; 
+                copyText += `**${s.cat}**${padCopy} ${s.text}\n`; 
             });
             if (scalesResult.length > 0 && othersResult.length > 0) {
                 displayText += "<br>"; copyText += "\n";
@@ -756,7 +756,7 @@
                 const padHtml = '&nbsp;'.repeat(Math.max(0, maxOtherLen - s.cat.length));
                 const padCopy = ' '.repeat(Math.max(0, maxOtherLen - s.cat.length));
                 displayText += `<strong>${s.cat}</strong>${padHtml}&nbsp;${s.text}<br>`; 
-                copyText += `**${s.cat}**${padCopy}   ${s.text}\n`; 
+                copyText += `**${s.cat}**${padCopy} ${s.text}\n`; 
             });
         } else {
             scalesResult.forEach(s => { 

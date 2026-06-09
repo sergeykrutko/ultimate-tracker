@@ -1,4 +1,4 @@
-\> Привіт! Вітаю в **Ultimate Tracker**.
+> Привіт! Вітаю в **Ultimate Tracker**.
 
 # BODY [scale]
 
@@ -708,7 +708,7 @@
 
 \- - - - -
 
-# AWRI [scale]
+# AWRO [scale]
 
 - \+5 🌊 Presence
 - \+4 🌐 Panoramic
