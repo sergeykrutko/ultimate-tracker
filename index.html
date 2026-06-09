@@ -110,12 +110,11 @@
         }
 
 
-       .global-scale-header { display: flex; flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 4px; gap: 8px;}
+	.global-scale-header { display: flex; flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 4px; gap: 8px;}
         .global-scale-title { font-size: 14px; font-weight: 800; color: var(--text-main); margin: 0; white-space: nowrap; }
         .global-scale-value-row { display: flex; justify-content: flex-end; width: auto; align-items: center; min-height: auto; gap: 6px; flex: 1;}
         .global-scale-value { font-size: 13px; font-weight: 700; color: var(--accent); line-height: 1.1; text-align: right; }
         .global-scale-value.empty { color: var(--text-desc); font-style: italic; font-weight: 600; font-size: 13px;}
-
         
         .slider-container { position: relative; padding-bottom: 16px; margin-top: 4px;}
         .global-slider { width: 100%; -webkit-appearance: none; height: 5px; background: var(--border); border-radius: 3px; outline: none; margin-bottom: 8px; border: 1px solid transparent; }
@@ -828,20 +827,23 @@ function saveAndRender() {
                 else { item.style.display = 'none'; }
             });
             
-		block.querySelectorAll('.subheader-wrap').forEach(wrap => {
+            block.querySelectorAll('.subheader-wrap').forEach(wrap => {
+                let hasVisibleChild = false;
+                wrap.querySelectorAll('.option-btn').forEach(btn => {
+                    block.querySelectorAll('.subheader-wrap').forEach(wrap => {
                 let hasVisibleChild = false;
                 wrap.querySelectorAll('.option-btn').forEach(btn => {
                     if (btn.style.display !== 'none') hasVisibleChild = true;
                 });
                 wrap.style.display = (hasVisibleChild || !isSearching) ? 'block' : 'none';
                 
+                // Якщо шукаємо - розгортаємо. Якщо очистили пошук - згортаємо назад!
                 if (isSearching && hasVisibleChild) {
                     wrap.classList.remove('collapsed');
                 } else if (!isSearching) {
                     wrap.classList.add('collapsed');
                 }
             });
-
                 });
                 wrap.style.display = (hasVisibleChild || !isSearching) ? 'block' : 'none';
                 if (isSearching && hasVisibleChild) wrap.classList.remove('collapsed');
