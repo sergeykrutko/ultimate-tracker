@@ -72,6 +72,8 @@
 
 ### MBES [scale]
 
+mind - body - emotions
+
 - \+5 — EMOTIONS
 - \+4 — .
 - \+3 — ..
@@ -87,6 +89,8 @@
 \- - - - -
 
 ### VALS [scale]
+
+magnet field valence
 
 - \+5 — +++
 - \+4 — ++
@@ -104,6 +108,8 @@
 
 ### TENS [scale]
 
+tensions - flow
+
 - \+5 — ≈≈≈≈≈
 - \+4 — ≈≈≈≈
 - \+3 — ≈≈≈
@@ -119,6 +125,8 @@
 \- - - - -
 
 ### VITS [scale]
+
+vitality
 
 - \+5 — +++++
 - \+4 — ++++
@@ -247,6 +255,19 @@
 
 - head
 - gut
+
+\- - - - -
+
+# craves
+
+- ideal-girl
+- intimacy
+- m
+- perfection
+- sex
+- smoke
+- sugar
+- validation
 
 \- - - - -
 
@@ -433,19 +454,6 @@
 - **nobody-cares** — Ізоляція («Нікому насправді немає до мене діла», «Я завжди залишаюся сам зі своїми проблемами»).
 - **what's-the-point?** — Апатія / Туман («Немає сенсу навіть пробувати, все одно нічого не зміниться»).
 - **why-always-me?** — Жертва обставин («Чому це завжди трапляється саме зі мною?», відчуття тотальної несправедливості світу щодо вас).
-
-\- - - - -
-
-# craves
-
-- ideal-girl
-- intimacy
-- m
-- perfection
-- sex
-- smoke
-- sugar
-- validation
 
 \- - - - -
 
@@ -708,7 +716,7 @@
 
 \- - - - -
 
-# practices
+# PRACTICES
 
 ### PRE-FILTERS: Sates & Decision CheckUps
 
@@ -846,59 +854,40 @@
 
 # AWRO [scale]
 
-- \+5 🌊 Presence
-- \+4 🌐 Panoramic
-- \+3 ⚓ Triangulation
-- \+2 👁️ Disidentification
-- \+1 💡 Awakening
-- 0 🤖 Autopilot
-- \-1 🪝 Hooked
-- \-2 🌪️ Fusion
-- \-3 ⚡ Reactivity
-- \-4 🧩 Fragmentation
-- \-5 😶‍🌫️ Dissociation
+- \+5 — 🌊 Presence
+- \+4 — 🌐 Panoramic
+- \+3 — ⚓ Triangulation
+- \+2 — 👁️ Disidentification
+- \+1 — 💡 Awakening
+-  0 — 🤖 Autopilot
+- \-1 — 🪝 Hooked
+- \-2 — 🌪️ Fusion
+- \-3 — ⚡ Reactivity
+- \-4 — 🧩 Fragmentation
+- \-5 — 😶‍🌫️ Dissociation
 
 \- - - - -
 
 # ULTS [scale]
 
-\+5 🌊 Flow
+\+5 — 🌊 Flow
 
-\+4 🔥 Drive
+\+4 — 🔥 Drive
 
-\+3 🍃 Ease
+\+3 — 🍃 Ease
 
-\+2 ⚙️ Tone / Focus
+\+2 — ⚙️ Tone / Focus
 
-\+1 👣 🔋 Grounded / Balanced
+\+1 — 👣 🔋 Grounded / Balanced
 
- 0 ⚖️ Neutral
+ 0 — ⚖️ Neutral
 
-\-1 🍂 Friction / Fade
+\-1 — 🍂 Friction / Fade
 
-\-2 🪨 Resistance / Viscosity
+\-2 — 🪨 Resistance / Viscosity
 
-\-3 ⚡ Tension / Panic / 🪫 Exhaustion
+\-3 — ⚡ Tension / Panic / 🪫 Exhaustion
 
-\-4 💔 Distress / 🧊 Freeze
+\-4 — 💔 Distress / 🧊 Freeze
 
-\-5 ❌ Collapse
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+\-5 — ❌ Collapse
