@@ -461,7 +461,6 @@ let isSmartSortEnabled = true;
 
 
 
-// Звичайний парсер
 let name = content;
 let desc = "";
 let infoText = ""; // 🟢 Змінна для прихованого тексту
@@ -475,11 +474,11 @@ if (sepMatch) {
     desc = content.substring(idx + sepMatch[0].length).trim();
 }
 
-// 🟢 Витягуємо весь текст із < > у змінну infoText та видаляємо його з видимого опису
-const infoRegex = /<([^>]+)>/g;
+// 🟢 Витягуємо прихований текст із безпечних подвійних фігурних дужок {{ }}
+const infoRegex = /\{\{([\s\S]*?)\}\}/g;
 let infoMatch;
 while ((infoMatch = infoRegex.exec(desc)) !== null) {
-    infoText += (infoText ? " " : "") + infoMatch[1].trim();
+    infoText += (infoText ? " " : "") + infoMatch[1].trim(); 
 }
 desc = desc.replace(infoRegex, '').trim();
 
