@@ -240,26 +240,24 @@ magnet field valence
 - arousal
 - temperature
 
-### tensions
+### senses [mods: ⚡︎, ϟ, ☻]
 
-- ⚡︎.head
-- ⚡︎.face
-- ⚡︎.jaw
-- ⚡︎.neck
-- ⚡︎.shoulders
-- ⚡︎.l-hand
-- ⚡︎.r-hand
-- ⚡︎.chest
-- ⚡︎.belly
-- ⚡︎.back
-- ⚡︎.pelvis
-- ⚡︎.l-leg
-- ⚡︎.r-leg
+tensions, pain, wellbeing
 
-### pain
-
-- ϟ.head
-- ϟ.gut
+- head
+- face
+- jaw
+- neck
+- shoulders
+- l-hand
+- r-hand
+- chest
+- belly
+- back
+- pelvis
+- gut
+- l-leg
+- r-leg
 
 \- - - - -
 
@@ -597,7 +595,7 @@ magnet field valence
 - **thought-neutralization** — Ментальна «заміна» поганої думки на хорошу для «скасування» її впливу.
 - **washing/cleaning** — Надмірна гігієна або прибирання, що виходить за межі норми.
 
-# needs [tags: ✓, ✘]
+# needs [mods: ✓, ✘]
 
 #### ✓ Met-needs, ✘ Un-met-needs
 
@@ -650,7 +648,7 @@ magnet field valence
 
 \- - - - -
 
-# boundaries [tags: ✓, ✘]
+# boundaries [mods: ✓, ✘]
 
 #### Кордони: передумова для співчуття; розуміння, де закінчуємося ми, а починається інша людина.
 
