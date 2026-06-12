@@ -472,7 +472,7 @@ const sepMatch = content.match(/ — | - |: /);
 if (sepMatch) {
     const idx = sepMatch.index;
     name = content.substring(0, idx).trim();
-    desc = content.substring(idx + `sepMatch.length`).trim();
+    desc = content.substring(idx + sepMatch[0].length).trim();
 }
 
 // 🟢 Витягуємо весь текст із < > у змінну infoText та видаляємо його з видимого опису
