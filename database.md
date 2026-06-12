@@ -242,7 +242,7 @@ magnet field valence
 
 ### senses [mods: ⚡︎, ϟ, ☻]
 
-tensions, pain, wellbeing
+#### tensions, pain, wellbeing
 
 - head
 - face
