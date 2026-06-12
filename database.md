@@ -233,47 +233,33 @@ magnet field valence
 
 \- - - - -
 
-# senses [tags: t, p, w]
+# somatic
 
 - wellbeing — гарне самопочуття
 - tired
+- arousal
+- temperature
 
-- head
-- face
-- jaw
-- neck
-- shoulders
-- l-hand
-- r-hand
-- chest
-- belly
-- back
-- pelvis
-- l-leg
-- r-leg
+### tensions
 
-# tensions
+- ⚡︎.head
+- ⚡︎.face
+- ⚡︎.jaw
+- ⚡︎.neck
+- ⚡︎.shoulders
+- ⚡︎.l-hand
+- ⚡︎.r-hand
+- ⚡︎.chest
+- ⚡︎.belly
+- ⚡︎.back
+- ⚡︎.pelvis
+- ⚡︎.l-leg
+- ⚡︎.r-leg
 
-- head
-- face
-- jaw
-- neck
-- shoulders
-- l-hand
-- r-hand
-- chest
-- belly
-- back
-- pelvis
-- l-leg
-- r-leg
+### pain
 
-\- - - - -
-
-# pain
-
-- head
-- gut
+- ϟ.head
+- ϟ.gut
 
 \- - - - -
 
