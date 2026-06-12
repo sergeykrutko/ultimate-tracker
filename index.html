@@ -86,8 +86,12 @@
         .option-btn.active .option-name { color: var(--accent); }
         .option-desc { font-size: 12px; color: var(--text-desc); line-height: 1.2; font-weight: 600;}
 
-        .scale-container { display: none; margin-top: auto; padding-top: 8px; justify-content: space-between; gap: 4px; }
+        .scale-container { display: none; margin-top: auto; padding-top: 8px; flex-direction: column; gap: 6px; }
         .option-btn.active .scale-container { display: flex; }
+        .scale-row { display: flex; justify-content: space-between; gap: 4px; width: 100%; }
+        .mods-row { display: flex; gap: 4px; flex-wrap: wrap; }
+        .mod-btn { background: var(--bg-color); border: 1px dashed var(--accent); color: var(--accent); border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 800; cursor: pointer; transition: all 0.15s ease; text-transform: uppercase; }
+        .mod-btn.selected { background: var(--accent); color: white; border-style: solid; }
 
 
 /* --- СМАРТ-ФІЛЬТР ПРАКТИК --- */
@@ -281,12 +285,6 @@
 
 
 
-
-
-
-
-
-
     `;
     // =========================================================================
 
@@ -350,12 +348,16 @@ let isSmartSortEnabled = true;
         return html;
     }
 
+
+
+
     function parseDatabase(text) {
         const lines = text.split('\n');
         const blocks = [];
         let currentCat = null;
         let quoteBuffer = [];
         let currentScale = null;
+        let currentSubMods = []; // Зберігає модифікатори поточної підкатегорії
 
         function flushQuoteBuffer() {
             if (quoteBuffer.length > 0) {
@@ -382,20 +384,30 @@ let isSmartSortEnabled = true;
 
             if (line.startsWith('# ')) {
                 let catTitle = line.substring(2).trim();
-                let isScale = false; let tags = null;
+                let isScale = false; let tags = null; let mods = null;
                 currentScale = null;
+                currentSubMods = []; // Скидаємо підкатегорії при новій головній
 
                 if (catTitle.toLowerCase().includes('[scale]')) {
                     isScale = true; catTitle = catTitle.replace(/\[scale\]/gi, '').trim();
                 }
+                
+                // [tags: ...] -> Заміна шкали 1-5 (напр. ✓, ✘)
                 const tagsMatch = catTitle.match(/\[tags:\s*(.+?)\]/i);
                 if (tagsMatch) {
                     tags = tagsMatch[1].split(',').map(s => s.trim());
                     catTitle = catTitle.replace(tagsMatch[0], '').trim();
                 }
+                
+                // [mods: ...] -> Мульти-вибір префіксів
+                const modsMatch = catTitle.match(/\[mods:\s*(.+?)\]/i);
+                if (modsMatch) {
+                    mods = modsMatch[1].split(',').map(s => s.trim());
+                    catTitle = catTitle.replace(modsMatch[0], '').trim();
+                }
 
                 catTitle = catTitle.replace(/\*/g, '').trim();
-                currentCat = { type: isScale ? 'scale-category' : 'category', title: catTitle, items: [], tags: tags, desc: "" };
+                currentCat = { type: isScale ? 'scale-category' : 'category', title: catTitle, items: [], tags: tags, mods: mods || [], desc: "" };
                 blocks.push(currentCat);
                 return;
             }
@@ -409,6 +421,15 @@ let isSmartSortEnabled = true;
 
             if (line.match(/^#{2,3}\s+/)) {
                 let cleanTitle = line.replace(/^#{2,3}\s+/, '').replace(/\*/g, '').trim();
+                currentSubMods = []; // Скидаємо перед кожною новою підкатегорією
+
+                // Шукаємо ТІЛЬКИ [mods: ...] у підзаголовку
+                const subModsMatch = cleanTitle.match(/\[mods:\s*(.+?)\]/i);
+                if (subModsMatch) {
+                    currentSubMods = subModsMatch[1].split(',').map(s => s.trim());
+                    cleanTitle = cleanTitle.replace(subModsMatch[0], '').trim();
+                }
+
                 if (cleanTitle.toLowerCase().includes('[scale]')) {
                     let scaleTitle = cleanTitle.replace(/\[scale\]/gi, '').trim();
                     currentScale = { type: 'inline-scale', title: scaleTitle, items: [], desc: "" };
@@ -423,32 +444,24 @@ let isSmartSortEnabled = true;
             let content = line.replace(/^\\?[-*]\s+/, '').replace(/\\/g, '').replace(/\*/g, '').trim();
             if(!content) return;
 
-            // Топова шкала
+            // Топова шкала та Вбудована шкала
             if (currentCat.type === 'scale-category') {
                 const scaleMatch = content.match(/^([+-]?\d+)(?:\s+(.+))?$/);
-                if (scaleMatch) {
-                    currentCat.items.push({ type: 'scale-item', number: parseInt(scaleMatch[1]), label: scaleMatch[2] ? scaleMatch[2].trim() : "" });
-                } else {
-                    if (currentCat.items.length === 0) currentCat.desc = (currentCat.desc ? currentCat.desc + "<br>" : "") + content;
-                }
+                if (scaleMatch) currentCat.items.push({ type: 'scale-item', number: parseInt(scaleMatch[1]), label: scaleMatch[2] ? scaleMatch[2].trim() : "" });
+                else if (currentCat.items.length === 0) currentCat.desc = (currentCat.desc ? currentCat.desc + "<br>" : "") + content;
                 return;
             }
-            
-            // Вбудована шкала
             if (currentScale) {
                 const scaleMatch = content.match(/^([+-]?\d+)(?:\s+(.+))?$/);
-                if (scaleMatch) {
-                    currentScale.items.push({ type: 'scale-item', number: parseInt(scaleMatch[1]), label: scaleMatch[2] ? scaleMatch[2].trim() : "" });
-                } else {
-                    if (currentScale.items.length === 0) currentScale.desc = (currentScale.desc ? currentScale.desc + "<br>" : "") + content;
-                }
+                if (scaleMatch) currentScale.items.push({ type: 'scale-item', number: parseInt(scaleMatch[1]), label: scaleMatch[2] ? scaleMatch[2].trim() : "" });
+                else if (currentScale.items.length === 0) currentScale.desc = (currentScale.desc ? currentScale.desc + "<br>" : "") + content;
                 return;
             }
 
             // Звичайний парсер
             let name = content; 
-            let desc = "";
-            let ranges = [];
+            let desc = ""; 
+            let ranges = []; 
             let triggersList = [];
             
             const sepMatch = content.match(/ — | - |: /); 
@@ -461,42 +474,33 @@ let isSmartSortEnabled = true;
             const scaleRegex = /`?\[([a-z]+)\s+([+-]?\d+)(?::([+-]?\d+))?\]`?/gi;
             let match;
             while ((match = scaleRegex.exec(desc)) !== null) {
-                let scale = match[1].toLowerCase();
-                let val1 = parseInt(match[2]);
-                let val2 = match[3] ? parseInt(match[3]) : val1;
-                ranges.push({ scale, min: Math.min(val1, val2), max: Math.max(val1, val2), text: match[0] });
+                ranges.push({ scale: match[1].toLowerCase(), min: Math.min(parseInt(match[2]), match[3] ? parseInt(match[3]) : parseInt(match[2])), max: Math.max(parseInt(match[2]), match[3] ? parseInt(match[3]) : parseInt(match[2])), text: match[0] });
             }
             let tempDesc = desc.replace(scaleRegex, '');
-
+            
             const triggerRegex = /`?\[(.*?)\]`?/g;
             while ((match = triggerRegex.exec(tempDesc)) !== null) {
-                let tagsStr = match[1];
-                if (!/^[+\-:\d\s]+$/.test(tagsStr)) {
-                    let tagsArr = tagsStr.split(',').map(t => t.trim()).filter(t => t);
-                    triggersList.push(...tagsArr);
-                }
+                if (!/^[+\-:\d\s]+$/.test(match[1])) triggersList.push(...match[1].split(',').map(t => t.trim()).filter(t => t));
             }
             let cleanDesc = tempDesc.replace(triggerRegex, '').trim();
 
-            currentCat.items.push({ type: 'item', name, desc: cleanDesc, ranges, triggers: triggersList });
+            // МАГІЯ ТУТ: Об'єднуємо модифікатори головної категорії та підкатегорії!
+            let itemMods = [...new Set([...(currentCat.mods || []), ...currentSubMods])];
+            
+            currentCat.items.push({ type: 'item', name, desc: cleanDesc, ranges, triggers: triggersList, mods: itemMods });
         });
 
         flushQuoteBuffer();
-
         blocks.forEach(b => {
-            if (b.type === 'scale-category') b.items.sort((a, b) => {
-                if (a.type === 'comment') return -1;
-                if (b.type === 'comment') return 1;
-                return a.number - b.number;
-            });
-            if (b.type === 'category') {
-                b.items.forEach(i => {
-                    if (i.type === 'inline-scale') i.items.sort((a,b) => a.number - b.number);
-                });
-            }
+            if (b.type === 'scale-category') b.items.sort((a, b) => { if (a.type === 'comment') return -1; if (b.type === 'comment') return 1; return a.number - b.number; });
+            if (b.type === 'category') b.items.forEach(i => { if (i.type === 'inline-scale') i.items.sort((a,b) => a.number - b.number); });
         });
         return blocks;
     }
+
+
+
+
 
 
 function renderInlineMarkdown(text) {
@@ -909,6 +913,24 @@ let selectedInCat = Object.values(selectedItems).filter(i => i.category === cate
                 scaleDiv.className = 'scale-container';
                 scaleDiv.onclick = (e) => e.stopPropagation();
 
+                // 1. Рядок з модифікаторами (Multi-select префікси)
+                if (item.mods && item.mods.length > 0) {
+                    const modsRow = document.createElement('div');
+                    modsRow.className = 'mods-row';
+                    item.mods.forEach(modVal => {
+                        const modBtn = document.createElement('div');
+                        const isActive = isSelected && selectedItems[itemId].mods && selectedItems[itemId].mods.includes(modVal);
+                        modBtn.className = `mod-btn ${isActive ? 'selected' : ''}`;
+                        modBtn.innerText = modVal;
+                        modBtn.onclick = () => toggleMod(itemId, category, item.name, modVal);
+                        modsRow.appendChild(modBtn);
+                    });
+                    scaleDiv.appendChild(modsRow);
+                }
+
+                // 2. Рядок зі шкалою (Single-select 1-5)
+                const scaleRow = document.createElement('div');
+                scaleRow.className = 'scale-row';
                 const tagsToUse = blockData.tags || [1, 2, 3, 4, 5];
                 tagsToUse.forEach(tagVal => {
                     const scaleBtn = document.createElement('div');
@@ -916,8 +938,9 @@ let selectedInCat = Object.values(selectedItems).filter(i => i.category === cate
                     if (isNaN(tagVal)) scaleBtn.classList.add('text-tag'); 
                     scaleBtn.innerText = tagVal;
                     scaleBtn.onclick = () => setScale(itemId, category, item.name, String(tagVal));
-                    scaleDiv.appendChild(scaleBtn);
+                    scaleRow.appendChild(scaleBtn);
                 });
+                scaleDiv.appendChild(scaleRow);
 
                 btn.appendChild(scaleDiv);
                 currentGrid.appendChild(btn);
@@ -995,15 +1018,30 @@ let selectedInCat = Object.values(selectedItems).filter(i => i.category === cate
 
     function toggleItem(id, category, name) {
         if (selectedItems[id]) delete selectedItems[id]; 
-        else selectedItems[id] = { category, name, scale: null };
+        else selectedItems[id] = { category, name, scale: null, mods: [] };
         saveAndRender();
     }
 
     function setScale(id, category, name, scaleNum) {
-        if (!selectedItems[id]) selectedItems[id] = { category, name, scale: scaleNum };
+        if (!selectedItems[id]) selectedItems[id] = { category, name, scale: scaleNum, mods: [] };
         else selectedItems[id].scale = (selectedItems[id].scale === scaleNum) ? null : scaleNum;
         saveAndRender();
     }
+
+    function toggleMod(id, category, name, modVal) {
+        if (!selectedItems[id]) {
+            selectedItems[id] = { category, name, scale: null, mods: [modVal] };
+        } else {
+            if (!selectedItems[id].mods) selectedItems[id].mods = [];
+            const idx = selectedItems[id].mods.indexOf(modVal);
+            if (idx > -1) selectedItems[id].mods.splice(idx, 1);
+            else selectedItems[id].mods.push(modVal);
+        }
+        saveAndRender();
+    }
+
+
+
 
     function updateScaleSlider(category, val) {
         const items = findScaleItems(category);
@@ -1134,8 +1172,13 @@ function saveAndRender() {
                 const itemsInCat = Object.values(selectedItems).filter(i => i.category === category);
                 if (itemsInCat.length > 0) {
                     catParts.push(...itemsInCat.map(i => {
-                        if (!i.scale) return i.name;
-                        return isNaN(i.scale) ? `${i.name} (${i.scale})` : `${i.name}.${i.scale}`;
+                        // Формуємо префікси: "t.p."
+                        let prefix = (i.mods && i.mods.length > 0) ? i.mods.join('.') + '.' : '';
+                        let main = i.name;
+                        // Формуємо суфікс: ".3" (або " (✓)" для текстових шкал)
+                        let suffix = i.scale ? (isNaN(i.scale) ? ` (${i.scale})` : `.${i.scale}`) : '';
+                        
+                        return `${prefix}${main}${suffix}`;
                     }));
                     totalCount += itemsInCat.length;
                 }
