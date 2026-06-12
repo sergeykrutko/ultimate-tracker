@@ -240,9 +240,9 @@ magnet field valence
 - arousal
 - temperature
 
-### senses [mods: ⚡︎, ϟ, ☻]
+### senses [mods: ⚡︎, ǃ, ⨀]
 
-#### tensions, pain, wellbeing
+#### tensions ⚡︎, pain ǃ, wellbeing ⨀
 
 - head
 - face
@@ -438,20 +438,20 @@ magnet field valence
 - **"you don't act like man"** — "справжній чоловік так би не поступив"
 - **eavesdropping** — Параноя / Надмірна пильність (думки про те, що за вами стежать, підслуховують або обговорюють за спиною).
 
-### **⚪️ Група установок Дефіциту та Поспіху (Стресові драйвери):**
+### **⚪️ Дефіцит та Поспіх (Стресові драйвери)**
 
 - **hurry-up!** — Драйвер поспіху («Я нічого не встигаю! Треба швидше!», «Немає часу розслаблятися»). Внутрішній таймер, який створює штучну паніку навіть у вихідний день.
 - **not-enough** — Установка дефіциту («Мені постійно не вистачає — часу, грошей, знань, ресурсу»). Стан постійного «голоду», що блокує спокій.
 - **too-late** — Синдром втрачених можливостей («Вже пізно щось змінювати», «Мій час минув»).
 
-### **⚪️ Група установок Самозванця та Перфекціоніста (Критичний Батько):**
+### **⚪️ Самозванець та Перфекціоніст (Критичний Батько):**
 
 - **be-strong —** Установка «Ти окей, лише коли не показуєш свої почуття та потреби іншим»
 - **imposter** — Синдром самозванця («Я обманщик, скоро всі зрозуміють, що я насправді нічого не вмію»).
 - **it's-not-perfect** — Знецінення результату («Якщо це не бездоганно, це взагалі не має сенсу», «Або найкраще, або ніяк»).
 - **try-harder** — Драйвер надзусиль («Щоб мене поважали, я маю працювати на межі виснаження», «Просто зробити — недостатньо, треба страждати»).
 
-### **⚪️ Група установок Відчуження та Жертви (Адаптивна Дитина):**
+### **⚪️ Відчуження та Жертва (Адаптивна Дитина):**
 
 - **i-must-please** — Драйвер догоджання («Якщо я зараз скажу "ні", від мене відвернуться», «Я маю бути зручним, щоб мене любили»).
 - **nobody-cares** — Ізоляція («Нікому насправді немає до мене діла», «Я завжди залишаюся сам зі своїми проблемами»).
@@ -668,54 +668,58 @@ magnet field valence
 
 ### EXILES:
 
-- Abandoned-Child — who holds grief, sadness and loneliness from emotional neglect or loss of a caregiver early in life
-- Bullied-Teenager — The bullied teenager who carries shame, inadequacy and mistrust from being victimized
-- Heartbroken-Teenager — The heartbroken young adult who harbours unprocessed grief from a difficult breakup or divorce
+- Abandoned-Child — хто переживає горе, смуток і самотність через емоційну зневагу або втрату близької людини в ранньому віці
+- Angry-Child — відчуває гнів або лють через незадоволені базові потреби.
+- Bullied-Teenager — підліток, який зазнав знущань і відчуває сором, неповноцінність та недовіру через те, що став жертвою
+- Heartbroken-Teenager — молода людина з розбитим серцем, яка переживає непереборний смуток через болісне розставання чи розлучення
 - Insecure-Child
-- UNNAMED-Exile
+- Impulsive-Child - Нездатність контролювати свої імпульси, відсутність терпіння
+- Happy-Child - відчуває радість, безпеку, любов і задоволення
+- ?-Exile
 
 ### MANAGERS:
 
-- Anxious-Worrier — Obsesses over problems (real or perceived)
-- Caretaker — Compulsively cares for others
-- Controlling-one — Needs to be in charge, micromanages
-- Cynic/Sceptic — Questions motives and sees the negative
-- Detached-Intellectual — Over-analyses to suppress emotions
-- Disciplinarian — Enforces rigid rules and restraint
-- High-Achiever — Relentlessly drives and pressures to achieve
-- Hypervigilant-one — Scans for threats, distrustful
-- Judge/Critic — Judges and critiques self and others harshly
-- Minimizer — Downplays importance of feelings
-- Passive-one — Has difficulty setting boundaries/saying "no"
-- People-Pleaser — Seeks approval, avoids conflict
-- Perfectionist — Sets unrealistically high standards
-- Pessimist — Focuses on flaws and negatives
-- Self-Blamer — Fixates on flaws and self-shames
-- Serious-one — Suppresses playfulness and lightness
-- Stubborn-one — Dismisses emotions and resists change
-- UNNAMED-Manager
+- Anxious-Worrier — зациклюється на проблемах (реальних чи уявних)
+- Caretaker — Надмірно піклується про інших
+- Controlling-one — Потрібно керувати, займається дрібним контролем
+- Cynic/Sceptic — Ставить під сумнів мотиви та бачить лише негативне
+- Detached-Intellectual — Надмірний аналіз з метою придушення емоцій
+- Disciplinarian — Дотримується суворих правил і стриманості
+- High-Achiever — Неустанно домагається та тисне, щоб досягти
+- Hypervigilant-one — Перевіряє на наявність загроз, не довіряє
+- Judge/Critic — Суворо оцінює та критикує себе й інших
+- Minimizer — Применшує значення почуттів
+- Passive-one — Має труднощі з встановленням меж/з тим, щоб сказати «ні»
+- People-Pleaser — Прагне отримати схвалення, уникає конфліктів
+- Perfectionist — Ставить надто високі вимоги
+- Pessimist — Зосереджується на недоліках та негативних моментах
+- Self-Blamer — Зациклюється на недоліках і соромиться себе
+- Serious-one — Пригнічує грайливість і легкість
+- Stubborn-one — Нехтує емоціями та чинить опір змінам
+- Healthy-Adult — Здорова, збалансована частина, яка здатна захищати вразливу дитину, встановлювати межі та задовольняти потреби
+- ?-Manager
 
 ### FIREFIGHTERS:
 
-- Addicted-one — Turns to substances or unhealthy habits
-- Adrenaline-Seeker — Creates drama, crisis, chaos
-- Aggressive-one — Uses verbal or physical aggression
-- Depressive-one — Uses fatigue, sadness and isolation
-- Escapist — Fantasizes, dissociates, zones out through screens/media
-- Hopeless-one — Gives up through depressive states
-- Hyperactive-one — Stays constantly busy as avoidance
-- Incessant-Shopper — Compulsively shops to self soothe
-- Jester — Uses humour to deflect and diffuse
-- Manipulative-one — Covertly controls through guilt/shame
-- Over-working-one — Uses constant activity to avoid pain
-- Overeater — Overeats to stuff feelings
-- Partying-one — Uses substances, sex, intensity to distract
-- Quarrelsome-one — Picks fights to release tension
-- Rebellious-one — Express frustration through resistance
-- Seductive-Charmer — Seeks intensity through sexuality/charm
-- Thrill-Seeker — Pursues intensity through risk-taking
-- Victim — Gives up agency through hopelessness
-- UNNAMED-Firefighter
+- Addicted-one — Звертається до вживання речовин або шкідливих звичок
+- Adrenaline-Seeker — Створює драматизм, кризу, хаос
+- Aggressive-one — Використовує словесну або фізичну агресію
+- Depressive-one — Викликає втому, смуток та відчуття ізоляції
+- Escapist — Мріє, відключається, занурюється у світ екранів/ЗМІ
+- Hopeless-one — Втрачає надію через депресивні стани
+- Hyperactive-one — Постійно займається чимось, щоб уникнути
+- Incessant-Shopper — Компульсивно робить покупки, щоб заспокоїти себе
+- Jester — Використовує гумор, щоб відвести увагу та розрядити ситуацію
+- Manipulative-one — Таємно керує, використовуючи почуття провини та сорому
+- Over-working-one — Використовує постійну активність, щоб уникнути болю
+- Overeater — Переїдає, щоб приглушити свої почуття
+- Partying-one — Використовує речовини, секс та інтенсивність, щоб відволікти увагу
+- Quarrelsome-one — Вступає в бійки, щоб зняти напругу
+- Rebellious-one — Виражати розчарування через опір
+- Seductive-Charmer — Прагне інтенсивності через сексуальність/чарівність
+- Thrill-Seeker — Прагне досягти інтенсивності, йдучи на ризик 
+- Victim — Втрачає здатність діяти через безнадію
+- ?-Firefighter
 
 \- - - - -
 
@@ -724,7 +728,7 @@ magnet field valence
 ### PRE-FILTERS: Sates & Decision CheckUps
 
 - **Drop-Test** — (Інтуїція vs. Страх). Уявіть, що рішення вже прийнято, і відслідкуйте тіло: розслаблення означає справжню Інтуїцію (Ni), а стиснення і шквал виправдань — тривогу Опозиції (Ne). [mind -1:-2] [intn 0:-2] [awri 0:-1]
-- **Microphone-to-Friend** — (Детектор Критика). Перевірка думки: "Чи сказав би я це своєму найкращому другу?". Допомагає виявити жорстокість Внутрішнього Критика (Fi/Te) у зонах провини та сорому. [mind -2:-4] [awri -1:-3] [you'r fool!, self-attack, self-blame, devaluation, Critic] *(Контрудар по Внутрішньому Критику та Кату. Чудово протвережує на рівнях румінації -2 та гострої атаки на ідентичність -4)* [mind -2:-4] [awri -2:-3] [you'r fool!, self-attack, self-blame, devaluation]
+- **Microphone-to-Friend** — (Детектор Критика) Перевірка думки: "Чи сказав би я це своєму найкращому другу?". Допомагає виявити жорстокість Внутрішнього Критика (Fi/Te) у зонах провини та сорому. <*Контрудар по Внутрішньому Критику та Кату. Чудово протвережує на рівнях румінації -2 та гострої атаки на ідентичність -4)>* [mind -2:-4] [awri -2:-3] [you'r fool!, self-attack, self-blame, devaluation, Critic]
 - **90-Sec-Test** — (Детектор Імпульсу). Заборона діяти 90 секунд. Відфільтровує стресовий адреналіновий імпульс вашої нижньої функції (Se) від свідомої потреби.  [body -2:-3] [mind -2:-3] [awri -1:-2] [acting-out, impulsive, craves]
 - **Open-Doors-Test** — (Детектор Бажання). Підкиньте монетку і відслідкуйте, який саме результат ви *потай сподіваєтесь побачити*, поки вона летить. Пробиває тиск "треба". [mind -1:-2] [intn 0:-1] [awri -1]
 - **Panksepp-Scanner** — (Пошук прихованого болю). Сканування тіла трьома питаннями на базові афекти: 1) Порушили кордони? (RAGE), 2) Є загроза? (FEAR), 3) Я відкинутий? (PANIC/GRIEF). Знімає "мозковий туман" і виводить зі ступору через точне називання емоції.  [body -3:-5] [mind -3:-5] [awri -2:-4] [what's-the-point?, confusion, offline]
