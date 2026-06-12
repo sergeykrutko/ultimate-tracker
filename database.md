@@ -233,12 +233,10 @@ magnet field valence
 
 \- - - - -
 
-# senses
+# senses [tags: t, p, w]
 
 - wellbeing — гарне самопочуття
 - tired
-
-### senses [tags: t, p, w]
 
 - head
 - face
