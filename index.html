@@ -458,18 +458,21 @@ let isSmartSortEnabled = true;
                 return;
             }
 
-            // Звичайний парсер
-            let name = content; 
-            let desc = ""; 
-            let ranges = []; 
-            let triggersList = [];
-            
-            const sepMatch = content.match(/ — | - |: /); 
-            if (sepMatch) {
-                const idx = sepMatch.index;
-                name = content.substring(0, idx).trim();
-                desc = content.substring(idx + sepMatch[0].length).trim();
-            }
+// Звичайний парсер
+let name = content;
+let desc = "";
+let ranges = [];
+let triggersList = [];
+
+const sepMatch = content.match(/ — | - |: /);
+if (sepMatch) {
+    const idx = sepMatch.index;
+    name = content.substring(0, idx).trim();
+    desc = content.substring(idx + sepMatch.length).trim();
+}
+
+// 🪄 МАГІЯ: Видаляємо всі приховані коментарі в < > перед рендером
+desc = desc.replace(/<.*?>/g, '').trim();
             
             const scaleRegex = /`?\[([a-z]+)\s+([+-]?\d+)(?::([+-]?\d+))?\]`?/gi;
             let match;
@@ -714,15 +717,16 @@ let selectedInCat = Object.values(selectedItems).filter(i => i.category === cate
                                 relevantActiveScales.forEach(activeScale => {
                                     let range = i.ranges.find(r => r.scale === activeScale.name);
                                     if (range) {
-                                        if (activeScale.val >= range.min && activeScale.val <= range.max) {
-                                            score += 10; // Пряме влучання
-                                            let rSize = range.max - range.min;
-                                            if (rSize <= 1) score += 5; // Снайперська вузькість
-                                            else if (rSize <= 2) score += 3;
-                                        } else if (activeScale.val < range.min) {
-                                            // БЛОКУЄМО: стан користувача гірший (нижчий), ніж дозволяє ця практика
-                                            isMismatch = true; 
-                                        }
+    if (activeScale.val >= range.min && activeScale.val <= range.max) {
+    score += 10; // Пряме влучання
+    let rSize = range.max - range.min;
+    if (rSize <= 1) score += 5; // Снайперська вузькість
+    else if (rSize <= 2) score += 3;
+} else {
+    // ЖОРСТКЕ БЛОКУВАННЯ: Якщо мій стан хоча б по одній шкалі виходить за межі 
+    // діапазону практики (вище або нижче) — ховаємо її назавжди!
+    isMismatch = true;
+}
                                     }
                                 });
                             }
@@ -815,11 +819,26 @@ let selectedInCat = Object.values(selectedItems).filter(i => i.category === cate
                     if(toggleBtn) {
                         toggleBtn.onclick = (e) => {
                             e.stopPropagation();
-                            const anyExpanded = subheaderWraps.some(w => !w.classList.contains('collapsed'));
-                            subheaderWraps.forEach(w => {
-                                if (anyExpanded) w.classList.add('collapsed');
-                                else w.classList.remove('collapsed');
-                            });
+                            
+                            // Перевіряємо, чи розгорнута сама головна категорія
+                            const isCategoryExpanded = block.classList.contains('expanded');
+                            
+                            if (!isCategoryExpanded) {
+                                // 1. Якщо категорія згорнута: відкриваємо її та розгортаємо всі підгрупи
+                                block.classList.add('expanded');
+                                subheaderWraps.forEach(w => w.classList.remove('collapsed'));
+                            } else {
+                                // 2. Якщо категорія вже розгорнута: працюємо як тогл тільки для підгруп
+                                const anySubExpanded = subheaderWraps.some(w => !w.classList.contains('collapsed'));
+                                
+                                if (anySubExpanded) {
+                                    // Якщо хоч одна підгрупа відкрита -> згортаємо всі (категорія лишається відкритою)
+                                    subheaderWraps.forEach(w => w.classList.add('collapsed'));
+                                } else {
+                                    // Якщо всі підгрупи згорнуті -> розгортаємо всі
+                                    subheaderWraps.forEach(w => w.classList.remove('collapsed'));
+                                }
+                            }
                         };
                     }
                 }, 0);
