@@ -458,9 +458,13 @@ let isSmartSortEnabled = true;
                 return;
             }
 
+
+
+
 // Звичайний парсер
 let name = content;
 let desc = "";
+let infoText = ""; // 🟢 Змінна для прихованого тексту
 let ranges = [];
 let triggersList = [];
 
@@ -468,11 +472,20 @@ const sepMatch = content.match(/ — | - |: /);
 if (sepMatch) {
     const idx = sepMatch.index;
     name = content.substring(0, idx).trim();
-    desc = content.substring(idx + sepMatch.length).trim();
+    desc = content.substring(idx + `sepMatch.length`).trim();
 }
 
-// 🪄 МАГІЯ: Видаляємо всі приховані коментарі в < > перед рендером
-desc = desc.replace(/<.*?>/g, '').trim();
+// 🟢 Витягуємо весь текст із < > у змінну infoText та видаляємо його з видимого опису
+const infoRegex = /<([^>]+)>/g;
+let infoMatch;
+while ((infoMatch = infoRegex.exec(desc)) !== null) {
+    infoText += (infoText ? " " : "") + infoMatch[1].trim();
+}
+desc = desc.replace(infoRegex, '').trim();
+
+
+
+
             
             const scaleRegex = /`?\[([a-z]+)\s+([+-]?\d+)(?::([+-]?\d+))?\]`?/gi;
             let match;
@@ -488,9 +501,11 @@ desc = desc.replace(/<.*?>/g, '').trim();
             let cleanDesc = tempDesc.replace(triggerRegex, '').trim();
 
             // МАГІЯ ТУТ: Об'єднуємо модифікатори головної категорії та підкатегорії!
-            let itemMods = [...new Set([...(currentCat.mods || []), ...currentSubMods])];
-            
-            currentCat.items.push({ type: 'item', name, desc: cleanDesc, ranges, triggers: triggersList, mods: itemMods });
+let itemMods = [...new Set([...(currentCat.mods || []), ...currentSubMods])];
+
+currentCat.items.push({ type: 'item', name, desc: cleanDesc, info: infoText, ranges, triggers: triggersList, mods: itemMods });
+
+
         });
 
         flushQuoteBuffer();
@@ -920,13 +935,23 @@ let selectedInCat = Object.values(selectedItems).filter(i => i.category === cate
                 clickableArea.className = 'option-clickable-area';
                 clickableArea.onclick = () => toggleItem(itemId, category, item.name);
                 
-                // Формуємо вміст кнопки (БЕЗ ДУБЛЮВАННЯ ОПИСУ)
-                clickableArea.innerHTML = `
-                    <div class="option-name">${item.name}</div>
-                    ${item.desc ? `<div class="option-desc">${renderInlineMarkdown(item.desc)}</div>` : ''}
-                    ${tagsHtml}
-                `;
-                btn.appendChild(clickableArea);
+         
+
+
+       // Формуємо вміст кнопки (ІЗ КНОПКОЮ ІНФО)
+clickableArea.innerHTML = `
+    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div class="option-name">${item.name}</div>
+        ${item.info ? `<div class="info-btn" style="color:var(--accent); font-size:15px; opacity:0.8; padding:0 4px; font-weight:bold;" onclick="event.stopPropagation(); const infoDiv = this.closest('.option-clickable-area').querySelector('.option-info'); infoDiv.style.display = infoDiv.style.display === 'block' ? 'none' : 'block';">ⓘ</div>` : ''}
+    </div>
+    ${item.info ? `<div class="option-info" style="display:none; font-size:11.5px; color:var(--text-desc); font-style:italic; margin: 4px 0; padding:6px 8px; background:var(--bg-color); border-radius:6px; border:1px dashed var(--border); line-height:1.3;">${renderInlineMarkdown(item.info)}</div>` : ''}
+    ${item.desc ? `<div class="option-desc">${renderInlineMarkdown(item.desc)}</div>` : ''}
+    ${tagsHtml}
+`;
+btn.appendChild(clickableArea);
+
+
+
 
                 const scaleDiv = document.createElement('div');
                 scaleDiv.className = 'scale-container';
