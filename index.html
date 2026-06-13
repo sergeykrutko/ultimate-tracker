@@ -453,11 +453,6 @@
 
 
 
-
-
-
-
-
     `;
     // =========================================================================
 
@@ -471,7 +466,22 @@
 
 
 let isSmartSortEnabled = true;
-    function toggleSmartSort(event) { event.stopPropagation(); isSmartSortEnabled = !isSmartSortEnabled; saveAndRender(); }
+let isStarFilterEnabled = false; // 🪄 ДОДАНО: Стан фільтру Зірочки
+
+function toggleSmartSort(event) { 
+    event.stopPropagation(); 
+    isSmartSortEnabled = !isSmartSortEnabled; 
+    saveAndRender(); 
+}
+
+// 🪄 ДОДАНО: Функція для кнопки Зірочки (працює разом зі Смарт-Сортуванням)
+function toggleStarFilter(event) {
+    if (event) event.stopPropagation();
+    isStarFilterEnabled = !isStarFilterEnabled;
+    saveAndRender(); 
+}
+
+
 
 
     
@@ -902,6 +912,13 @@ rawTriggers.forEach(t => {
                 // Визначаємо, чи взагалі потрібно фільтрувати (чи є релевантні ввідні дані)
                 isFilteringActive = isSmartSortEnabled && (relevantActiveScales.length > 0 || activeTriggers.length > 0);
 
+// Визначаємо, чи взагалі потрібно фільтрувати (чи є релевантні ввідні дані)
+isFilteringActive = isSmartSortEnabled && (relevantActiveScales.length > 0 || activeTriggers.length > 0);
+
+// 🪄 ДОДАНО: Зірочка теж примусово активує режим приховування зайвого
+if (isStarFilterEnabled) isFilteringActive = true; 
+
+
                 if (isFilteringActive) {
                     let scoredPractices = [];
                     let currentSub = "Інше"; 
@@ -981,11 +998,17 @@ if (!isMismatch && activeTriggers.length > 0) {
 
             let hasSubheaders = blockData.items.some(i => i.type === 'subheader');
 
-            // Кнопка Смарт-Фільтру з лічильником
-            let smartBtnHtml = '';
-            if (category.toLowerCase() === 'practices') {
-                smartBtnHtml = `<button class="smart-toggle ${isSmartSortEnabled ? 'active' : ''}" onclick="toggleSmartSort(event)">✨ Актуальні (${recCount})</button>`;
-            }
+     
+            // Кнопка Смарт-Фільтру з лічильником та Зірочкою
+let smartBtnHtml = '';
+if (category.toLowerCase() === 'practices') {
+    smartBtnHtml = `
+        <button class="smart-toggle ${isStarFilterEnabled ? 'active' : ''}" onclick="toggleStarFilter(event)" style="color: #e5a000; border-color: #e5a000; ${isStarFilterEnabled ? 'background: rgba(229, 160, 0, 0.1);' : ''}" title="Універсальні / Улюблені">⭑</button>
+        <button class="smart-toggle ${isSmartSortEnabled ? 'active' : ''}" onclick="toggleSmartSort(event)">✨ Актуальні (${recCount})</button>
+    `;
+}
+
+
 
             const header = document.createElement('div');
             header.className = 'category-header';
@@ -1082,47 +1105,43 @@ if (!isMismatch && activeTriggers.length > 0) {
                 const currentScale = isSelected ? selectedItems[itemId].scale : null;
 
                 let smartClass = 'neutral';
-                let tagsHtml = '';
+                    let tagsHtml = '';
 
-                if (category.toLowerCase() === 'practices') {
-                    if (isFilteringActive) {
-                        // Якщо фільтр активний, показуємо ТІЛЬКИ ті, що потрапили в ТОП
-                        if (topPractices.includes(item.name)) {
-                            smartClass = 'recommended';
-                        } else {
-                            return; // Безжально ховаємо все інше!
+                    if (category.toLowerCase() === 'practices') {
+                        // 1. ЛОГІКА ФІЛЬТРАЦІЇ (Ховаємо зайве)
+                        if (isFilteringActive) {
+                            // 🪄 ВИПРАВЛЕНО: Безпечно перевіряємо, чи ви ввели хоч якісь дані для смарт-фільтру
+                            let hasInputs = activeTriggers.length > 0 || Object.keys(selectedItems).some(k => k.startsWith('scaleCat_'));
+                            let isTop = isSmartSortEnabled && hasInputs && topPractices.includes(item.name);
+                            
+                            // Перевіряємо, чи натиснута "⭑" і чи є вона в назві практики
+                            let isStarred = isStarFilterEnabled && item.name.includes('⭑');
+
+                            // Якщо вона в ТОПі АБО врятована Зірочкою — показуємо!
+                            if (isTop || isStarred) {
+                                smartClass = 'recommended';
+                                if (isStarred && !isTop) {
+                                    smartClass += ' active'; // Підсвічуємо "улюблені"
+                                }
+                            } else {
+                                return; // Безжально ховаємо всі інші практики!
+                            }
+                        }
+
+                        // 2. РЕНДЕР ТЕГІВ (Показуємо снайперські попадання)
+                        let allTags = [];
+                        if (item.triggers) {
+                            item.triggers.forEach(t => {
+                                let isHit = activeTriggers.includes(t.toLowerCase());
+                                if (isHit) {
+                                    allTags.push(`<span class="p-tag active-trigger">[${t}]</span>`);
+                                }
+                            });
+                        }
+                        if (allTags.length > 0) {
+                            tagsHtml = `<div class="practice-tags-wrap">${allTags.join('')}</div>`;
                         }
                     }
-                    
-                    // Рендеримо маркдаун-теги шкал ТА тригерів
-                    let allTags = [];
-                    
-                    // 1. Технічні шкали [body -2:-3] тепер ПРИХОВАНІ з інтерфейсу (вони працюють під капотом)
-                    // Якщо колись захочете їх повернути на екран, просто розкоментуйте ці три рядки:
-                    /*
-                    if (item.ranges) {
-                        item.ranges.forEach(r => allTags.push(`<span class="p-tag">${r.text.replace(/`/g, '')}</span>`));
-                    }
-                    */
-
-                    // 2. Тригери показуємо ТІЛЬКИ якщо вони активні (снайперське влучання)
-                    if (item.triggers) {
-                        item.triggers.forEach(t => {
-                            // Перевіряємо, чи цей тригер зараз натиснутий у трекері
-                            let isHit = activeTriggers.includes(t.toLowerCase());
-                            
-                            // Додаємо тег на екран ВИКЛЮЧНО якщо він активний
-                            if (isHit) {
-                                allTags.push(`<span class="p-tag active-trigger">[${t}]</span>`);
-                            }
-                        });
-                    }
-
-                    // Передаємо зібрані теги в HTML
-                    if (allTags.length > 0) {
-                        tagsHtml = `<div class="practice-tags-wrap">${allTags.join('')}</div>`;
-                    }
-                }
 
                 const btn = document.createElement('div');
                 btn.className = `option-btn ${isSelected ? 'active' : ''} ${item.desc ? 'has-desc' : ''} ${smartClass}`;
@@ -1241,10 +1260,12 @@ btn.appendChild(clickableArea);
             contentDiv.appendChild(customWrap);
 
 
-// Видаляємо підзаголовки, які залишилися порожніми після фільтрації
+// Видаляємо порожні підзаголовки і АВТОМАТИЧНО відкриваємо ті, де є знайдені практики
             containerWrap.querySelectorAll('.subheader-wrap').forEach(wrap => {
                 if (wrap.querySelector('.grid-unified.sub-content').children.length === 0) {
                     wrap.remove();
+                } else if (isFilteringActive) {
+                    wrap.classList.remove('collapsed'); // Авто-розгортання!
                 }
             });
 
