@@ -396,6 +396,42 @@
 
 
 
+/* === ДОДАНО: Окремий колір для Зірочок (Теплий Пісок) === */
+.option-btn.starred { background-color: #fffcf5; border-color: #e8d5b5; box-shadow: 0 2px 8px rgba(232, 213, 181, 0.2); }
+.option-btn.starred .option-name { color: #b88645; font-weight: 800; }
+.option-btn.starred.active { background-color: var(--accent-light); border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+
+[data-theme="dark"] .option-btn.starred { background-color: rgba(232, 213, 181, 0.08); border-color: rgba(232, 213, 181, 0.25); box-shadow: none; }
+[data-theme="dark"] .option-btn.starred .option-name { color: #d1ab75; }
+[data-theme="dark"] .option-btn.starred.active { background-color: var(--accent-light); border-color: var(--accent); }
+
+
+
+/* === ДОДАНО: Окремий колір для Зірочок (М'який Шавлієвий / Евкаліпт) === 
+.option-btn.starred { background-color: #f3f7f4; border-color: #c2d1c6; box-shadow: 0 2px 8px rgba(194, 209, 198, 0.2); }
+.option-btn.starred .option-name { color: #5a7561; font-weight: 800; }
+.option-btn.starred.active { background-color: var(--accent-light); border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+
+[data-theme="dark"] .option-btn.starred { background-color: rgba(143, 169, 148, 0.08); border-color: rgba(143, 169, 148, 0.3); box-shadow: none; }
+[data-theme="dark"] .option-btn.starred .option-name { color: #8fa994; }
+[data-theme="dark"] .option-btn.starred.active { background-color: var(--accent-light); border-color: var(--accent); } */
+
+/* === ДОДАНО: Окремий колір для Зірочок (Оригінальний Помаранчевий) === 
+.option-btn.starred { background-color: #fff9f0; border-color: #e5c9a8; box-shadow: 0 2px 8px rgba(229, 201, 168, 0.2); }
+.option-btn.starred .option-name { color: #d47724; font-weight: 800; }
+.option-btn.starred.active { background-color: var(--accent-light); border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+
+[data-theme="dark"] .option-btn.starred { background-color: rgba(229, 201, 168, 0.08); border-color: rgba(229, 201, 168, 0.3); box-shadow: none; }
+[data-theme="dark"] .option-btn.starred .option-name { color: #e59f49; }
+[data-theme="dark"] .option-btn.starred.active { background-color: var(--accent-light); border-color: var(--accent); } */
+
+
+
+
+
+
+
+
 
     </style>
 </head>
@@ -453,6 +489,9 @@
 
 
 
+
+
+
     `;
     // =========================================================================
 
@@ -466,19 +505,19 @@
 
 
 let isSmartSortEnabled = true;
-let isStarFilterEnabled = false; // 🪄 ДОДАНО: Стан фільтру Зірочки
+let starFilterLevel = 0; // 0: вимкнено, 1: ⭑, 2: ⭑⭑, 3: ⭑⭑⭑
 
-function toggleSmartSort(event) { 
-    event.stopPropagation(); 
-    isSmartSortEnabled = !isSmartSortEnabled; 
-    saveAndRender(); 
+function toggleSmartSort(event) {
+    event.stopPropagation();
+    isSmartSortEnabled = !isSmartSortEnabled;
+    saveAndRender();
 }
 
-// 🪄 ДОДАНО: Функція для кнопки Зірочки (працює разом зі Смарт-Сортуванням)
+// Функція циклічного перемикання зірочок
 function toggleStarFilter(event) {
     if (event) event.stopPropagation();
-    isStarFilterEnabled = !isStarFilterEnabled;
-    saveAndRender(); 
+    starFilterLevel = (starFilterLevel + 1) % 4; // Рахує 0 -> 1 -> 2 -> 3 -> 0
+    saveAndRender();
 }
 
 
@@ -909,14 +948,14 @@ rawTriggers.forEach(t => {
 
 
 
-                // Визначаємо, чи взагалі потрібно фільтрувати (чи є релевантні ввідні дані)
-                isFilteringActive = isSmartSortEnabled && (relevantActiveScales.length > 0 || activeTriggers.length > 0);
-
-// Визначаємо, чи взагалі потрібно фільтрувати (чи є релевантні ввідні дані)
+                // Визначаємо, чи взагалі потрібно фільтрувати
 isFilteringActive = isSmartSortEnabled && (relevantActiveScales.length > 0 || activeTriggers.length > 0);
 
-// 🪄 ДОДАНО: Зірочка теж примусово активує режим приховування зайвого
-if (isStarFilterEnabled) isFilteringActive = true; 
+// Зірочка теж примусово активує режим приховування зайвого
+if (starFilterLevel > 0) {
+    isFilteringActive = true;
+}
+
 
 
                 if (isFilteringActive) {
@@ -999,14 +1038,40 @@ if (!isMismatch && activeTriggers.length > 0) {
             let hasSubheaders = blockData.items.some(i => i.type === 'subheader');
 
      
-            // Кнопка Смарт-Фільтру з лічильником та Зірочкою
+
+// Кнопка Смарт-Фільтру з лічильником та Зірочкою + ✨ Актуальні
 let smartBtnHtml = '';
+
 if (category.toLowerCase() === 'practices') {
+    // 1. РАХУЄМО КІЛЬКІСТЬ ПРАКТИК ЗІ ЗІРОЧКАМИ
+    let starredCount = 0;
+    if (starFilterLevel > 0) {
+        blockData.items.forEach(i => {
+            if (i.type === 'item' && i.name) {
+                const stars = (i.name.match(/⭑/g) || []).length;
+                if (stars >= starFilterLevel) starredCount++;
+            }
+        });
+    }
+
+    // 2. Визначаємо, який текст малювати на кнопці
+    let starIcon = '⭑';
+    if (starFilterLevel === 2) starIcon = '⭑⭑';
+    if (starFilterLevel === 3) starIcon = '⭑⭑⭑';
+
+    // 3. Формуємо підпис кнопки з лічильником (якщо фільтр активний)
+    let starLabel = starFilterLevel > 0 ? `${starIcon} (${starredCount})` : starIcon;
+
     smartBtnHtml = `
-        <button class="smart-toggle ${isStarFilterEnabled ? 'active' : ''}" onclick="toggleStarFilter(event)" style="color: #e5a000; border-color: #e5a000; ${isStarFilterEnabled ? 'background: rgba(229, 160, 0, 0.1);' : ''}" title="Універсальні / Улюблені">⭑</button>
-        <button class="smart-toggle ${isSmartSortEnabled ? 'active' : ''}" onclick="toggleSmartSort(event)">✨ Актуальні (${recCount})</button>
+        <button class="smart-toggle ${starFilterLevel > 0 ? 'active' : ''}" 
+        onclick="toggleStarFilter(event)" 
+        style="color: #e5a000; border-color: #e5a000; ${starFilterLevel > 0 ? 'background: rgba(229, 160, 0, 0.1);' : ''}" 
+        title="Універсальні / Улюблені">${starLabel}</button>
+        
+        <button class="smart-toggle ${isSmartSortEnabled ? 'active' : ''}" onclick="toggleSmartSort(event)">✨ (${recCount})</button>
     `;
 }
+
 
 
 
@@ -1104,29 +1169,38 @@ if (category.toLowerCase() === 'practices') {
                 const isSelected = !!selectedItems[itemId];
                 const currentScale = isSelected ? selectedItems[itemId].scale : null;
 
-                let smartClass = 'neutral';
-                    let tagsHtml = '';
+               let smartClass = 'neutral';
+let tagsHtml = '';
 
-                    if (category.toLowerCase() === 'practices') {
-                        // 1. ЛОГІКА ФІЛЬТРАЦІЇ (Ховаємо зайве)
-                        if (isFilteringActive) {
-                            // 🪄 ВИПРАВЛЕНО: Безпечно перевіряємо, чи ви ввели хоч якісь дані для смарт-фільтру
-                            let hasInputs = activeTriggers.length > 0 || Object.keys(selectedItems).some(k => k.startsWith('scaleCat_'));
-                            let isTop = isSmartSortEnabled && hasInputs && topPractices.includes(item.name);
-                            
-                            // Перевіряємо, чи натиснута "⭑" і чи є вона в назві практики
-                            let isStarred = isStarFilterEnabled && item.name.includes('⭑');
+if (isFilteringActive) {
+    if (category.toLowerCase() === 'practices') {
+        let isTop = topPractices.includes(item.name);
+        
+        let isStarred = false;
+        // Захист: рахуємо зірочки
+        if (starFilterLevel > 0 && item.name) {
+            const itemStarsCount = (item.name.match(/⭑/g) || []).length;
+            isStarred = itemStarsCount >= starFilterLevel;
+        }
 
-                            // Якщо вона в ТОПі АБО врятована Зірочкою — показуємо!
-                            if (isTop || isStarred) {
-                                smartClass = 'recommended';
-                                if (isStarred && !isTop) {
-                                    smartClass += ' active'; // Підсвічуємо "улюблені"
-                                }
-                            } else {
-                                return; // Безжально ховаємо всі інші практики!
-                            }
-                        }
+        // 1. Картка проходить, якщо включені "Актуальні" і вона є в ТОП-15
+        let showByTop = isSmartSortEnabled && isTop;
+        
+        // 2. АБО якщо включений фільтр Зірочок і в неї достатньо зірочок
+        let showByStar = (starFilterLevel > 0) && isStarred;
+
+
+        // Якщо хоч одна умова виконується — показуємо!
+        if (showByTop || showByStar) {
+            // Зірочки завжди отримують свій особливий блакитний колір, 
+            // а просто Актуальні лишаються помаранчевими
+            smartClass = showByStar ? 'starred' : 'recommended';
+        } else {
+            return; // Безжально ховаємо все інше!
+        }
+    }
+
+
 
                         // 2. РЕНДЕР ТЕГІВ (Показуємо снайперські попадання)
                         let allTags = [];
