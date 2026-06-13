@@ -7,7 +7,7 @@
 - \+3 — ■■■■■■■■□□
 - \+2 — ■■■■■■■□□□
 - \+1 — ■■■■■■□□□□
--   0 — ■■■■■□□□□□
+-  0 — ■■■■■□□□□□
 - \-1 — ■■■■□□□□□□
 - \-2 — ■■■□□□□□□□
 - \-3 — ■■□□□□□□□□
@@ -23,7 +23,7 @@
 - \+3 — ⚓ Triangulation
 - \+2 — 👁️ Disidentificatn
 - \+1 — 💡 Awakening
--   0 — 🤖 Autopilot
+-  0 — 🤖 Autopilot
 - \-1 — 🪝 Hooked
 - \-2 — 🌪️ Fusion
 - \-3 — ⚡ Reactivity
@@ -876,23 +876,13 @@ magnet field valence
 # ULTS [scale]
 
 \+5 — 🌊 Flow
-
-\+4 — 🔥 Drive
-
-\+3 — 🍃 Ease
-
-\+2 — ⚙️ Tone / Focus
-
-\+1 — 👣 🔋 Grounded / Balanced
-
++4 — 🔥 Drive
++3 — 🍃 Ease
++2 — ⚙️ Tone / Focus
++1 — 👣 🔋 Grounded / Balanced
  0 — ⚖️ Neutral
-
-\-1 — 🍂 Friction / Fade
-
-\-2 — 🪨 Resistance / Viscosity
-
-\-3 — ⚡ Tens/Panic / 🪫 Exhaust
-
-\-4 — 💔 Distress / 🧊 Freeze
-
-\-5 — ❌ Collapse
+-1 — 🍂 Friction / Fade
+-2 — 🪨 Resistance / Viscosity
+-3 — ⚡ Tens/Panic / 🪫 Exhaust
+-4 — 💔 Distress / 🧊 Freeze
+-5 — ❌ Collapse
