@@ -458,18 +458,20 @@
     </div>
 </div>
 
-<div id="report-fab" class="report-fab" style="padding: 6px 12px; min-width: 140px;"> 
-    <span onclick="toggleReportPanel()" style="flex:1; text-align: center; padding: 0 4px;">📝 (<span id="fab-count">0</span>)</span>
-    <button class="panel-icon-btn copy-btn-mini" onclick="copyReport(event)" title="Скопіювати" style="background: transparent; border: none; font-size: 18px; padding: 4px; box-shadow: none;">📋</button>
-<button class="panel-icon-btn send-cloud-btn-mini" onclick="sendToCloud(event)" title="Відправити" style="background: transparent; border: none; font-size: 18px; padding: 4px; box-shadow: none;">🚀</button>
+<div id="report-fab" class="report-fab" style="padding: 6px 12px; min-width: 110px;"> 
+    <span onclick="toggleReportPanel()" style="flex:1; text-align: center; padding: 0 8px 0 4px;">📝 (<span id="fab-count">0</span>)</span>
+    <button class="panel-icon-btn" onclick="copyAndSendToCloud(event)" title="Скопіювати та Відправити" style="background: transparent; border: none; font-size: 18px; padding: 4px; box-shadow: none;">📋</button>
 </div>
 
 <div id="report-panel" class="report-panel">
     <div class="panel-header">
         <span>Звіт</span>
         <div class="panel-actions">
+            <!-- Ракета ТІЛЬКИ відправляє -->
+            <button class="panel-icon-btn send-cloud-btn" onclick="sendToCloud(event)" title="Відправити в Таблицю">🚀</button>
             <button class="panel-icon-btn" id="align-toggle" onclick="toggleAlign(event)" title="Вирівняти">⇥</button>
-            <button class="panel-icon-btn copy-btn-panel" onclick="copyReport(event)" title="Скопіювати">📋 Копія</button>
+            <!-- Ця кнопка ТІЛЬКИ копіює -->
+            <button class="panel-icon-btn copy-btn-panel" onclick="copyReport(event)" title="Скопіювати">📋</button>
             <button class="panel-icon-btn" onclick="toggleReportPanel()">▼</button>
         </div>
     </div>
@@ -488,6 +490,8 @@
     // =========================================================================
     const fallbackDB = `
     
+
+
 
 
 
@@ -1724,7 +1728,7 @@ function saveAndRender() {
         const origText = btn.innerHTML;
         
         // Міняємо стан кнопки (коротко для плаваючої, довго для панелі)
-        btn.innerHTML = isMini ? "⏳" : "⏳ Зачекай...";
+        btn.innerHTML = isMini ? "⏳" : "⏳ ...";
         btn.disabled = true;
 
         const formData = new FormData();
@@ -1741,7 +1745,7 @@ function saveAndRender() {
             if (text.startsWith("Error")) { throw new Error(text); }
             
             // Успішний статус
-            btn.innerHTML = isMini ? "✅" : "✅ Записано";
+            btn.innerHTML = isMini ? "✅" : "✅";
             btn.style.backgroundColor = isMini ? "transparent" : "#34c759";
             btn.style.color = isMini ? "#34c759" : "white";
             if (!isMini) btn.style.borderColor = "#34c759";
@@ -1771,6 +1775,62 @@ function saveAndRender() {
     }
 
 
+
+// СУПЕР-КНОПКА: Копіює в буфер обміну І відправляє в Таблицю одночасно
+    function copyAndSendToCloud(event) {
+        if (event) event.stopPropagation();
+        
+        const btn = event.currentTarget;
+        const reportEl = document.getElementById('report');
+        const textToCopy = reportEl.dataset.copyText || "";
+        const rawData = JSON.stringify(selectedItems); 
+        
+        if (!textToCopy) {
+            alert("Звіт порожній. Спочатку обери стани!");
+            return;
+        }
+
+        // 1. Копіюємо в буфер обміну
+        navigator.clipboard.writeText(textToCopy).catch(err => console.error("Помилка копіювання", err));
+
+        // 2. Відправляємо в Google
+        const origText = btn.innerHTML;
+        btn.innerHTML = "⏳";
+        btn.disabled = true;
+
+        const formData = new FormData();
+        formData.append('report', textToCopy);
+        formData.append('rawData', rawData);
+
+        fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.text())
+        .then(text => {
+            if (text.startsWith("Error")) { throw new Error(text); }
+            
+            btn.innerHTML = "✅"; // Успішно скопійовано і відправлено
+            btn.style.color = "#34c759";
+            
+            setTimeout(() => { 
+                btn.innerHTML = origText; 
+                btn.style.color = ""; 
+                btn.disabled = false;
+            }, 2500);
+        })
+        .catch(err => {
+            btn.innerHTML = "❌"; // Помилка відправки
+            btn.style.color = "#ff3b30";
+            
+            setTimeout(() => { 
+                btn.innerHTML = origText; 
+                btn.style.color = ""; 
+                btn.disabled = false; 
+            }, 2500);
+            console.error(err);
+        });
+    }
 
 
 
