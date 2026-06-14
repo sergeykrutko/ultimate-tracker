@@ -378,7 +378,7 @@
             /* Базові картки стають по 2 в ряд */
             .grid-unified .option-btn { grid-column: span 3 !important; } 
             
-            /* Великі картки стають по 1 в ряд (на всю ширину), а ШКАЛИ лишаються по 2 в ряд */
+            /* Великі картки стають по 1 в ряд (на всю ширину) */
             [id*="practices" i] .option-btn,
             [id*="copings" i] .option-btn,
             [id*="emotions" i] .option-btn,
@@ -386,11 +386,14 @@
             [id*="ocd" i] .option-btn { 
                 grid-column: 1 / -1 !important; 
             }
-        }
-        
-        /* 5. Адаптація для міні-екранів */
-        @media (max-width: 380px) {
-            .grid-unified .option-btn { grid-column: 1 / -1 !important; }
+
+            /* ДОДАНО: Шкали на телефоні розтягуються на 100% (по 1 в ряд) */
+            .grid-unified .global-scale-widget { 
+                grid-column: 1 / -1 !important; 
+            }
+            .global-scale-widget { 
+                width: 100% !important; 
+            }
         }
 
 
