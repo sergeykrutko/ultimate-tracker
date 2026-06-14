@@ -458,9 +458,10 @@
     </div>
 </div>
 
-<div id="report-fab" class="report-fab"> 
-    <span onclick="toggleReportPanel()" style="flex:1;">📝 (<span id="fab-count">0</span>)</span>
-    <button class="panel-icon-btn copy-btn-mini" onclick="copyReport(event)" title="Скопіювати" style="background: transparent; border: none; font-size: 16px; padding: 4px; box-shadow: none;">📋</button>
+<div id="report-fab" class="report-fab" style="padding: 6px 12px; min-width: 140px;"> 
+    <span onclick="toggleReportPanel()" style="flex:1; text-align: center; padding: 0 4px;">📝 (<span id="fab-count">0</span>)</span>
+    <button class="panel-icon-btn copy-btn-mini" onclick="copyReport(event)" title="Скопіювати" style="background: transparent; border: none; font-size: 18px; padding: 4px; box-shadow: none;">📋</button>
+<button class="panel-icon-btn send-cloud-btn-mini" onclick="sendToCloud(event)" title="Відправити" style="background: transparent; border: none; font-size: 18px; padding: 4px; box-shadow: none;">🚀</button>
 </div>
 
 <div id="report-panel" class="report-panel">
@@ -475,6 +476,10 @@
     <div id="report" class="report-area"></div>
 </div>
 
+
+
+
+
 <button class="scroll-top-btn" id="scroll-btn" onclick="scrollToActive()">↑</button>
 
 <script>
@@ -483,7 +488,6 @@
     // =========================================================================
     const fallbackDB = `
     
-
 
 
 
@@ -1690,6 +1694,85 @@ function saveAndRender() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     }
+
+
+// ==========================================
+    // ВСТАВ СВІЙ URL ВЕБЗАСТОСУНКУ GOOGLE ТУТ ⬇️
+    // ==========================================
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwoqHUNfFEFXRJ6bzNjLyFaaHLXEKjJqQi6zvMHzajFzpDw1THCWTbpJjfjqabGXH6DHQ/exec';
+
+
+    function sendToCloud(event) {
+        if (event) event.stopPropagation();
+        
+        // Отримуємо саме ту кнопку, на яку ти натиснув
+        const btn = event.currentTarget;
+        if (!btn) return;
+        
+        // Збираємо дані
+        const reportEl = document.getElementById('report');
+        const reportText = reportEl.dataset.copyText || "";
+        const rawData = JSON.stringify(selectedItems); 
+        
+        if (!reportText) {
+            alert("Звіт порожній. Спочатку обери стани!");
+            return;
+        }
+
+        // Перевіряємо, чи це маленька плаваюча кнопка
+        const isMini = btn.classList.contains('send-cloud-btn-mini');
+        const origText = btn.innerHTML;
+        
+        // Міняємо стан кнопки (коротко для плаваючої, довго для панелі)
+        btn.innerHTML = isMini ? "⏳" : "⏳ Зачекай...";
+        btn.disabled = true;
+
+        const formData = new FormData();
+        formData.append('report', reportText);
+        formData.append('rawData', rawData);
+
+        // Відправляємо в Google
+        fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.text())
+        .then(text => {
+            if (text.startsWith("Error")) { throw new Error(text); }
+            
+            // Успішний статус
+            btn.innerHTML = isMini ? "✅" : "✅ Записано";
+            btn.style.backgroundColor = isMini ? "transparent" : "#34c759";
+            btn.style.color = isMini ? "#34c759" : "white";
+            if (!isMini) btn.style.borderColor = "#34c759";
+            
+            setTimeout(() => { 
+                btn.innerHTML = origText; 
+                btn.style.backgroundColor = ""; 
+                btn.style.color = ""; 
+                btn.style.borderColor = "";
+                btn.disabled = false;
+            }, 2500);
+        })
+        .catch(err => {
+            // Статус помилки
+            btn.innerHTML = isMini ? "❌" : "❌ Помилка";
+            btn.style.backgroundColor = isMini ? "transparent" : "#ff3b30";
+            btn.style.color = isMini ? "#ff3b30" : "white";
+            setTimeout(() => { 
+                btn.innerHTML = origText; 
+                btn.style.backgroundColor = ""; 
+                btn.style.color = ""; 
+                btn.disabled = false; 
+            }, 2500);
+            console.error(err);
+        });
+    
+    }
+
+
+
+
 
     initApp();
 </script>
