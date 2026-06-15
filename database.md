@@ -1013,7 +1013,7 @@
 
 # SELF [scale]
 
-Closed/Rigid/Narrow ◆ <-> ◇ Open/Fluid/Expansive
+{{Closed/Rigid/Narrow ◆ <-> ◇ Open/Fluid/Expansive}}
 
 - \+5 — ◆◆◆◆◆◆◆◆◆◆
 - \+4 — ◇◆◆◆◆◆◆◆◆◆
