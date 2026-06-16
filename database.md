@@ -310,6 +310,7 @@
 - 🙄 — Очікування (від інших)
 - ⏱️ — В очікуванні (стан)
 - 🤯 — OCD
+- 😴 — Наснився сон
 
 ### **🙎‍♂️ Люди**
 
@@ -340,11 +341,6 @@
 
 # somatic
 
-- wellbeing — гарне самопочуття
-- tired
-- arousal
-- temperature
-
 ### senses [mods: ⚡︎, ↯, 𖥔, ♥] 
 
 #### tensions: ⚡︎, pain: ↯, ticking: 𖥔, wellbeing: ♥
@@ -366,7 +362,14 @@
 - l-leg
 - r-leg
 
-\- - - - -
+### symptoms
+
+- arousal — сексуальне збудження 
+- belching — відрижка
+- bloating — вздуття
+- temperature
+- tired
+- wellbeing — гарне самопочуття
 
 ### habits
 
