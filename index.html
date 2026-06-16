@@ -268,7 +268,11 @@
         .global-scale-value { font-size: 13px; font-weight: 700; color: var(--accent); line-height: 1.1; text-align: right; }
         .global-scale-value.empty { color: var(--text-desc); font-style: italic; font-weight: 600; font-size: 13px;}
         
-        .slider-container { position: relative; padding-bottom: 16px; margin-top: 4px;}
+        .slider-container { 
+            position: relative; 
+            padding-bottom: 16px; 
+            margin-top: -6px; /* ТУТ: Від'ємний відступ підтягує бігунок впритул до тексту */
+        }
         .global-slider { width: 100%; -webkit-appearance: none; height: 5px; background: var(--border); border-radius: 3px; outline: none; margin-bottom: 8px; border: 1px solid transparent; }
         .global-scale-widget.active .global-slider { background: var(--accent-light); border: 1px solid var(--accent); }
         .global-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; background: #fff; border: 1px solid var(--border); border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.15); cursor: pointer; }
@@ -317,7 +321,7 @@
         .slider-container { 
             position: relative; 
             padding-bottom: 16px; /* Відступ для нижніх цифр */
-            margin-top: 20px; /* Зробили меншим, рівно щоб влазив текст */
+            margin-top: 0px; /* Зробили меншим, рівно щоб влазив текст */
         }
         
         /* Статичний текст рівно по центру над шкалою */
@@ -546,13 +550,17 @@
     <div class="panel-header">
         <span>Звіт</span>
         <div class="panel-actions">
-            <!-- Ракета ТІЛЬКИ відправляє -->
-            <button class="panel-icon-btn send-cloud-btn" onclick="sendToCloud(event)" title="Відправити в Таблицю">🚀</button>
-            <button class="panel-icon-btn" id="align-toggle" onclick="toggleAlign(event)" title="Вирівняти">⇥</button>
-            <!-- Ця кнопка ТІЛЬКИ копіює -->
-            <button class="panel-icon-btn copy-btn-panel" onclick="copyReport(event)" title="Скопіювати">📋</button>
-            <button class="panel-icon-btn" onclick="toggleReportPanel()">▼</button>
-        </div>
+        <!-- Ракета ТІЛЬКИ відправляє -->
+        <button class="panel-icon-btn send-cloud-btn" onclick="sendToCloud(event)" title="Відправити в Таблицю">🚀</button>
+        <button class="panel-icon-btn" id="align-toggle" onclick="toggleAlign(event)" title="Вирівняти">⇥</button>
+        
+        <!-- ДОДАЄМО КНОПКУ SHORTCUTS ⚡ -->
+        <button class="panel-icon-btn" id="shortcut-toggle" onclick="toggleShortcut(event)" title="Автоматизація iOS">⚡</button>
+        
+        <!-- Ця кнопка ТІЛЬКИ копіює -->
+        <button class="panel-icon-btn copy-btn-panel" onclick="copyReport(event)" title="Скопіювати">📋</button>
+        <button class="panel-icon-btn" onclick="toggleReportPanel()">▼</button>
+    </div>
     </div>
     <div id="report" class="report-area"></div>
 </div>
@@ -577,14 +585,24 @@
 
 
 
-
-
     `;
     // =========================================================================
 
     let parsedBlocks = [];
     let selectedItems = JSON.parse(localStorage.getItem('trackerData_v7')) || {};
     let isAligned = localStorage.getItem('trackerAlign') === 'true';
+    
+    // ДОДАЄМО: Змінна для запам'ятовування стану кнопки ⚡
+    let isShortcutEnabled = localStorage.getItem('trackerShortcut') === 'true';
+
+    // ДОДАЄМО: Функція, яка вмикає/вимикає Шорткати
+    function toggleShortcut(event) {
+        if(event) event.stopPropagation();
+        isShortcutEnabled = !isShortcutEnabled;
+        localStorage.setItem('trackerShortcut', isShortcutEnabled);
+        const btn = document.getElementById('shortcut-toggle');
+        if(isShortcutEnabled) btn.classList.add('active-toggle'); else btn.classList.remove('active-toggle');
+    }
 
     let currentTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     let currentLayout = localStorage.getItem('layout') || 'grid';
@@ -631,8 +649,11 @@ function toggleStarFilter(event) {
     }
     applyTheme(); applyLayout();
 
-    async function initApp() {
+   async function initApp() {
         if (isAligned) document.getElementById('align-toggle').classList.add('active-toggle');
+        // ДОДАЄМО ПІДСВІТКУ КНОПКИ:
+        if (isShortcutEnabled) document.getElementById('shortcut-toggle').classList.add('active-toggle');
+        
         try {
             const response = await fetch('database.md');
             if (!response.ok) throw new Error('File not found');
@@ -857,7 +878,6 @@ function renderInlineMarkdown(text) {
         const widget = document.createElement('div');
         widget.className = 'category-block global-scale-widget' + (isGlobal ? '' : ' inline-scale-widget');
 
-        // Парсимо опис на наявність прихованого тексту {{...}}
         let desc = "";
         let infoText = "";
         if (rawDesc) {
@@ -870,7 +890,6 @@ function renderInlineMarkdown(text) {
             desc = tempDesc.replace(infoRegex, '').trim();
         }
 
-        // Додаємо текст до пошуку
         widget.dataset.searchText = scaleItems.map(i => i.label.toLowerCase()).join(' ') + ' ' + title.toLowerCase() + ' ' + (desc ? desc.toLowerCase() : '') + ' ' + (infoText ? infoText.toLowerCase() : '');
 
         const stateId = `scaleCat_${title}`;
@@ -879,7 +898,14 @@ function renderInlineMarkdown(text) {
 
         if (isSelected) widget.classList.add('active');
 
-        // Шапка (Заголовок, кнопка ⓘ та кнопка Х)
+        // ГЕНЕРУЄМО ТЕКСТ ЗНАЧЕННЯ ОДРАЗУ
+        let initialText = '';
+        if (isSelected) {
+            const it = scaleItems[currentIndex];
+            initialText = it.label ? it.label.replace(/^[-—–:]\s*/, '') : '';
+        }
+
+        // Шапка (Заголовок, Значення, кнопка ⓘ та кнопка Х)
         const header = document.createElement('div');
         header.className = 'global-scale-header';
         
@@ -898,7 +924,6 @@ function renderInlineMarkdown(text) {
         titleSpan.innerText = title;
         titleRow.appendChild(titleSpan);
         
-        // Генеруємо кнопку ⓘ, якщо є прихований текст
         if (infoText) {
             const infoBtn = document.createElement('div');
             infoBtn.innerHTML = 'ⓘ';
@@ -918,25 +943,7 @@ function renderInlineMarkdown(text) {
         
         titleContainer.appendChild(titleRow);
 
-        // Блок з прихованим текстом (відкривається по кліку)
-        if (infoText) {
-            const infoDiv = document.createElement('div');
-            infoDiv.className = 'scale-info-block';
-            infoDiv.style.display = 'none';
-            infoDiv.style.fontSize = '11.5px';
-            infoDiv.style.color = 'var(--text-desc)';
-            infoDiv.style.fontStyle = 'italic';
-            infoDiv.style.margin = '4px 0 2px 0';
-            infoDiv.style.padding = '6px 8px';
-            infoDiv.style.background = 'var(--bg-color)';
-            infoDiv.style.borderRadius = '6px';
-            infoDiv.style.border = '1px dashed var(--border)';
-            infoDiv.style.lineHeight = '1.3';
-            infoDiv.innerHTML = renderInlineMarkdown(infoText);
-            titleContainer.appendChild(infoDiv);
-        }
 
-        // Звичайний опис (якщо залишився текст поза дужками {{ }})
         if (desc) {
             const descSpan = document.createElement('span');
             descSpan.className = 'scale-desc';
@@ -952,8 +959,52 @@ function renderInlineMarkdown(text) {
         clearBtn.onclick = (e) => clearScaleCat(title, e);
 
         header.appendChild(titleContainer);
+
+        // МАГІЯ: Текст значення тепер сидить прямо у шапці перед хрестиком
+       // Робимо шапку "координатною сіткою" для абсолютного центрування
+        header.style.position = 'relative';
+
+        // Текст значення (тепер суворо по центру шапки, рівно над 0)
+        const valSpan = document.createElement('span');
+        valSpan.id = `float-val-${stateId}`;
+        valSpan.style.color = 'var(--accent)';
+        valSpan.style.fontWeight = '800';
+        valSpan.style.fontSize = '13px';
+        
+        // МАГІЯ КОМБІНУВАННЯ: Абсолютне центрування між заголовком і хрестиком
+        valSpan.style.position = 'absolute';
+        valSpan.style.left = '50%';
+        valSpan.style.top = '50%';
+        valSpan.style.transform = 'translate(-50%, -50%)';
+        valSpan.style.whiteSpace = 'nowrap';
+        valSpan.style.pointerEvents = 'none'; // щоб випадково не перекрив кліки
+
+        valSpan.innerText = initialText;
+        if (!isSelected) valSpan.style.display = 'none';
+        
+        header.appendChild(valSpan);
         header.appendChild(clearBtn);
         widget.appendChild(header);
+
+
+// ДОДАЄМО ВИРІЗАНИЙ БЛОК ІНФО СЮДИ (під шапку, над бігунком):
+        if (infoText) {
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'scale-info-block';
+            infoDiv.style.display = 'none';
+            infoDiv.style.fontSize = '11.5px';
+            infoDiv.style.color = 'var(--text-desc)';
+            infoDiv.style.fontStyle = 'italic';
+            infoDiv.style.margin = '0 0 12px 0'; // Трохи відсунули бігунок від тексту
+            infoDiv.style.padding = '6px 8px';
+            infoDiv.style.background = 'var(--bg-color)';
+            infoDiv.style.borderRadius = '6px';
+            infoDiv.style.border = '1px dashed var(--border)';
+            infoDiv.style.lineHeight = '1.3';
+            infoDiv.innerHTML = renderInlineMarkdown(infoText);
+            widget.appendChild(infoDiv); // МАГІЯ ТУТ: тепер це частина картки, а не шапки
+        }
+
 
         // Математика для двостороннього заповнення шкали
         const maxIdx = scaleItems.length - 1;
@@ -965,16 +1016,10 @@ function renderInlineMarkdown(text) {
         const fillEnd = Math.max(percent, centerPercent);
         const bgStyle = isSelected ? `background: linear-gradient(to right, var(--border) ${fillStart}%, var(--accent) ${fillStart}%, var(--accent) ${fillEnd}%, var(--border) ${fillEnd}%); border: 1px solid var(--accent);` : '';
 
-        let initialText = '';
-        if (isSelected) {
-            const it = scaleItems[currentIndex];
-            initialText = it.label ? it.label.replace(/^[-—–:]\s*/, '') : '';
-        }
-
         const sliderContainer = document.createElement('div');
         sliderContainer.className = 'slider-container';
+        // Зверни увагу: плаваючого div з текстом тут більше немає!
         sliderContainer.innerHTML = `
-            <div id="float-val-${stateId}" class="floating-scale-value ${!isSelected ? 'hidden' : ''}">${initialText}</div>
             <input type="range" min="0" max="${maxIdx}" value="${currentIndex}" class="global-slider" 
                    style="${bgStyle}"
                    oninput="updateScaleSlider('${title}', this.value, this)" onchange="saveAndRender()">
@@ -1315,55 +1360,55 @@ if (category.toLowerCase() === 'practices') {
                 const currentScale = isSelected ? selectedItems[itemId].scale : null;
 
                let smartClass = 'neutral';
-let tagsHtml = '';
+                let tagsHtml = '';
+                let isSmartHidden = false; // 1. Оголошуємо змінну ТУТ (вона за замовчуванням false для всіх карток)
 
-if (isFilteringActive) {
-    if (category.toLowerCase() === 'practices') {
-        let isTop = topPractices.includes(item.name);
-        
-        let isStarred = false;
-        // Захист: рахуємо зірочки
-        if (starFilterLevel > 0 && item.name) {
-            const itemStarsCount = (item.name.match(/⭑/g) || []).length;
-            isStarred = itemStarsCount >= starFilterLevel;
-        }
-
-        // 1. Картка проходить, якщо включені "Актуальні" і вона є в ТОП-15
-        let showByTop = isSmartSortEnabled && isTop;
-        
-        // 2. АБО якщо включений фільтр Зірочок і в неї достатньо зірочок
-        let showByStar = (starFilterLevel > 0) && isStarred;
-
-
-        // Якщо хоч одна умова виконується — показуємо!
-        if (showByTop || showByStar) {
-            // Зірочки завжди отримують свій особливий блакитний колір, 
-            // а просто Актуальні лишаються помаранчевими
-            smartClass = showByStar ? 'starred' : 'recommended';
-        } else {
-            return; // Безжально ховаємо все інше!
-        }
-    }
-
-
-
-                        // 2. РЕНДЕР ТЕГІВ (Показуємо снайперські попадання)
-                        let allTags = [];
-                        if (item.triggers) {
-                            item.triggers.forEach(t => {
-                                let isHit = activeTriggers.includes(t.toLowerCase());
-                                if (isHit) {
-                                    allTags.push(`<span class="p-tag active-trigger">[${t}]</span>`);
-                                }
-                            });
+                if (isFilteringActive) {
+                    if (category.toLowerCase() === 'practices') {
+                        let isTop = topPractices.includes(item.name);
+                        
+                        let isStarred = false;
+                        if (starFilterLevel > 0 && item.name) {
+                            const itemStarsCount = (item.name.match(/⭑/g) || []).length;
+                            isStarred = itemStarsCount >= starFilterLevel;
                         }
-                        if (allTags.length > 0) {
-                            tagsHtml = `<div class="practice-tags-wrap">${allTags.join('')}</div>`;
+
+                        let showByTop = isSmartSortEnabled && isTop;
+                        let showByStar = (starFilterLevel > 0) && isStarred;
+
+                        if (showByTop || showByStar) {
+                            smartClass = showByStar ? 'starred' : 'recommended';
+                        } else {
+                            isSmartHidden = true; // 2. Робимо true ТІЛЬКИ для зайвих практик
                         }
                     }
 
+                    // 2. РЕНДЕР ТЕГІВ (Показуємо снайперські попадання)
+                    let allTags = [];
+                    if (item.triggers) {
+                        item.triggers.forEach(t => {
+                            let isHit = activeTriggers.includes(t.toLowerCase());
+                            if (isHit) {
+                                allTags.push(`<span class="p-tag active-trigger">[${t}]</span>`);
+                            }
+                        });
+                    }
+                    if (allTags.length > 0) {
+                        tagsHtml = `<div class="practice-tags-wrap">${allTags.join('')}</div>`;
+                    }
+                }
+
                 const btn = document.createElement('div');
                 btn.className = `option-btn ${isSelected ? 'active' : ''} ${item.desc ? 'has-desc' : ''} ${smartClass}`;
+                
+                // ДОДАНО: Ховаємо кнопку, якщо вона не пройшла смарт-фільтр
+                if (isSmartHidden) {
+                    btn.classList.add('smart-hidden');
+                    btn.style.display = 'none';
+                }
+
+
+
                 
                 const clickableArea = document.createElement('div');
                 clickableArea.className = 'option-clickable-area';
@@ -1533,11 +1578,11 @@ btn.appendChild(clickableArea);
         
         selectedItems[`scaleCat_${category}`] = { category, index: idx, text: formattedNum };
         
-        // Оновлюємо текст і показуємо плаваючий блок
+        // Оновлюємо текст і показуємо блок
         const valSpan = document.getElementById(`float-val-scaleCat_${category}`);
         if(valSpan) {
             valSpan.innerText = it.label ? it.label.replace(/^[-—–:]\s*/, '') : '';
-            valSpan.classList.remove('hidden');
+            valSpan.style.display = 'block'; // ЗМІНЕНО: тепер просто показуємо блок
         }
         
         const widget = sliderEl ? sliderEl.closest('.global-scale-widget') : null;
@@ -1631,18 +1676,21 @@ function saveAndRender() {
             if (state) {
                 const items = findScaleItems(title);
                 if (items && items.length > 0) {
-                    // Беремо оригінальний текст елемента шкали з бази
                     const rawLabel = items[state.index].label ? items[state.index].label.trim() : "";
                     
-                    let reportText = state.text; // За замовчуванням — тільки цифра (напр. +4)
+                    // 1. Спочатку витягуємо і "лікуємо" саму цифру
+                    let numStr = state.text;
+                    if (numStr === "0" || numStr === 0) numStr = " 0";
 
+                    // 2. Базовий текст - це наша вилікувана цифра
+                    let reportText = numStr;
+
+                    // 3. Формуємо фінальний текст, використовуючи numStr
                     if (rawLabel) {
-                        // Якщо рядок у базі починається з будь-якого виду тире (—, -, –)
                         if (/^[-—–]/.test(rawLabel)) {
-                            reportText = state.text; // Залишаємо ТІЛЬКИ ЦИФРУ
+                            reportText = numStr; // Тільки цифра (з пробілом)
                         } else {
-                            // Якщо тире немає, виводимо повну строку (цифра + текст)
-                            reportText = `${state.text} ${rawLabel}`;
+                            reportText = `${numStr} ${rawLabel}`; // Цифра + текст
                         }
                     }
 
@@ -1652,6 +1700,8 @@ function saveAndRender() {
                 }
             }
         }
+
+
 
         parsedBlocks.forEach(block => {
             if (block.type !== 'category' && block.type !== 'scale-category') return;
@@ -1704,9 +1754,9 @@ function saveAndRender() {
                 displayText += `<strong>${s.cat}</strong>${pad} ${s.text}\n`; 
                 copyText += `**${s.cat}**${pad} ${s.text}\n`; 
             });
-            if (scalesResult.length > 0 && othersResult.length > 0) {
-                displayText += "\n"; copyText += "\n";
-            }
+         //   if (scalesResult.length > 0 && othersResult.length > 0) {
+        //        displayText += "\n"; copyText += "\n";
+          //  }
             othersResult.forEach(s => { 
                 const pad = ' '.repeat(Math.max(0, maxOtherLen - s.cat.length));
                 displayText += `<strong>${s.cat}</strong>${pad} ${s.text}\n`; 
@@ -1717,9 +1767,9 @@ function saveAndRender() {
                 displayText += `<strong>${s.cat}</strong> ${s.text}\n`; 
                 copyText += `**${s.cat}** ${s.text}\n`; 
             });
-            if (scalesResult.length > 0 && othersResult.length > 0) {
-                displayText += "\n"; copyText += "\n";
-            }
+         //   if (scalesResult.length > 0 && othersResult.length > 0) {
+           //     displayText += "\n"; copyText += "\n";
+         //   }
             othersResult.forEach(s => { 
                 displayText += `<strong>${s.cat}</strong> ${s.text}\n`; 
                 copyText += `**${s.cat}** ${s.text}\n`; 
@@ -1744,58 +1794,109 @@ function saveAndRender() {
 
 
     function filterItems() {
-        const query = document.getElementById('search-input').value.toLowerCase();
-        document.getElementById('clear-search-btn').style.display = query ? 'block' : 'none';
+        const searchInput = document.getElementById('search-input');
+        if (!searchInput) return;
+        
+        const query = searchInput.value.toLowerCase().trim();
+        const isSearching = query.length > 0;
+        
+        // Показуємо або ховаємо хрестик очищення
+        document.getElementById('clear-search-btn').style.display = isSearching ? 'block' : 'none';
 
+        // Ховаємо текстові блоки та кастомні поля під час пошуку
         document.querySelectorAll('.md-quote').forEach(quote => {
-            quote.style.display = query ? 'none' : 'block';
+            quote.style.display = isSearching ? 'none' : 'block';
         });
-
         document.querySelectorAll('.custom-items-wrap').forEach(w => {
-            w.style.display = query ? 'none' : 'block';
+            w.style.display = isSearching ? 'none' : 'block';
         });
-
-        let isSearching = query.length > 0;
 
         document.querySelectorAll('.category-block').forEach(block => {
-            let hasVisible = false;
-            
-            if (block.classList.contains('global-scale-widget')) {
-                if (block.dataset.searchText.includes(query)) { block.style.display = 'block'; }
-                else { block.style.display = 'none'; }
-                return;
+            let hasVisibleInBlock = false;
+
+            // 1. Якщо цей блок - це просто Глобальна Шкала (без підкатегорій)
+            if (block.classList.contains('global-scale-widget') && !block.classList.contains('inline-scale-widget')) {
+                if (isSearching) {
+                    const match = block.dataset.searchText && block.dataset.searchText.toLowerCase().includes(query);
+                    block.style.display = match ? 'block' : 'none';
+                } else {
+                    block.style.display = 'block';
+                }
+                return; // Йдемо до наступного блоку
             }
 
+            // 2. Звичайні кнопки (.option-btn)
             block.querySelectorAll('.option-btn').forEach(item => {
-                if (item.innerText.toLowerCase().includes(query)) { item.style.display = 'flex'; hasVisible = true; } 
-                else { item.style.display = 'none'; }
-            });
-
-
-
-            
-            block.querySelectorAll('.subheader-wrap').forEach(wrap => {
-                let hasVisibleChild = false;
-                wrap.querySelectorAll('.option-btn').forEach(btn => {
-                    if (btn.style.display !== 'none') hasVisibleChild = true;
-                });
-                wrap.style.display = (hasVisibleChild || !isSearching) ? 'block' : 'none';
-                
-                if (isSearching && hasVisibleChild) {
-                    wrap.classList.remove('collapsed');
-                } else if (!isSearching) {
-                    wrap.classList.add('collapsed');
+                if (isSearching) {
+                    // Шукаємо навіть по прихованому тексту ⓘ
+                    if (item.textContent.toLowerCase().includes(query)) {
+                        item.style.display = 'flex';
+                        hasVisibleInBlock = true;
+                    } else {
+                        item.style.display = 'none';
+                    }
+                } else {
+                    if (item.classList.contains('smart-hidden')) {
+                        item.style.display = 'none';
+                    } else {
+                        item.style.display = 'flex';
+                        hasVisibleInBlock = true;
+                    }
                 }
             });
 
-            block.querySelectorAll('.category-comment').forEach(c => { c.style.display = isSearching ? 'none' : 'block'; });
+            // 3. Вбудовані шкали (.inline-scale-widget)
+            block.querySelectorAll('.inline-scale-widget').forEach(scale => {
+                if (isSearching) {
+                    const match = scale.dataset.searchText && scale.dataset.searchText.toLowerCase().includes(query);
+                    if (match) {
+                        scale.style.display = 'block';
+                        hasVisibleInBlock = true;
+                    } else {
+                        scale.style.display = 'none';
+                    }
+                } else {
+                    scale.style.display = 'block';
+                    hasVisibleInBlock = true;
+                }
+            });
 
-            if (isSearching && hasVisible) {
-                block.classList.add('expanded');
-            } else if (!isSearching) {
-                block.classList.remove('expanded');
+            // 4. Підзаголовки (###)
+            block.querySelectorAll('.subheader-wrap').forEach(wrap => {
+                if (isSearching) {
+                    // Перевіряємо чи є хоч одна видима кнопка або шкала всередині ЦІЄЇ підкатегорії
+                    const visibleBtns = Array.from(wrap.querySelectorAll('.option-btn')).some(btn => btn.style.display !== 'none');
+                    const visibleScales = Array.from(wrap.querySelectorAll('.inline-scale-widget')).some(s => s.style.display !== 'none');
+                    
+                    if (visibleBtns || visibleScales) {
+                        wrap.style.display = 'block'; // Показуємо групу
+                        wrap.classList.remove('collapsed'); // АВТО-РОЗГОРТАЄМО її
+                    } else {
+                        wrap.style.display = 'none'; // Повністю ховаємо, якщо там немає збігів
+                    }
+                } else {
+                    wrap.style.display = 'block';
+                    wrap.classList.add('collapsed'); // Згортаємо назад при очищенні пошуку
+                }
+            });
+
+            // 5. Коментарі (####)
+            block.querySelectorAll('.category-comment').forEach(c => { 
+                c.style.display = isSearching ? 'none' : 'block'; 
+            });
+
+            // 6. Видимість та авто-розгортання Головного Блоку Категорії (#)
+            if (isSearching) {
+                if (hasVisibleInBlock) {
+                    block.style.display = 'block';
+                    block.classList.add('expanded'); // Розгортаємо головну категорію
+                } else {
+                    block.style.display = 'none'; // Ховаємо, якщо порожня
+                }
+            } else {
+                block.style.display = 'block';
+                block.classList.remove('expanded'); // Згортаємо назад
             }
-            block.style.display = hasVisible || !isSearching ? 'block' : 'none';
         });
     }
 
@@ -1854,21 +1955,14 @@ function saveAndRender() {
         }
     }
 
-
-// ==========================================
-    // ВСТАВ СВІЙ URL ВЕБЗАСТОСУНКУ GOOGLE ТУТ ⬇️
-    // ==========================================
     const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwoqHUNfFEFXRJ6bzNjLyFaaHLXEKjJqQi6zvMHzajFzpDw1THCWTbpJjfjqabGXH6DHQ/exec';
-
 
     function sendToCloud(event) {
         if (event) event.stopPropagation();
         
-        // Отримуємо саме ту кнопку, на яку ти натиснув
         const btn = event.currentTarget;
         if (!btn) return;
         
-        // Збираємо дані
         const reportEl = document.getElementById('report');
         const reportText = reportEl.dataset.copyText || "";
         const rawData = JSON.stringify(selectedItems); 
@@ -1878,11 +1972,9 @@ function saveAndRender() {
             return;
         }
 
-        // Перевіряємо, чи це маленька плаваюча кнопка
         const isMini = btn.classList.contains('send-cloud-btn-mini');
         const origText = btn.innerHTML;
         
-        // Міняємо стан кнопки (коротко для плаваючої, довго для панелі)
         btn.innerHTML = isMini ? "⏳" : "⏳ ...";
         btn.disabled = true;
 
@@ -1890,7 +1982,6 @@ function saveAndRender() {
         formData.append('report', reportText);
         formData.append('rawData', rawData);
 
-        // Відправляємо в Google
         fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
             body: formData
@@ -1899,7 +1990,6 @@ function saveAndRender() {
         .then(text => {
             if (text.startsWith("Error")) { throw new Error(text); }
             
-            // Успішний статус
             btn.innerHTML = isMini ? "✅" : "✅";
             btn.style.backgroundColor = isMini ? "transparent" : "#34c759";
             btn.style.color = isMini ? "#34c759" : "white";
@@ -1914,7 +2004,6 @@ function saveAndRender() {
             }, 2500);
         })
         .catch(err => {
-            // Статус помилки
             btn.innerHTML = isMini ? "❌" : "❌ Помилка";
             btn.style.backgroundColor = isMini ? "transparent" : "#ff3b30";
             btn.style.color = isMini ? "#ff3b30" : "white";
@@ -1926,12 +2015,8 @@ function saveAndRender() {
             }, 2500);
             console.error(err);
         });
-    
     }
 
-
-
-// СУПЕР-КНОПКА: Копіює в буфер обміну І відправляє в Таблицю одночасно
     function copyAndSendToCloud(event) {
         if (event) event.stopPropagation();
         
@@ -1945,13 +2030,20 @@ function saveAndRender() {
             return;
         }
 
-        // 1. Копіюємо в буфер обміну
+        // 1. Копіюємо текст у буфер обміну
         navigator.clipboard.writeText(textToCopy).catch(err => console.error("Помилка копіювання", err));
 
-        // 2. Відправляємо в Google
+        // 2. Смикаємо команду на iPhone (ТІЛЬКИ ЯКЩО УВІМКНЕНА БЛИСКАВКА ⚡!)
+        if (isShortcutEnabled) {
+            const shortcutName = encodeURIComponent("u-track-log"); 
+            window.location.href = `shortcuts://run-shortcut?name=${shortcutName}`;
+        }
+
+        // 3. Запускаємо візуальну анімацію кнопки
         const origText = btn.innerHTML;
         btn.innerHTML = "⏳";
         btn.disabled = true;
+
 
         const formData = new FormData();
         formData.append('report', textToCopy);
@@ -1965,7 +2057,7 @@ function saveAndRender() {
         .then(text => {
             if (text.startsWith("Error")) { throw new Error(text); }
             
-            btn.innerHTML = "✅"; // Успішно скопійовано і відправлено
+            btn.innerHTML = "✅"; 
             btn.style.color = "#34c759";
             
             setTimeout(() => { 
@@ -1975,7 +2067,7 @@ function saveAndRender() {
             }, 2500);
         })
         .catch(err => {
-            btn.innerHTML = "❌"; // Помилка відправки
+            btn.innerHTML = "❌"; 
             btn.style.color = "#ff3b30";
             
             setTimeout(() => { 
@@ -1986,8 +2078,6 @@ function saveAndRender() {
             console.error(err);
         });
     }
-
-
 
     initApp();
 </script>
