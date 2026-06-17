@@ -2,17 +2,19 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Трекер Станів</title>
+    <meta name="color-scheme" content="light dark"> <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ultimate-Tracker</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         /* СВІТЛА ТЕМА */
         :root {
+            color-scheme: light; /* 🛑 ДОДАНО: Забороняє телефону інвертувати кольори */
             --bg-color: #F4F5F4; --card-bg: #FFFFFF; --text-main: #2D3331;
             --text-desc: #7A8B88; --accent: #6C8270; --accent-light: #E8EDE9; --border: #D3D9D7;
         }
         /* ТЕМНА ТЕМА */
         [data-theme="dark"] {
+            color-scheme: dark; /* 🛑 ДОДАНО: Дозволяє нашій темній темі працювати правильно */
             --bg-color: #1A1C1B; --card-bg: #232625; --text-main: #E4E8E6;
             --text-desc: #8B9996; --accent: #8FA994; --accent-light: rgba(143, 169, 148, 0.15); --border: #3A403E;
         }
@@ -576,7 +578,6 @@
     // ⬇️ ВСТАВТЕ СЮДИ ВАШУ БАЗУ ДАНИХ (MARKDOWN) МІЖ ЗВОРОТНИМИ ЛАПКАМИ ⬇️
     // =========================================================================
     const fallbackDB = `
-
 
 
 
