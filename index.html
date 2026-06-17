@@ -589,14 +589,13 @@
     `;
     // =========================================================================
 
-    let parsedBlocks = [];
+   let parsedBlocks = [];
     let selectedItems = JSON.parse(localStorage.getItem('trackerData_v7')) || {};
     let isAligned = localStorage.getItem('trackerAlign') === 'true';
     
-    // ДОДАЄМО: Змінна для запам'ятовування стану кнопки ⚡
+    // Змінна для запам'ятовування стану кнопки ⚡
     let isShortcutEnabled = localStorage.getItem('trackerShortcut') === 'true';
 
-    // ДОДАЄМО: Функція, яка вмикає/вимикає Шорткати
     function toggleShortcut(event) {
         if(event) event.stopPropagation();
         isShortcutEnabled = !isShortcutEnabled;
@@ -605,50 +604,57 @@
         if(isShortcutEnabled) btn.classList.add('active-toggle'); else btn.classList.remove('active-toggle');
     }
 
-    let currentTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    let isSmartSortEnabled = true;
+    let starFilterLevel = 0; // 0: вимкнено, 1: ⭑, 2: ⭑⭑, 3: ⭑⭑⭑
+
+    function toggleSmartSort(event) {
+        event.stopPropagation();
+        isSmartSortEnabled = !isSmartSortEnabled;
+        saveAndRender();
+    }
+
+    function toggleStarFilter(event) {
+        if (event) event.stopPropagation();
+        starFilterLevel = (starFilterLevel + 1) % 4; 
+        saveAndRender();
+    }
+
+    // --- ПОЧАТОК: Налаштування теми та вигляду ---
+    let systemThemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    let currentTheme = localStorage.getItem('theme') || (systemThemeQuery.matches ? 'dark' : 'light');
     let currentLayout = localStorage.getItem('layout') || 'grid';
 
-
-
-let isSmartSortEnabled = true;
-let starFilterLevel = 0; // 0: вимкнено, 1: ⭑, 2: ⭑⭑, 3: ⭑⭑⭑
-
-function toggleSmartSort(event) {
-    event.stopPropagation();
-    isSmartSortEnabled = !isSmartSortEnabled;
-    saveAndRender();
-}
-
-// Функція циклічного перемикання зірочок
-function toggleStarFilter(event) {
-    if (event) event.stopPropagation();
-    starFilterLevel = (starFilterLevel + 1) % 4; // Рахує 0 -> 1 -> 2 -> 3 -> 0
-    saveAndRender();
-}
-
-
-
-
-    
     function applyTheme() {
         document.documentElement.setAttribute('data-theme', currentTheme);
         document.getElementById('theme-toggle').innerText = currentTheme === 'dark' ? '☀️' : '🌙';
     }
+    
     function toggleTheme() {
         currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        localStorage.setItem('theme', currentTheme);
+        localStorage.setItem('theme', currentTheme); // Тимчасово запам'ятовуємо ручний вибір
         applyTheme();
     }
+    
     function applyLayout() {
         document.documentElement.setAttribute('data-layout', currentLayout);
         document.getElementById('layout-toggle').innerText = currentLayout === 'grid' ? '☰' : '⊞';
     }
+    
     function toggleLayout() {
         currentLayout = currentLayout === 'grid' ? 'list' : 'grid';
         localStorage.setItem('layout', currentLayout);
         applyLayout();
     }
+
+    // МАГІЯ: Якщо система телефону змінює тему (настав вечір/ранок)
+    systemThemeQuery.addEventListener('change', (e) => {
+        localStorage.removeItem('theme'); // Забуваємо ручний вибір
+        currentTheme = e.matches ? 'dark' : 'light'; // Підлаштовуємось під систему
+        applyTheme();
+    });
+
     applyTheme(); applyLayout();
+    // --- КІНЕЦЬ: Налаштування теми та вигляду ---
 
    async function initApp() {
         if (isAligned) document.getElementById('align-toggle').classList.add('active-toggle');
