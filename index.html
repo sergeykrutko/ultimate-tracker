@@ -540,6 +540,10 @@
     <div class="panel-header">
         <span>Звіт</span>
         <div class="panel-actions">
+
+<button class="panel-icon-btn" onclick="restoreBackup()" title="Відновити після очищення">↩️</button>
+
+
         <!-- Ракета ТІЛЬКИ відправляє -->
         <button class="panel-icon-btn send-cloud-btn" onclick="sendToCloud(event)" title="Відправити в Таблицю">🚀</button>
         <button class="panel-icon-btn" id="align-toggle" onclick="toggleAlign(event)" title="Вирівняти">⇥</button>
@@ -575,6 +579,8 @@
 
 
 
+
+
     `;
     // =========================================================================
 
@@ -582,8 +588,11 @@
     let selectedItems = JSON.parse(localStorage.getItem('trackerData_v7')) || {};
     let isAligned = localStorage.getItem('trackerAlign') === 'true';
     
-    // Змінна для запам'ятовування стану кнопки ⚡
-    let isShortcutEnabled = localStorage.getItem('trackerShortcut') === 'true';
+   
+    // Змінна для запам'ятовування стану кнопки ⚡ (УВІМКНЕНО за замовчуванням)
+    let savedShortcut = localStorage.getItem('trackerShortcut');
+    let isShortcutEnabled = savedShortcut === null ? true : (savedShortcut === 'true');
+
 
     function toggleShortcut(event) {
         if(event) event.stopPropagation();
@@ -2296,8 +2305,28 @@ function updateReport() {
         }
     }
     
-    function clearData() { selectedItems = {}; saveData(); document.getElementById('search-input').value = ""; filterItems(); renderApp(); }
+    function clearData() { 
+        // 🟢 МАГІЯ: Перед тим як очистити, зберігаємо "зліпок" останньої сесії
+        if (Object.keys(selectedItems).length > 0) {
+            localStorage.setItem('trackerData_backup', JSON.stringify(selectedItems));
+        }
+        selectedItems = {}; 
+        saveData(); 
+        document.getElementById('search-input').value = ""; 
+        filterItems(); 
+        renderApp(); 
+    }
 
+    // 🟢 ДОДАНО: Функція відновлення
+    function restoreBackup() {
+        const backup = localStorage.getItem('trackerData_backup');
+        if (backup) {
+            selectedItems = JSON.parse(backup);
+            saveAndRender();
+        } else {
+            alert("Попередній запис не знайдено!");
+        }
+    }
     function copyReport(e) {
         if(e) e.stopPropagation();
         const reportEl = document.getElementById('report');
