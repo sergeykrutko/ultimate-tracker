@@ -68,36 +68,24 @@
 
 
 
-        /* === РОЗУМНА СІТКА (6 віртуальних колонок) === */
-        .grid-unified { 
-            display: grid; 
-            grid-template-columns: repeat(6, 1fr); 
-            gap: 6px; 
-            padding-top: 8px; 
+        /* ========================================= */
+        /* РОЗУМНА ДИНАМІЧНА СІТКА (6 КОЛОНОК) */
+        /* ========================================= */
+        .grid-unified { display: grid !important; grid-template-columns: repeat(6, 1fr) !important; gap: 6px !important; padding-top: 8px !important; }
+        
+        /* Класи призначаються автоматично через JS залежно від довжини тексту! */
+        .grid-unified .option-btn { margin: 0 !important; width: 100% !important; }
+        .grid-unified .option-btn.span-2 { grid-column: span 2 !important; } /* 3 в ряд */
+        .grid-unified .option-btn.span-3 { grid-column: span 3 !important; } /* 2 в ряд */
+        .grid-unified .option-btn.span-6 { grid-column: 1 / -1 !important; } /* 1 в ряд */
+
+        .grid-unified .global-scale-widget { grid-column: span 3 !important; width: 100% !important; margin-bottom: 0 !important; }
+        [data-layout="list"] .grid-unified .option-btn { grid-column: 1 / -1 !important; }
+
+        @media (max-width: 600px) {
+            /* Шкали на телефоні стають на всю ширину */
+            .grid-unified .global-scale-widget { grid-column: 1 / -1 !important; }
         }
-
-        /* 1. Звичайні картки займають 2 колонки з 6 (тобто рівно 3 В РЯД) */
-        .option-btn { grid-column: span 2; }
-        [data-layout="list"] .option-btn { grid-column: 1 / -1; }
-
-        /* 2. Вбудовані шкали займають 3 колонки з 6 (тобто рівно 2 В РЯД) */
-        .grid-unified .global-scale-widget {
-            grid-column: span 3 !important;
-            width: 100% !important;
-            margin-bottom: 6px;
-        }
-
-        /* 3. Адаптація під планшети / великі телефони (перехід у компактний режим) */
-        @media (max-width: 768px) {
-            .option-btn { grid-column: span 3; } /* Картки стають по 2 в ряд */
-            .grid-unified .global-scale-widget { grid-column: 1 / -1 !important; } /* Шкали стають по 1 в ряд */
-        }
-
-        /* 4. Адаптація під дуже вузькі екрани (міні-телефони) */
-        @media (max-width: 420px) {
-            .option-btn { grid-column: 1 / -1; } /* Картки стають по 1 в ряд на всю ширину */
-        }
-
 
 
         /* Підзаголовки (###) та Коментарі (####) */
@@ -587,7 +575,6 @@
 
 
 
-
     `;
     // =========================================================================
 
@@ -690,13 +677,13 @@
 
 
 
-    function parseDatabase(text) {
+  function parseDatabase(text) {
         const lines = text.split('\n');
         const blocks = [];
         let currentCat = null;
         let quoteBuffer = [];
         let currentScale = null;
-        let currentSubMods = []; // Зберігає модифікатори поточної підкатегорії
+        let currentSubMods = [];
 
         function flushQuoteBuffer() {
             if (quoteBuffer.length > 0) {
@@ -723,22 +710,22 @@
 
             if (line.startsWith('# ')) {
                 let catTitle = line.substring(2).trim();
-                let isScale = false; let tags = null; let mods = null;
+                let isScale = false; let isDelta = false; let tags = null; let mods = null;
                 currentScale = null;
-                currentSubMods = []; // Скидаємо підкатегорії при новій головній
+                currentSubMods = []; 
 
                 if (catTitle.toLowerCase().includes('[scale]')) {
                     isScale = true; catTitle = catTitle.replace(/\[scale\]/gi, '').trim();
+                } else if (catTitle.toLowerCase().includes('[delta]')) {
+                    isScale = true; isDelta = true; catTitle = catTitle.replace(/\[delta\]/gi, '').trim();
                 }
                 
-                // [tags: ...] -> Заміна шкали 1-5 (напр. ✓, ✘)
                 const tagsMatch = catTitle.match(/\[tags:\s*(.+?)\]/i);
                 if (tagsMatch) {
                     tags = tagsMatch[1].split(',').map(s => s.trim());
                     catTitle = catTitle.replace(tagsMatch[0], '').trim();
                 }
                 
-                // [mods: ...] -> Мульти-вибір префіксів
                 const modsMatch = catTitle.match(/\[mods:\s*(.+?)\]/i);
                 if (modsMatch) {
                     mods = modsMatch[1].split(',').map(s => s.trim());
@@ -746,7 +733,7 @@
                 }
 
                 catTitle = catTitle.replace(/\*/g, '').trim();
-                currentCat = { type: isScale ? 'scale-category' : 'category', title: catTitle, items: [], tags: tags, mods: mods || [], desc: "" };
+                currentCat = { type: isDelta ? 'delta-category' : (isScale ? 'scale-category' : 'category'), title: catTitle, items: [], tags: tags, mods: mods || [], desc: "" };
                 blocks.push(currentCat);
                 return;
             }
@@ -760,9 +747,8 @@
 
             if (line.match(/^#{2,3}\s+/)) {
                 let cleanTitle = line.replace(/^#{2,3}\s+/, '').replace(/\*/g, '').trim();
-                currentSubMods = []; // Скидаємо перед кожною новою підкатегорією
+                currentSubMods = []; 
 
-                // Шукаємо ТІЛЬКИ [mods: ...] у підзаголовку
                 const subModsMatch = cleanTitle.match(/\[mods:\s*(.+?)\]/i);
                 if (subModsMatch) {
                     currentSubMods = subModsMatch[1].split(',').map(s => s.trim());
@@ -772,6 +758,10 @@
                 if (cleanTitle.toLowerCase().includes('[scale]')) {
                     let scaleTitle = cleanTitle.replace(/\[scale\]/gi, '').trim();
                     currentScale = { type: 'inline-scale', title: scaleTitle, items: [], desc: "" };
+                    currentCat.items.push(currentScale);
+                } else if (cleanTitle.toLowerCase().includes('[delta]')) {
+                    let scaleTitle = cleanTitle.replace(/\[delta\]/gi, '').trim();
+                    currentScale = { type: 'inline-delta', title: scaleTitle, items: [], desc: "" };
                     currentCat.items.push(currentScale);
                 } else {
                     currentScale = null;
@@ -783,8 +773,7 @@
             let content = line.replace(/^\\?[-*]\s+/, '').replace(/\\/g, '').replace(/\*/g, '').trim();
             if(!content) return;
 
-            // Топова шкала та Вбудована шкала
-            if (currentCat.type === 'scale-category') {
+            if (currentCat.type === 'scale-category' || currentCat.type === 'delta-category') {
                 const scaleMatch = content.match(/^([+-]?\d+)(?:\s+(.+))?$/);
                 if (scaleMatch) currentCat.items.push({ type: 'scale-item', number: parseInt(scaleMatch[1]), label: scaleMatch[2] ? scaleMatch[2].trim() : "" });
                 else if (currentCat.items.length === 0) currentCat.desc = (currentCat.desc ? currentCat.desc + "<br>" : "") + content;
@@ -797,34 +786,26 @@
                 return;
             }
 
+            let name = content;
+            let desc = "";
+            let infoText = ""; 
+            let ranges = [];
+            let triggersList = [];
 
+            const sepMatch = content.match(/ — | - |: /);
+            if (sepMatch) {
+                const idx = sepMatch.index;
+                name = content.substring(0, idx).trim();
+                desc = content.substring(idx + sepMatch[0].length).trim();
+            }
 
+            const infoRegex = /\{\{([\s\S]*?)\}\}/g;
+            let infoMatch;
+            while ((infoMatch = infoRegex.exec(desc)) !== null) {
+                infoText += (infoText ? " " : "") + infoMatch[1].trim(); 
+            }
+            desc = desc.replace(infoRegex, '').trim();
 
-let name = content;
-let desc = "";
-let infoText = ""; // 🟢 Змінна для прихованого тексту
-let ranges = [];
-let triggersList = [];
-
-const sepMatch = content.match(/ — | - |: /);
-if (sepMatch) {
-    const idx = sepMatch.index;
-    name = content.substring(0, idx).trim();
-    desc = content.substring(idx + sepMatch[0].length).trim();
-}
-
-// 🟢 Витягуємо прихований текст із безпечних подвійних фігурних дужок {{ }}
-const infoRegex = /\{\{([\s\S]*?)\}\}/g;
-let infoMatch;
-while ((infoMatch = infoRegex.exec(desc)) !== null) {
-    infoText += (infoText ? " " : "") + infoMatch[1].trim(); 
-}
-desc = desc.replace(infoRegex, '').trim();
-
-
-
-
-            
             const scaleRegex = /`?\[([a-z]+)\s+([+-]?\d+)(?::([+-]?\d+))?\]`?/gi;
             let match;
             while ((match = scaleRegex.exec(desc)) !== null) {
@@ -838,19 +819,25 @@ desc = desc.replace(infoRegex, '').trim();
             }
             let cleanDesc = tempDesc.replace(triggerRegex, '').trim();
 
-            // МАГІЯ ТУТ: Об'єднуємо модифікатори головної категорії та підкатегорії!
-let itemMods = [...new Set([...(currentCat.mods || []), ...currentSubMods])];
+            let itemMods = [...new Set([...(currentCat.mods || []), ...currentSubMods])];
 
-currentCat.items.push({ type: 'item', name, desc: cleanDesc, info: infoText, ranges, triggers: triggersList, mods: itemMods });
-
-
+            currentCat.items.push({ type: 'item', name, desc: cleanDesc, info: infoText, ranges, triggers: triggersList, mods: itemMods });
         });
 
         flushQuoteBuffer();
+        
+        // --- МАГІЯ СОРТУВАННЯ ---
         blocks.forEach(b => {
-            if (b.type === 'scale-category') b.items.sort((a, b) => { if (a.type === 'comment') return -1; if (b.type === 'comment') return 1; return a.number - b.number; });
-            if (b.type === 'category') b.items.forEach(i => { if (i.type === 'inline-scale') i.items.sort((a,b) => a.number - b.number); });
+            if (b.type === 'scale-category' || b.type === 'delta-category') {
+                b.items.sort((a, b) => { if (a.type === 'comment') return -1; if (b.type === 'comment') return 1; return a.number - b.number; });
+            }
+            if (b.type === 'category') {
+                b.items.forEach(i => { 
+                    if (i.type === 'inline-scale' || i.type === 'inline-delta') i.items.sort((a,b) => a.number - b.number); 
+                });
+            }
         });
+        
         return blocks;
     }
 
@@ -872,10 +859,16 @@ function renderInlineMarkdown(text) {
 // Функція-помічник для пошуку шкали
     function findScaleItems(title) {
         for (let b of parsedBlocks) {
-            if (b.type === 'scale-category' && b.title === title) return b.items.filter(i => i.type === 'scale-item');
+            // ДОДАНО: Шукаємо і в звичайних шкалах, і в дельтах
+            if ((b.type === 'scale-category' || b.type === 'delta-category') && b.title === title) {
+                return b.items.filter(i => i.type === 'scale-item');
+            }
             if (b.type === 'category') {
                 for (let item of b.items) {
-                    if (item.type === 'inline-scale' && item.title === title) return item.items;
+                    // ДОДАНО: Шукаємо у вбудованих дельтах
+                    if ((item.type === 'inline-scale' || item.type === 'inline-delta') && item.title === title) {
+                        return item.items;
+                    }
                 }
             }
         }
@@ -1080,6 +1073,239 @@ function renderInlineMarkdown(text) {
 
 
 
+function buildDeltaScaleDOM(title, scaleItems, isGlobal = false, rawDesc = "") {
+        const widget = document.createElement('div');
+        widget.className = 'category-block global-scale-widget' + (isGlobal ? '' : ' inline-scale-widget');
+
+        let desc = ""; let infoText = "";
+        if (rawDesc) {
+            const infoRegex = /\{\{([\s\S]*?)\}\}/g; let infoMatch; let tempDesc = rawDesc;
+            while ((infoMatch = infoRegex.exec(tempDesc)) !== null) infoText += (infoText ? " " : "") + infoMatch[1].trim();
+            desc = tempDesc.replace(infoRegex, '').trim();
+        }
+
+        const stateId = `deltaCat_${title}`;
+        const isSelected = selectedItems[stateId] !== undefined;
+        const maxIdx = scaleItems.length - 1;
+        const centerIdx = Math.floor(maxIdx / 2);
+        
+        let inIdx = isSelected ? selectedItems[stateId].inIdx : centerIdx;
+        let outIdx = isSelected ? selectedItems[stateId].outIdx : centerIdx;
+        let currentNote = isSelected ? (selectedItems[stateId].note || "") : "";
+
+        if (isSelected) widget.classList.add('active');
+
+       // Шапка
+        const header = document.createElement('div');
+        header.className = 'global-scale-header';
+        header.style.position = 'relative';
+        
+        const titleContainer = document.createElement('div');
+        titleContainer.style.display = 'flex'; titleContainer.style.flexDirection = 'column'; titleContainer.style.flex = '1';
+        
+        const titleRow = document.createElement('div');
+        titleRow.style.display = 'flex'; titleRow.style.alignItems = 'center'; titleRow.style.gap = '6px';
+        
+        const titleSpan = document.createElement('span');
+        titleSpan.className = 'global-scale-title';
+        titleSpan.innerText = title;
+        titleRow.appendChild(titleSpan);
+
+        // 🟢 ВІДНОВЛЕНО: Кнопка "ⓘ" (Інфо)
+        if (infoText) {
+            const infoBtn = document.createElement('div');
+            infoBtn.innerHTML = 'ⓘ';
+            infoBtn.style.color = 'var(--accent)';
+            infoBtn.style.fontSize = '15px';
+            infoBtn.style.opacity = '0.8';
+            infoBtn.style.padding = '0 4px';
+            infoBtn.style.fontWeight = 'bold';
+            infoBtn.style.cursor = 'pointer';
+            infoBtn.onclick = (e) => {
+                e.stopPropagation();
+                const infoDiv = widget.querySelector('.scale-info-block');
+                if (infoDiv) infoDiv.style.display = infoDiv.style.display === 'block' ? 'none' : 'block';
+            };
+            titleRow.appendChild(infoBtn);
+        }
+
+        titleContainer.appendChild(titleRow);
+
+        if (desc) {
+            const descSpan = document.createElement('span');
+            descSpan.className = 'scale-desc'; descSpan.innerHTML = renderInlineMarkdown(desc);
+            titleContainer.appendChild(descSpan);
+        }
+
+        const clearBtn = document.createElement('button');
+        clearBtn.className = 'clear-btn';
+        clearBtn.style.visibility = isSelected ? 'visible' : 'hidden';
+        clearBtn.style.fontSize = '14px'; clearBtn.innerText = '✕';
+        clearBtn.onclick = (e) => { e.stopPropagation(); delete selectedItems[stateId]; saveAndRender(); };
+
+        const noteBtn = document.createElement('span');
+        noteBtn.innerHTML = '✏️';
+        noteBtn.style.cursor = 'pointer'; noteBtn.style.fontSize = '12px'; noteBtn.style.position = 'absolute';
+        noteBtn.style.right = '28px'; noteBtn.style.top = '50%'; noteBtn.style.transform = 'translateY(-50%)';
+        noteBtn.style.opacity = '0.8'; if (!isSelected) noteBtn.style.display = 'none';
+
+        const valSpan = document.createElement('span');
+        valSpan.id = `float-val-${stateId}`;
+        valSpan.style.color = 'var(--accent)';
+        valSpan.style.fontWeight = '800';
+        valSpan.style.fontSize = '13px';
+        valSpan.style.position = 'absolute';
+        valSpan.style.left = '50%';
+        valSpan.style.top = '50%';
+        valSpan.style.transform = 'translate(-50%, -50%)';
+        valSpan.style.whiteSpace = 'nowrap';
+        valSpan.style.pointerEvents = 'none';
+
+        if (isSelected) {
+            let lastActive = selectedItems[stateId].lastActive || 'OUT';
+            let activeIdx = lastActive === 'IN' ? selectedItems[stateId].inIdx : selectedItems[stateId].outIdx;
+            const activeIt = scaleItems[activeIdx];
+            const activeLbl = activeIt.label ? activeIt.label.replace(/^[-—–:]\s*/, '') : activeIt.number;
+            valSpan.innerText = activeLbl;
+        } else {
+            valSpan.style.display = 'none';
+        }
+
+        header.appendChild(titleContainer); 
+        header.appendChild(valSpan);
+        header.appendChild(noteBtn); 
+        header.appendChild(clearBtn);
+        widget.appendChild(header);
+
+        // 🟢 ВІДНОВЛЕНО: Блок для прихованого тексту (з'являється при кліку на "ⓘ")
+        if (infoText) {
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'scale-info-block';
+            infoDiv.style.display = 'none';
+            infoDiv.style.fontSize = '11.5px';
+            infoDiv.style.color = 'var(--text-desc)';
+            infoDiv.style.fontStyle = 'italic';
+            infoDiv.style.margin = '0 0 12px 0'; 
+            infoDiv.style.padding = '6px 8px';
+            infoDiv.style.background = 'var(--bg-color)';
+            infoDiv.style.borderRadius = '6px';
+            infoDiv.style.border = '1px dashed var(--border)';
+            infoDiv.style.lineHeight = '1.3';
+            infoDiv.innerHTML = renderInlineMarkdown(infoText);
+            widget.appendChild(infoDiv); 
+        }
+
+        // Коментар
+        const noteWrap = document.createElement('div');
+        noteWrap.style.display = (isSelected && currentNote) ? 'block' : 'none';
+        noteWrap.style.margin = '0 0 12px 0';
+        noteWrap.innerHTML = `<input type="text" placeholder="Коментар..." value="${currentNote}" style="width: 100%; background: var(--bg-color); border: 1px dashed var(--accent); border-radius: 6px; padding: 4px 8px; font-size: 12px; color: var(--text-main); outline: none;">`;
+        noteWrap.querySelector('input').onclick = (e) => e.stopPropagation();
+        noteWrap.querySelector('input').oninput = (e) => { if (selectedItems[stateId]) { selectedItems[stateId].note = e.target.value; saveData(); updateReport(); } };
+        widget.appendChild(noteWrap);
+        noteBtn.onclick = (e) => { e.stopPropagation(); noteWrap.style.display = noteWrap.style.display === 'block' ? 'none' : 'block'; if(noteWrap.style.display === 'block') noteWrap.querySelector('input').focus(); };
+
+        // Два Бігунки
+        const slidersWrap = document.createElement('div');
+        slidersWrap.style.display = 'flex'; slidersWrap.style.flexDirection = 'column'; slidersWrap.style.gap = '10px'; slidersWrap.style.marginTop = '8px';
+
+        function createRow(type, currentVal) {
+            const row = document.createElement('div');
+            row.style.display = 'flex'; row.style.alignItems = 'center'; row.style.gap = '8px';
+            
+            const label = document.createElement('span');
+            label.innerText = type; label.style.fontSize = '10px'; label.style.fontWeight = '800'; label.style.color = 'var(--text-desc)'; label.style.width = '24px';
+
+            const percent = (currentVal / maxIdx) * 100; const centerPercent = (centerIdx / maxIdx) * 100;
+            const fillStart = Math.min(percent, centerPercent); const fillEnd = Math.max(percent, centerPercent);
+            const color = type === 'IN' ? 'var(--text-desc)' : 'var(--accent)';
+            const bgStyle = isSelected ? `background: linear-gradient(to right, var(--border) ${fillStart}%, ${color} ${fillStart}%, ${color} ${fillEnd}%, var(--border) ${fillEnd}%); border: 1px solid ${color};` : '';
+
+            const sliderDiv = document.createElement('div');
+            sliderDiv.className = 'slider-container'; sliderDiv.style.flex = '1'; sliderDiv.style.margin = '0'; sliderDiv.style.paddingBottom = '14px';
+            sliderDiv.innerHTML = `
+                <input type="range" min="0" max="${maxIdx}" value="${currentVal}" class="global-slider" style="${bgStyle}" oninput="updateDeltaSlider('${title}', '${type}', this.value, this)" onchange="saveAndRender()">
+                <div class="global-slider-labels">
+                    <span>${scaleItems[0].number > 0 ? '+'+scaleItems[0].number : scaleItems[0].number}</span>
+                    <span>${scaleItems[centerIdx].number}</span>
+                    <span>${scaleItems[maxIdx].number > 0 ? '+'+scaleItems[maxIdx].number : scaleItems[maxIdx].number}</span>
+                </div>
+            `;
+
+            // 🌟 ЗМІНЕНО: Додаємо тільки лейбл (IN/OUT) та сам бігунок. Ніяких цифр збоку!
+            row.appendChild(label); 
+            row.appendChild(sliderDiv); 
+            return row;
+        }
+
+        slidersWrap.appendChild(createRow('IN', inIdx));
+        slidersWrap.appendChild(createRow('OUT', outIdx));
+        widget.appendChild(slidersWrap);
+        
+        return widget;
+    }
+
+    function updateDeltaSlider(category, type, val, sliderEl) {
+        const items = findScaleItems(category);
+        if(!items.length) return;
+        
+        const idx = parseInt(val);
+        const it = items[idx];
+        const formattedNum = it.number > 0 ? `+${it.number}` : it.number;
+        const stateId = `deltaCat_${category}`;
+        
+        if (!selectedItems[stateId]) {
+            const maxIdx = items.length - 1; const centerIdx = Math.floor(maxIdx/2);
+            selectedItems[stateId] = { 
+                category, inIdx: centerIdx, outIdx: centerIdx,
+                inText: items[centerIdx].number > 0 ? '+'+items[centerIdx].number : items[centerIdx].number,
+                outText: items[centerIdx].number > 0 ? '+'+items[centerIdx].number : items[centerIdx].number,
+                note: "",
+                outTouched: false // 🟢 ДОДАНО: Створюємо прапорець (OUT ще не чіпали)
+            };
+        }
+        
+        if (type === 'IN') { 
+            selectedItems[stateId].inIdx = idx; 
+            selectedItems[stateId].inText = formattedNum; 
+            selectedItems[stateId].lastActive = 'IN'; 
+        } else { 
+            selectedItems[stateId].outIdx = idx; 
+            selectedItems[stateId].outText = formattedNum; 
+            selectedItems[stateId].lastActive = 'OUT'; 
+            selectedItems[stateId].outTouched = true; // 🟢 ДОДАНО: Фіксуємо, що OUT був активований
+        }
+        
+        const centralValSpan = document.getElementById(`float-val-${stateId}`);
+        if(centralValSpan) {
+            const activeLbl = it.label ? it.label.replace(/^[-—–:]\s*/, '') : it.number;
+            centralValSpan.innerText = activeLbl;
+            centralValSpan.style.display = 'block';
+        }
+        
+        const widget = sliderEl ? sliderEl.closest('.global-scale-widget') : null;
+        if(widget) {
+            widget.classList.add('active');
+            widget.querySelector('.clear-btn').style.visibility = 'visible';
+            widget.querySelector('span[innerHTML="✏️"]').style.display = 'inline';
+        }
+
+        if (sliderEl) {
+            const maxIdx = items.length - 1; const centerIdx = Math.floor(maxIdx / 2);
+            const percent = (idx / maxIdx) * 100; const centerPercent = (centerIdx / maxIdx) * 100;
+            const fillStart = Math.min(percent, centerPercent); const fillEnd = Math.max(percent, centerPercent);
+            const color = type === 'IN' ? 'var(--text-desc)' : 'var(--accent)';
+            sliderEl.style.background = `linear-gradient(to right, var(--border) ${fillStart}%, ${color} ${fillStart}%, ${color} ${fillEnd}%, var(--border) ${fillEnd}%)`;
+            sliderEl.style.border = `1px solid ${color}`;
+        }
+        updateReport();
+    }
+
+
+
+
+
+
     function renderApp() {
         const container = document.getElementById('app-container');
         container.innerHTML = '';
@@ -1113,12 +1339,37 @@ function renderInlineMarkdown(text) {
             
             }
 
+
+// ДОДАЄМО РЕНДЕР ДЛЯ ГЛОБАЛЬНОЇ ДЕЛЬТИ
+            if (blockData.type === 'delta-category') {
+                const scaleItems = blockData.items.filter(i => i.type === 'scale-item');
+                const comments = blockData.items.filter(i => i.type === 'comment');
+                if (scaleItems.length === 0) return;
+
+                const widget = buildDeltaScaleDOM(category, scaleItems, true, blockData.desc);
+
+                comments.forEach(c => {
+                    const cDiv = document.createElement('div');
+                    cDiv.className = 'category-comment'; cDiv.innerText = c.text; cDiv.style.marginBottom = '8px';
+                    widget.insertBefore(cDiv, widget.children[1]);
+                });
+
+                container.appendChild(widget);
+                return;
+            }
+
+
+
+
 let selectedInCat = Object.values(selectedItems).filter(i => i.category === category).length;
             const customArr = selectedItems[`custom_${category}`] || [];
             selectedInCat += customArr.length;
-// Враховуємо вбудовані шкали в бейджі
+            // Враховуємо вбудовані шкали та дельти в бейджі
             blockData.items.forEach(item => {
                 if (item.type === 'inline-scale' && selectedItems[`scaleCat_${item.title}`]) {
+                    selectedInCat++;
+                }
+                if (item.type === 'inline-delta' && selectedItems[`deltaCat_${item.title}`]) {
                     selectedInCat++;
                 }
             });
@@ -1389,9 +1640,14 @@ if (category.toLowerCase() === 'practices') {
                     containerWrap.appendChild(subWrap); subheaderWraps.push(subWrap); return;
                 }
 
-                // РЕНДЕР ВБУДОВАНИХ ШКАЛ
+                // РЕНДЕР ВБУДОВАНИХ ШКАЛ ТА ДЕЛЬТ
                 if (item.type === 'inline-scale') {
                     const widget = buildScaleDOM(item.title, item.items, false, item.desc);
+                    currentGrid.appendChild(widget);
+                    return;
+                }
+                if (item.type === 'inline-delta') {
+                    const widget = buildDeltaScaleDOM(item.title, item.items, false, item.desc);
                     currentGrid.appendChild(widget);
                     return;
                 }
@@ -1787,34 +2043,32 @@ function updateReport() {
         let maxOtherLen = 0;
         let totalCount = 0;
 
-        function processScale(title) {
-            const state = selectedItems[`scaleCat_${title}`];
+      function processScale(title, isDelta = false) {
+            const stateId = isDelta ? `deltaCat_${title}` : `scaleCat_${title}`;
+            const state = selectedItems[stateId];
             if (state) {
                 const items = findScaleItems(title);
                 if (items && items.length > 0) {
-                    const rawLabel = items[state.index].label ? items[state.index].label.trim() : "";
+                    let reportText = "";
                     
-                    // 1. Спочатку витягуємо і "лікуємо" саму цифру
-                    let numStr = state.text;
-                    if (numStr === "0" || numStr === 0) numStr = " 0";
-
-                    // 2. Базовий текст - це наша вилікувана цифра
-                    let reportText = numStr;
-
-                    // 3. Формуємо фінальний текст, використовуючи numStr
-                    if (rawLabel) {
-                        if (/^[-—–]/.test(rawLabel)) {
-                            reportText = numStr; // Тільки цифра (з пробілом)
+                    if (isDelta) {
+                        // 🟢 ВИПРАВЛЕНО: Малюємо стрілку ТІЛЬКИ якщо фізично торкалися бігунка OUT
+                        if (state.outTouched) {
+                            reportText = `${state.inText} → ${state.outText}`;
                         } else {
-                            reportText = `${numStr} ${rawLabel}`; // Цифра + текст
+                            // Якщо OUT не чіпали, поводимося як звичайна шкала (тільки IN)
+                            let numStr = state.inText; if (numStr === "0" || numStr === 0) numStr = " 0";
+                            const rawLabel = items[state.inIdx].label ? items[state.inIdx].label.trim() : "";
+                            reportText = (rawLabel && !/^[-—–]/.test(rawLabel)) ? `${numStr} ${rawLabel}` : numStr;
                         }
+                    } else {
+                        // Логіка для звичайних шкал
+                        let numStr = state.text; if (numStr === "0" || numStr === 0) numStr = " 0";
+                        const rawLabel = items[state.index].label ? items[state.index].label.trim() : "";
+                        reportText = (rawLabel && !/^[-—–]/.test(rawLabel)) ? `${numStr} ${rawLabel}` : numStr;
                     }
-
-                    // --- ДОДАЄМО КОМЕНТАР ---
-                    if (state.note && state.note.trim() !== "") {
-                        reportText += ` *"${state.note.trim()}"*`;
-                    }
-
+                    
+                    if (state.note && state.note.trim() !== "") reportText += ` *"${state.note.trim()}"*`;
                     scalesResult.push({ cat: title, text: reportText });
                     if (title.length > maxScaleLen) maxScaleLen = title.length;
                     totalCount++;
@@ -1822,17 +2076,26 @@ function updateReport() {
             }
         }
 
+
+
+
+
         parsedBlocks.forEach(block => {
-            if (block.type !== 'category' && block.type !== 'scale-category') return;
+            if (block.type !== 'category' && block.type !== 'scale-category' && block.type !== 'delta-category') return;
             const category = block.title;
 
             if (block.type === 'scale-category') {
-                processScale(category);
+                processScale(category, false);
+            } else if (block.type === 'delta-category') {
+                processScale(category, true);
             } else {
                 // Скануємо вбудовані шкали всередині звичайної категорії
                 block.items.forEach(item => {
-                    if (item.type === 'inline-scale') processScale(item.title);
+                    if (item.type === 'inline-scale') processScale(item.title, false);
+                    if (item.type === 'inline-delta') processScale(item.title, true);
                 });
+
+                // Скануємо звичайні елементи
 
                 // Скануємо звичайні елементи
                 let catParts = [];
@@ -2151,23 +2414,16 @@ function updateReport() {
         // 1. Копіюємо текст у буфер обміну
         navigator.clipboard.writeText(textToCopy).catch(err => console.error("Помилка копіювання", err));
 
-        // 2. Смикаємо команду на iPhone (ТІЛЬКИ ЯКЩО УВІМКНЕНА БЛИСКАВКА ⚡!)
-        if (isShortcutEnabled) {
-            const shortcutName = encodeURIComponent("u-track-log"); 
-            window.location.href = `shortcuts://run-shortcut?name=${shortcutName}`;
-        }
-
-        // 3. Запускаємо візуальну анімацію кнопки
+        // 2. Запускаємо візуальну анімацію кнопки
         const origText = btn.innerHTML;
         btn.innerHTML = "⏳";
         btn.disabled = true;
-
 
         const formData = new FormData();
         formData.append('report', textToCopy);
         formData.append('rawData', rawData);
 
-       fetch(GOOGLE_SCRIPT_URL, {
+        fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
             body: formData
         })
@@ -2178,8 +2434,16 @@ function updateReport() {
             btn.innerHTML = "✅"; 
             btn.style.color = "#34c759";
             
-            clearData(); // 🛑 ДОДАНО ТУТ
+            clearData(); // Очищуємо трекер
             
+            // МАГІЯ: Викликаємо Shortcuts ТІЛЬКИ ПІСЛЯ того, як Google відповів "Успіх"!
+            if (isShortcutEnabled) {
+                setTimeout(() => {
+                    const shortcutName = encodeURIComponent("u-track-log"); 
+                    window.location.href = `shortcuts://run-shortcut?name=${shortcutName}`;
+                }, 300); // Обов'язкова мікро-пауза для iOS
+            }
+
             setTimeout(() => { 
                 btn.innerHTML = origText; 
                 btn.style.color = ""; 
