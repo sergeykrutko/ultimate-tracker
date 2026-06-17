@@ -585,6 +585,7 @@
 
 
 
+
     `;
     // =========================================================================
 
@@ -874,6 +875,7 @@ function renderInlineMarkdown(text) {
     }
 
     // Універсальний білдер DOM для шкал
+// Універсальний білдер DOM для шкал
    function buildScaleDOM(title, scaleItems, isGlobal = false, rawDesc = "") {
         const widget = document.createElement('div');
         widget.className = 'category-block global-scale-widget' + (isGlobal ? '' : ' inline-scale-widget');
@@ -898,11 +900,13 @@ function renderInlineMarkdown(text) {
 
         if (isSelected) widget.classList.add('active');
 
-        // ГЕНЕРУЄМО ТЕКСТ ЗНАЧЕННЯ ОДРАЗУ
+        // ГЕНЕРУЄМО ТЕКСТ ЗНАЧЕННЯ ТА КОМЕНТАР ОДРАЗУ
         let initialText = '';
+        let currentNote = ''; // ДОДАНО: Витягуємо збережений коментар
         if (isSelected) {
             const it = scaleItems[currentIndex];
             initialText = it.label ? it.label.replace(/^[-—–:]\s*/, '') : '';
+            currentNote = selectedItems[stateId].note || ""; 
         }
 
         // Шапка (Заголовок, Значення, кнопка ⓘ та кнопка Х)
@@ -943,7 +947,6 @@ function renderInlineMarkdown(text) {
         
         titleContainer.appendChild(titleRow);
 
-
         if (desc) {
             const descSpan = document.createElement('span');
             descSpan.className = 'scale-desc';
@@ -960,34 +963,44 @@ function renderInlineMarkdown(text) {
 
         header.appendChild(titleContainer);
 
-        // МАГІЯ: Текст значення тепер сидить прямо у шапці перед хрестиком
-       // Робимо шапку "координатною сіткою" для абсолютного центрування
+        // Робимо шапку "координатною сіткою" для абсолютного центрування
         header.style.position = 'relative';
 
-        // Текст значення (тепер суворо по центру шапки, рівно над 0)
+        // Текст значення (суворо по центру шапки)
         const valSpan = document.createElement('span');
         valSpan.id = `float-val-${stateId}`;
         valSpan.style.color = 'var(--accent)';
         valSpan.style.fontWeight = '800';
         valSpan.style.fontSize = '13px';
-        
-        // МАГІЯ КОМБІНУВАННЯ: Абсолютне центрування між заголовком і хрестиком
         valSpan.style.position = 'absolute';
         valSpan.style.left = '50%';
         valSpan.style.top = '50%';
         valSpan.style.transform = 'translate(-50%, -50%)';
         valSpan.style.whiteSpace = 'nowrap';
-        valSpan.style.pointerEvents = 'none'; // щоб випадково не перекрив кліки
+        valSpan.style.pointerEvents = 'none';
 
         valSpan.innerText = initialText;
         if (!isSelected) valSpan.style.display = 'none';
         
         header.appendChild(valSpan);
+
+        // ДОДАНО: Кнопка ✏️ для виклику поля коментаря (праворуч, біля хрестика)
+        const noteBtn = document.createElement('span');
+        noteBtn.innerHTML = '✏️';
+        noteBtn.style.cursor = 'pointer';
+        noteBtn.style.fontSize = '12px';
+        noteBtn.style.position = 'absolute';
+        noteBtn.style.right = '28px'; // Відсуваємо трохи від хрестика
+        noteBtn.style.top = '50%';
+        noteBtn.style.transform = 'translateY(-50%)';
+        noteBtn.style.opacity = '0.8';
+        if (!isSelected) noteBtn.style.display = 'none';
+
+        header.appendChild(noteBtn);
         header.appendChild(clearBtn);
         widget.appendChild(header);
 
-
-// ДОДАЄМО ВИРІЗАНИЙ БЛОК ІНФО СЮДИ (під шапку, над бігунком):
+        // Блок інфо
         if (infoText) {
             const infoDiv = document.createElement('div');
             infoDiv.className = 'scale-info-block';
@@ -995,16 +1008,39 @@ function renderInlineMarkdown(text) {
             infoDiv.style.fontSize = '11.5px';
             infoDiv.style.color = 'var(--text-desc)';
             infoDiv.style.fontStyle = 'italic';
-            infoDiv.style.margin = '0 0 12px 0'; // Трохи відсунули бігунок від тексту
+            infoDiv.style.margin = '0 0 12px 0'; 
             infoDiv.style.padding = '6px 8px';
             infoDiv.style.background = 'var(--bg-color)';
             infoDiv.style.borderRadius = '6px';
             infoDiv.style.border = '1px dashed var(--border)';
             infoDiv.style.lineHeight = '1.3';
             infoDiv.innerHTML = renderInlineMarkdown(infoText);
-            widget.appendChild(infoDiv); // МАГІЯ ТУТ: тепер це частина картки, а не шапки
+            widget.appendChild(infoDiv); 
         }
 
+        // ДОДАНО: Поле для коментаря (ховається/показується по кліку на ✏️)
+        const noteWrap = document.createElement('div');
+        noteWrap.className = 'scale-note-block';
+        noteWrap.style.display = (isSelected && currentNote) ? 'block' : 'none'; // Показуємо одразу, якщо там є текст
+        noteWrap.style.margin = '0 0 12px 0';
+        noteWrap.innerHTML = `<input type="text" placeholder="Ваш коментар..." value="${currentNote}" style="width: 100%; background: var(--bg-color); border: 1px dashed var(--accent); border-radius: 6px; padding: 4px 8px; font-size: 12px; color: var(--text-main); outline: none;">`;
+        
+        const noteInput = noteWrap.querySelector('input');
+        noteInput.onclick = (e) => e.stopPropagation();
+        noteInput.oninput = (e) => {
+            if (selectedItems[stateId]) {
+                selectedItems[stateId].note = e.target.value;
+                saveData(); // Зберігаємо тихо
+                updateReport(); // Звіт оновлюється під час друкування
+            }
+        };
+        widget.appendChild(noteWrap);
+
+        noteBtn.onclick = (e) => {
+            e.stopPropagation();
+            noteWrap.style.display = noteWrap.style.display === 'block' ? 'none' : 'block';
+            if (noteWrap.style.display === 'block') noteInput.focus();
+        };
 
         // Математика для двостороннього заповнення шкали
         const maxIdx = scaleItems.length - 1;
@@ -1018,7 +1054,6 @@ function renderInlineMarkdown(text) {
 
         const sliderContainer = document.createElement('div');
         sliderContainer.className = 'slider-container';
-        // Зверни увагу: плаваючого div з текстом тут більше немає!
         sliderContainer.innerHTML = `
             <input type="range" min="0" max="${maxIdx}" value="${currentIndex}" class="global-slider" 
                    style="${bgStyle}"
@@ -1414,23 +1449,22 @@ if (category.toLowerCase() === 'practices') {
                 clickableArea.className = 'option-clickable-area';
                 clickableArea.onclick = () => toggleItem(itemId, category, item.name);
                 
-         
+                const currentNote = isSelected && selectedItems[itemId].note ? selectedItems[itemId].note : ""; // ДОДАНО
 
-
-       // Формуємо вміст кнопки (ІЗ КНОПКОЮ ІНФО)
-clickableArea.innerHTML = `
-    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-        <div class="option-name">${item.name}</div>
-        ${item.info ? `<div class="info-btn" style="color:var(--accent); font-size:15px; opacity:0.8; padding:0 4px; font-weight:bold;" onclick="event.stopPropagation(); const infoDiv = this.closest('.option-clickable-area').querySelector('.option-info'); infoDiv.style.display = infoDiv.style.display === 'block' ? 'none' : 'block';">ⓘ</div>` : ''}
-    </div>
-    ${item.info ? `<div class="option-info" style="display:none; font-size:11.5px; color:var(--text-desc); font-style:italic; margin: 4px 0; padding:6px 8px; background:var(--bg-color); border-radius:6px; border:1px dashed var(--border); line-height:1.3;">${renderInlineMarkdown(item.info)}</div>` : ''}
-    ${item.desc ? `<div class="option-desc">${renderInlineMarkdown(item.desc)}</div>` : ''}
-    ${tagsHtml}
-`;
-btn.appendChild(clickableArea);
-
-
-
+                // Формуємо вміст кнопки (ІЗ КНОПКАМИ ІНФО ТА ✏️ КОМЕНТАРЕМ)
+                clickableArea.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div class="option-name">${item.name}</div>
+                        <div style="display:flex; align-items:center; gap: 6px;">
+                            ${isSelected ? `<div class="note-toggle-btn" style="cursor:pointer; font-size:12px; opacity:0.8;" onclick="event.stopPropagation(); const w = this.closest('.option-btn').querySelector('.card-note-wrap'); w.style.display = w.style.display === 'block' ? 'none' : 'block'; if(w.style.display==='block') w.querySelector('input').focus();">✏️</div>` : ''}
+                            ${item.info ? `<div class="info-btn" style="color:var(--accent); font-size:15px; opacity:0.8; padding:0 4px; font-weight:bold;" onclick="event.stopPropagation(); const infoDiv = this.closest('.option-clickable-area').querySelector('.option-info'); infoDiv.style.display = infoDiv.style.display === 'block' ? 'none' : 'block';">ⓘ</div>` : ''}
+                        </div>
+                    </div>
+                    ${item.info ? `<div class="option-info" style="display:none; font-size:11.5px; color:var(--text-desc); font-style:italic; margin: 4px 0; padding:6px 8px; background:var(--bg-color); border-radius:6px; border:1px dashed var(--border); line-height:1.3;">${renderInlineMarkdown(item.info)}</div>` : ''}
+                    ${item.desc ? `<div class="option-desc">${renderInlineMarkdown(item.desc)}</div>` : ''}
+                    ${tagsHtml}
+                `;
+                btn.appendChild(clickableArea);
 
                 const scaleDiv = document.createElement('div');
                 scaleDiv.className = 'scale-container';
@@ -1466,62 +1500,136 @@ btn.appendChild(clickableArea);
                 scaleDiv.appendChild(scaleRow);
 
                 btn.appendChild(scaleDiv);
+
+                // ДОДАНО: Поле для коментаря (в самому низу картки)
+                if (isSelected) {
+                    const cardNoteWrap = document.createElement('div');
+                    cardNoteWrap.className = 'card-note-wrap';
+                    cardNoteWrap.style.display = currentNote ? 'block' : 'none';
+                    cardNoteWrap.style.marginTop = '8px';
+                    cardNoteWrap.style.width = '100%';
+                    cardNoteWrap.innerHTML = `<input type="text" placeholder="Ваш коментар..." value="${currentNote}" style="width: 100%; background: var(--bg-color); border: 1px dashed var(--accent); border-radius: 6px; padding: 4px 8px; font-size: 11px; color: var(--text-main); outline: none;">`;
+                    
+                    const cardNoteInput = cardNoteWrap.querySelector('input');
+                    cardNoteInput.onclick = (e) => e.stopPropagation();
+                    cardNoteInput.oninput = (e) => {
+                        if (selectedItems[itemId]) {
+                            selectedItems[itemId].note = e.target.value;
+                            saveData(); // Тихе збереження
+                            updateReport();
+                        }
+                    };
+                    btn.appendChild(cardNoteWrap);
+                }
+
+                currentGrid.appendChild(btn);
+
+
+
+                scaleDiv.appendChild(scaleRow);
+
+                btn.appendChild(scaleDiv);
                 currentGrid.appendChild(btn);
             });
 
             contentDiv.appendChild(containerWrap);
 
-            const customWrap = document.createElement('div');
-            customWrap.className = 'custom-items-wrap';
+           // МАГІЯ: Перевіряємо, чи є в цій категорії хоча б одна звичайна кнопка (не шкала)
+            const hasRegularItems = blockData.items.some(i => i.type === 'item');
 
-            if (customArr.length > 0) {
-                const tagsDiv = document.createElement('div');
-                tagsDiv.className = 'custom-tags-list';
-                customArr.forEach((txt, idx) => {
-                    const tag = document.createElement('div');
-                    tag.className = 'custom-tag active';
-                    tag.innerHTML = `${txt} <span>✕</span>`;
-                    tag.onclick = () => {
-                        customArr.splice(idx, 1);
-                        if(customArr.length === 0) delete selectedItems[`custom_${category}`];
-                        else selectedItems[`custom_${category}`] = customArr;
-                        saveAndRender();
+            // Створюємо обгортку, тільки якщо є звичайні кнопки АБО вже є збережені кастомні теги
+            if (hasRegularItems || customArr.length > 0) {
+                const customWrap = document.createElement('div');
+                customWrap.className = 'custom-items-wrap';
+
+                // Малюємо вже існуючі кастомні теги (якщо вони є)
+                if (customArr.length > 0) {
+                    const tagsDiv = document.createElement('div');
+                    tagsDiv.className = 'custom-tags-list';
+                    customArr.forEach((txt, idx) => {
+                        const tag = document.createElement('div');
+                        tag.className = 'custom-tag active';
+                        tag.innerHTML = `${txt} <span>✕</span>`;
+                        tag.onclick = () => {
+                            customArr.splice(idx, 1);
+                            if(customArr.length === 0) delete selectedItems[`custom_${category}`];
+                            else selectedItems[`custom_${category}`] = customArr;
+                            saveAndRender();
+                        };
+                        tagsDiv.appendChild(tag);
+                    });
+                    customWrap.appendChild(tagsDiv);
+                }
+
+                // Малюємо кнопку-тригер "➕ додати свій", яка перетворюється на поле
+               // Малюємо МІНІМАЛІСТИЧНЕ поле вводу З КНОПКОЮ ➕ (тільки там, де є звичайні кнопки)
+                if (hasRegularItems) {
+                    const inputDiv = document.createElement('div');
+                    inputDiv.style.display = 'flex';
+                    inputDiv.style.gap = '6px';
+                    inputDiv.style.marginTop = '6px';
+                    
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.placeholder = 'Свій варіант...';
+                    input.style.flex = '1';
+                    input.style.background = 'transparent';
+                    input.style.border = '1px dashed var(--border)';
+                    input.style.borderRadius = '8px';
+                    input.style.padding = '6px 10px';
+                    input.style.fontSize = '12px';
+                    input.style.color = 'var(--text-main)';
+                    input.style.outline = 'none';
+                    input.style.opacity = '0.6';
+                    input.style.transition = 'all 0.2s';
+                    
+                    // Підсвічуємо поле, коли клікаємо всередину
+                    input.onfocus = () => { input.style.opacity = '1'; input.style.borderColor = 'var(--accent)'; };
+                    input.onblur = () => { input.style.opacity = '0.6'; input.style.borderColor = 'var(--border)'; };
+                    
+                    // Мінімалістична кнопка "+"
+                    const addBtn = document.createElement('button');
+                    addBtn.innerText = '➕';
+                    addBtn.style.background = 'transparent';
+                    addBtn.style.border = '1px dashed var(--border)';
+                    addBtn.style.borderRadius = '8px';
+                    addBtn.style.width = '34px';
+                    addBtn.style.display = 'flex';
+                    addBtn.style.alignItems = 'center';
+                    addBtn.style.justifyContent = 'center';
+                    addBtn.style.cursor = 'pointer';
+                    addBtn.style.opacity = '0.6';
+                    addBtn.style.transition = 'all 0.2s';
+                    
+                    // Підсвічуємо кнопку при наведенні
+                    addBtn.onmouseenter = () => { addBtn.style.opacity = '1'; addBtn.style.borderColor = 'var(--accent)'; };
+                    addBtn.onmouseleave = () => { addBtn.style.opacity = '0.6'; addBtn.style.borderColor = 'var(--border)'; };
+
+                    const addFunc = () => {
+                        const val = input.value.trim();
+                        if (val) {
+                            if (!selectedItems[`custom_${category}`]) selectedItems[`custom_${category}`] = [];
+                            if (!selectedItems[`custom_${category}`].includes(val)) {
+                                selectedItems[`custom_${category}`].push(val);
+                                saveAndRender();
+                            }
+                        }
                     };
-                    tagsDiv.appendChild(tag);
-                });
-                customWrap.appendChild(tagsDiv);
+                    
+                    addBtn.onclick = addFunc;
+                    input.onkeypress = (e) => { if(e.key === 'Enter') { e.preventDefault(); addFunc(); } };
+
+                    inputDiv.appendChild(input);
+                    inputDiv.appendChild(addBtn);
+                    customWrap.appendChild(inputDiv);
+                }
+
+                contentDiv.appendChild(customWrap);
             }
 
-            const inputDiv = document.createElement('div');
-            inputDiv.className = 'custom-input-row';
-            
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.className = 'custom-item-input';
-            input.placeholder = '➕ Свій варіант...';
-            
-            const addBtn = document.createElement('button');
-            addBtn.className = 'add-custom-btn';
-            addBtn.innerText = '➕';
-            
-            const addFunc = () => {
-                const val = input.value.trim();
-                if (val) {
-                    if (!selectedItems[`custom_${category}`]) selectedItems[`custom_${category}`] = [];
-                    if (!selectedItems[`custom_${category}`].includes(val)) {
-                        selectedItems[`custom_${category}`].push(val);
-                        saveAndRender();
-                    }
-                }
-            };
-            
-            addBtn.onclick = addFunc;
-            input.onkeypress = (e) => { if(e.key === 'Enter') { e.preventDefault(); addFunc(); } };
 
-            inputDiv.appendChild(input);
-            inputDiv.appendChild(addBtn);
-            customWrap.appendChild(inputDiv);
-            contentDiv.appendChild(customWrap);
+
+
 
 
 // Видаляємо порожні підзаголовки і АВТОМАТИЧНО відкриваємо ті, де є знайдені практики
@@ -1664,7 +1772,7 @@ function saveAndRender() {
         updateReport();
     }
 
-    function updateReport() {
+function updateReport() {
         let scalesResult = [];
         let othersResult = [];
         let maxScaleLen = 0;
@@ -1694,14 +1802,17 @@ function saveAndRender() {
                         }
                     }
 
+                    // --- ДОДАЄМО КОМЕНТАР ---
+                    if (state.note && state.note.trim() !== "") {
+                        reportText += ` *"${state.note.trim()}"*`;
+                    }
+
                     scalesResult.push({ cat: title, text: reportText });
                     if (title.length > maxScaleLen) maxScaleLen = title.length;
                     totalCount++;
                 }
             }
         }
-
-
 
         parsedBlocks.forEach(block => {
             if (block.type !== 'category' && block.type !== 'scale-category') return;
@@ -1726,14 +1837,18 @@ function saveAndRender() {
                         // Формуємо суфікс: ".3" (або " (✓)" для текстових шкал)
                         let suffix = i.scale ? (isNaN(i.scale) ? ` (${i.scale})` : `.${i.scale}`) : '';
                         
-                        return `${prefix}${main}${suffix}`;
+                        // --- ДОДАЄМО КОМЕНТАР ---
+                        let noteStr = (i.note && i.note.trim() !== "") ? ` *"${i.note.trim()}"*` : '';
+                        
+                        return `${prefix}${main}${suffix}${noteStr}`;
                     }));
                     totalCount += itemsInCat.length;
                 }
                 
-                const customArr = selectedItems[`custom_${category}`] || [];
+               const customArr = selectedItems[`custom_${category}`] || [];
                 if (customArr.length > 0) {
-                    const customMapped = customArr.map(c => `*${c}*`);
+                    // ЗМІНЕНО: тепер буде додаватися *_текст_*
+                    const customMapped = customArr.map(c => `*_${c}_*`);
                     catParts.push(...customMapped);
                     totalCount += customMapped.length;
                 }
@@ -1754,9 +1869,6 @@ function saveAndRender() {
                 displayText += `<strong>${s.cat}</strong>${pad} ${s.text}\n`; 
                 copyText += `**${s.cat}**${pad} ${s.text}\n`; 
             });
-         //   if (scalesResult.length > 0 && othersResult.length > 0) {
-        //        displayText += "\n"; copyText += "\n";
-          //  }
             othersResult.forEach(s => { 
                 const pad = ' '.repeat(Math.max(0, maxOtherLen - s.cat.length));
                 displayText += `<strong>${s.cat}</strong>${pad} ${s.text}\n`; 
@@ -1767,9 +1879,6 @@ function saveAndRender() {
                 displayText += `<strong>${s.cat}</strong> ${s.text}\n`; 
                 copyText += `**${s.cat}** ${s.text}\n`; 
             });
-         //   if (scalesResult.length > 0 && othersResult.length > 0) {
-           //     displayText += "\n"; copyText += "\n";
-         //   }
             othersResult.forEach(s => { 
                 displayText += `<strong>${s.cat}</strong> ${s.text}\n`; 
                 copyText += `**${s.cat}** ${s.text}\n`; 
@@ -1788,7 +1897,6 @@ function saveAndRender() {
         const fabCount = document.getElementById('fab-count');
         if (fabCount) fabCount.innerText = totalCount;
     }
-
 
 
 
