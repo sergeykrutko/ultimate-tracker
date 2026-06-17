@@ -587,6 +587,7 @@
 
 
 
+
     `;
     // =========================================================================
 
@@ -2097,7 +2098,7 @@ function updateReport() {
         formData.append('report', reportText);
         formData.append('rawData', rawData);
 
-        fetch(GOOGLE_SCRIPT_URL, {
+       fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
             body: formData
         })
@@ -2109,6 +2110,8 @@ function updateReport() {
             btn.style.backgroundColor = isMini ? "transparent" : "#34c759";
             btn.style.color = isMini ? "#34c759" : "white";
             if (!isMini) btn.style.borderColor = "#34c759";
+            
+            clearData(); // 🛑 ДОДАНО ТУТ
             
             setTimeout(() => { 
                 btn.innerHTML = origText; 
@@ -2164,7 +2167,7 @@ function updateReport() {
         formData.append('report', textToCopy);
         formData.append('rawData', rawData);
 
-        fetch(GOOGLE_SCRIPT_URL, {
+       fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
             body: formData
         })
@@ -2174,6 +2177,8 @@ function updateReport() {
             
             btn.innerHTML = "✅"; 
             btn.style.color = "#34c759";
+            
+            clearData(); // 🛑 ДОДАНО ТУТ
             
             setTimeout(() => { 
                 btn.innerHTML = origText; 
