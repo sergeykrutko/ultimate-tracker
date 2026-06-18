@@ -822,7 +822,7 @@
             let ranges = [];
             let triggersList = [];
 
-            const sepMatch = content.match(/ — | - |: /);
+            const sepMatch = content.match(/\s+[-—–−]\s+|\s*:\s*/);
             if (sepMatch) {
                 const idx = sepMatch.index;
                 name = content.substring(0, idx).trim();
