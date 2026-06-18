@@ -96,6 +96,17 @@
         .subheader-wrap.collapsed .sub-content { display: none !important; }
         .category-comment { grid-column: 1 / -1; font-size: 12px; color: var(--text-desc); font-style: italic; padding: 2px 4px 4px; line-height: 1.3; font-weight: 600;}
 
+        /* 🟢 ДОДАНО: Міні-заголовки (Текст без дефісів) */
+        .mini-header {
+            grid-column: 1 / -1 !important;
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--text-desc);
+            margin: 12px 0 2px 0;
+            padding-bottom: 4px;
+            border-bottom: 1px solid var(--border);
+        }
+
         /* Кнопки вибору */
        /* --- КАРТКА ОПЦІЇ --- */
         .option-btn { 
@@ -580,7 +591,6 @@
 
 
 
-
     `;
     // =========================================================================
 
@@ -779,9 +789,14 @@
                 return;
             }
 
+
+// Зберігаємо інфу, чи був дефіс на початку рядка
+            let hasBullet = line.match(/^\\?[-*]\s+/);
+
             let content = line.replace(/^\\?[-*]\s+/, '').replace(/\\/g, '').replace(/\*/g, '').trim();
             if(!content) return;
 
+           // Топова шкала та Вбудована шкала
             if (currentCat.type === 'scale-category' || currentCat.type === 'delta-category') {
                 const scaleMatch = content.match(/^([+-]?\d+)(?:\s+(.+))?$/);
                 if (scaleMatch) currentCat.items.push({ type: 'scale-item', number: parseInt(scaleMatch[1]), label: scaleMatch[2] ? scaleMatch[2].trim() : "" });
@@ -792,6 +807,12 @@
                 const scaleMatch = content.match(/^([+-]?\d+)(?:\s+(.+))?$/);
                 if (scaleMatch) currentScale.items.push({ type: 'scale-item', number: parseInt(scaleMatch[1]), label: scaleMatch[2] ? scaleMatch[2].trim() : "" });
                 else if (currentScale.items.length === 0) currentScale.desc = (currentScale.desc ? currentScale.desc + "<br>" : "") + content;
+                return;
+            }
+
+            // 🟢 МАГІЯ: Якщо немає дефіса і це не шкала — це Міні-заголовок!
+            if (!hasBullet) {
+                currentCat.items.push({ type: 'mini-header', title: content });
                 return;
             }
 
@@ -1661,7 +1682,18 @@ if (category.toLowerCase() === 'practices') {
                     return;
                 }
 
+// 🟢 РЕНДЕР МІНІ-ЗАГОЛОВКІВ (Текст без дефіса)
+                if (item.type === 'mini-header') {
+                    const mHeader = document.createElement('div');
+                    mHeader.className = 'mini-header';
+                    // ЗМІНЕНО: Пропускаємо текст через парсер Markdown
+                    mHeader.innerHTML = renderInlineMarkdown(item.title);
+                    currentGrid.appendChild(mHeader);
+                    return;
+                }
+
                 if (item.type !== 'item') return;
+
 
                 const itemId = `${category}|${item.name}`;
                 const isSelected = !!selectedItems[itemId];
@@ -2268,8 +2300,8 @@ function updateReport() {
                 }
             });
 
-            // 5. Коментарі (####)
-            block.querySelectorAll('.category-comment').forEach(c => { 
+           // 5. Коментарі (####) та Міні-заголовки
+            block.querySelectorAll('.category-comment, .mini-header').forEach(c => { 
                 c.style.display = isSearching ? 'none' : 'block'; 
             });
 
