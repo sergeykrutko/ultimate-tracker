@@ -104,30 +104,28 @@
         .subheader-wrap.collapsed .sub-content { display: none !important; }
         .category-comment { grid-column: 1 / -1; font-size: 13px; color: var(--text-main); font-style: normal; font-weight: 700; text-transform: uppercase; padding: 6px 0 4px 0; border-bottom: 1px solid var(--border); margin-top: 10px; margin-bottom: 4px; line-height: 1.3; letter-spacing: 1px;}
         /* Стиль для описів між зірочками */
-em {
-    font-style: normal !important;      
-    font-weight: 600 !important;        
-    color: var(--text-desc) !important; 
-    border-bottom: none !important;     
-    text-decoration: none !important;
-    font-size: 12px;
-    display: inline-block;
-    padding-bottom: 4px;
-    margin-top: 4px;
-}
+        
+/* 🟢 ВИПРАВЛЕНО: Дозволяємо курсиву бути курсивом! */
+        em {
+            font-style: italic !important;
+            color: var(--text-desc);
+        }
 
 
 
         /* 🟢 ДОДАНО: Міні-заголовки (Текст без дефісів) */
+
         .mini-header {
             grid-column: 1 / -1 !important;
             font-size: 12.5px;
-            font-weight: 500; /* Прибрали жирність */
-            color: var(--text-desc); /* Сірий колір */
-            margin: 8px 0 6px 0;
-            padding-bottom: 6px;
-            border-bottom: 1px dashed var(--border); /* Сіра пунктирна лінія */
-            line-height: 1.3;
+            font-weight: 500;
+            color: var(--text-desc);
+            margin: 0px 0;
+            padding-bottom: 0;
+            border-bottom: none; /* 🟢 ПРИБРАЛИ ЛІНІЮ */
+            line-height: 1;
+            display: flex;
+            align-items: center;
         }
 
         /* Кнопки вибору */
@@ -791,7 +789,7 @@ let currentSessionId = Date.now().toString(36) + Math.random().toString(36).subs
             if (!currentCat) return;
 
             if (line.match(/^#{4,}\s+/)) {
-                let commentText = line.replace(/^#{4,}\s+/, '').replace(/\*/g, '').trim();
+                let commentText = line.replace(/^#{4,}\s+/, '').trim();
                 currentCat.items.push({ type: 'comment', text: commentText });
                 return;
             }
@@ -823,9 +821,11 @@ let currentSessionId = Date.now().toString(36) + Math.random().toString(36).subs
 
 
 // Зберігаємо інфу, чи був дефіс на початку рядка
+            // Зберігаємо інфу, чи був дефіс на початку рядка
             let hasBullet = line.match(/^\\?[-*]\s+/);
 
-            let content = line.replace(/^\\?[-*]\s+/, '').replace(/\\/g, '').trim();
+            // 🟢 ВИПРАВЛЕНО: Більше не видаляємо зірочки!
+           let content = line.replace(/^\\?[-*]\s+/, '').replace(/\\/g, '').trim();
             if(!content) return;
 
            // Топова шкала та Вбудована шкала
@@ -842,9 +842,19 @@ let currentSessionId = Date.now().toString(36) + Math.random().toString(36).subs
                 return;
             }
 
+       
             // 🟢 МАГІЯ: Якщо немає дефіса і це не шкала — це Міні-заголовок!
             if (!hasBullet) {
-                currentCat.items.push({ type: 'mini-header', title: content });
+                let infoText = "";
+                let cleanTitle = content;
+                const infoRegex = /\{\{([\s\S]*?)\}\}/g;
+                let infoMatch;
+                while ((infoMatch = infoRegex.exec(cleanTitle)) !== null) {
+                    infoText += (infoText ? " " : "") + infoMatch[1].trim();
+                }
+                cleanTitle = cleanTitle.replace(infoRegex, '').trim();
+
+                currentCat.items.push({ type: 'mini-header', title: cleanTitle, info: infoText });
                 return;
             }
 
@@ -860,7 +870,8 @@ let currentSessionId = Date.now().toString(36) + Math.random().toString(36).subs
                 name = content.substring(0, idx).trim();
                 desc = content.substring(idx + sepMatch[0].length).trim();
             }
-            // Примусово очищаємо назву від Markdown-зірочок, щоб не ламати ID
+
+            // 🟢 ДОДАНО: Примусово очищаємо назви кнопок від зірочок, щоб не ламати ID бази даних!
             name = name.replace(/\*/g, '').trim();
 
             const infoRegex = /\{\{([\s\S]*?)\}\}/g;
@@ -911,11 +922,12 @@ let currentSessionId = Date.now().toString(36) + Math.random().toString(36).subs
 
 
 function renderInlineMarkdown(text) {
+        if (!text) return "";
         return text
+            // Спочатку шукаємо подвійні зірочки для ЖИРНОГО шрифту
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\*(.*?)\*/g, '<em>$1</em>')
-            .replace(/_(.*?)_/g, '<em>$1</em>')
-            .replace(/`(.*?)`/g, '<code>$1</code>');
+            // Потім одинарні зірочки для КУРСИВУ
+            .replace(/\*(.*?)\*/g, '<em>$1</em>');
     }
 
 
@@ -1288,7 +1300,10 @@ function buildDeltaScaleDOM(title, scaleItems, isGlobal = false, rawDesc = "") {
             const sliderDiv = document.createElement('div');
             sliderDiv.className = 'slider-container'; sliderDiv.style.flex = '1'; sliderDiv.style.margin = '0'; sliderDiv.style.paddingBottom = '14px';
             sliderDiv.innerHTML = `
-                <input type="range" min="0" max="${maxIdx}" value="${currentVal}" class="global-slider" style="${bgStyle}" oninput="updateDeltaSlider('${title}', '${type}', this.value, this)" onchange="saveAndRender()">
+                <input type="range" min="0" max="${maxIdx}" value="${currentVal}" class="global-slider" style="${bgStyle}" 
+                onpointerdown="if('${type}' === 'OUT') markOutTouched('${title}')"
+                oninput="updateDeltaSlider('${title}', '${type}', this.value, this)" 
+                onchange="saveAndRender()">
                 <div class="global-slider-labels">
                     <span>${scaleItems[0].number > 0 ? '+'+scaleItems[0].number : scaleItems[0].number}</span>
                     <span>${scaleItems[centerIdx].number}</span>
@@ -1364,6 +1379,41 @@ function buildDeltaScaleDOM(title, scaleItems, isGlobal = false, rawDesc = "") {
         }
         updateReport();
     }
+
+function markOutTouched(category) {
+        const stateId = `deltaCat_${category}`;
+        // Якщо картка ще не була активна, активуємо її
+        if (!selectedItems[stateId]) {
+            const items = findScaleItems(category);
+            const maxIdx = items.length - 1; 
+            const centerIdx = Math.floor(maxIdx / 2);
+            selectedItems[stateId] = { 
+                category, inIdx: centerIdx, outIdx: centerIdx,
+                inText: items[centerIdx].number > 0 ? '+'+items[centerIdx].number : items[centerIdx].number,
+                outText: items[centerIdx].number > 0 ? '+'+items[centerIdx].number : items[centerIdx].number,
+                note: "",
+                outTouched: true,
+                lastActive: 'OUT'
+            };
+        } else {
+            // Якщо вже активна, просто фіксуємо дотик
+            selectedItems[stateId].outTouched = true;
+            selectedItems[stateId].lastActive = 'OUT';
+        }
+        
+        // Оновлюємо текст над шкалою (щоб він показував значення OUT)
+        const valSpan = document.getElementById(`float-val-${stateId}`);
+        if (valSpan) {
+            const activeIt = findScaleItems(category)[selectedItems[stateId].outIdx];
+            const activeLbl = activeIt.label ? activeIt.label.replace(/^[-—–:]\s*/, '') : activeIt.number;
+            valSpan.innerText = activeLbl;
+            valSpan.style.display = 'block';
+        }
+        
+        saveData();
+        updateReport();
+    }
+
 
 
 
@@ -1693,9 +1743,9 @@ if (category.toLowerCase() === 'practices') {
             }
 
             blockData.items.forEach((item) => {
-                if (item.type === 'comment') {
+               if (item.type === 'comment') {
                     const commentDiv = document.createElement('div'); commentDiv.className = 'category-comment';
-                    commentDiv.innerText = item.text; currentGrid.appendChild(commentDiv); return;
+                    commentDiv.innerHTML = renderInlineMarkdown(item.text); currentGrid.appendChild(commentDiv); return;
                 }
 
                 if (item.type === 'subheader') {
@@ -1727,12 +1777,38 @@ if (category.toLowerCase() === 'practices') {
                 }
 
 // 🟢 РЕНДЕР МІНІ-ЗАГОЛОВКІВ (Текст без дефіса)
+                // 🟢 РЕНДЕР МІНІ-ЗАГОЛОВКІВ (Текст без дефіса)
                 if (item.type === 'mini-header') {
+                    const mHeaderWrap = document.createElement('div');
+                    mHeaderWrap.style.gridColumn = '1 / -1'; 
+                    
                     const mHeader = document.createElement('div');
                     mHeader.className = 'mini-header';
-                    // ЗМІНЕНО: Пропускаємо текст через парсер Markdown
-                    mHeader.innerHTML = renderInlineMarkdown(item.title);
-                    currentGrid.appendChild(mHeader);
+                    mHeader.innerHTML = `<span>${renderInlineMarkdown(item.title)}</span>`;
+                    
+                    if (item.info) {
+                        const infoBtn = document.createElement('span');
+                        infoBtn.innerHTML = 'ⓘ';
+                        infoBtn.style.cssText = 'color:var(--accent); font-size:14px; opacity:0.8; padding:0 6px; font-weight:bold; cursor:pointer; margin-left: 4px;';
+                        infoBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            const infoDiv = mHeaderWrap.querySelector('.option-info');
+                            infoDiv.style.display = infoDiv.style.display === 'block' ? 'none' : 'block';
+                        };
+                        mHeader.appendChild(infoBtn);
+                    }
+                    
+                    mHeaderWrap.appendChild(mHeader);
+
+                    if (item.info) {
+                        const infoDiv = document.createElement('div');
+                        infoDiv.className = 'option-info';
+                        infoDiv.style.cssText = 'display:none; font-size:11.5px; color:var(--text-desc); font-style:italic; margin: 4px 0 8px 0; padding:6px 8px; background:var(--bg-color); border-radius:6px; border:1px dashed var(--border); line-height:1.3;';
+                        infoDiv.innerHTML = renderInlineMarkdown(item.info);
+                        mHeaderWrap.appendChild(infoDiv);
+                    }
+                    
+                    currentGrid.appendChild(mHeaderWrap);
                     return;
                 }
 
@@ -2139,7 +2215,9 @@ function updateReport() {
                     if (isDelta) {
                         // 🟢 ВИПРАВЛЕНО: Малюємо стрілку ТІЛЬКИ якщо фізично торкалися бігунка OUT
                         if (state.outTouched) {
-                            reportText = `${state.inText} → ${state.outText}`;
+                            let inStr = state.inText; if (inStr === "0" || inStr === 0) inStr = " 0";
+                            let outStr = state.outText; if (outStr === "0" || outStr === 0) outStr = " 0";
+                            reportText = `${inStr} → ${outStr}`;
                         } else {
                             // Якщо OUT не чіпали, поводимося як звичайна шкала (тільки IN)
                             let numStr = state.inText; if (numStr === "0" || numStr === 0) numStr = " 0";
