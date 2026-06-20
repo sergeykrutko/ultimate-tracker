@@ -1439,13 +1439,23 @@ let selectedInCat = Object.values(selectedItems).filter(i => i.category === cate
             let isFilteringActive = false;
             
             if (category.toLowerCase() === 'practices') {
-                // 1. Збираємо всі активні шкали
+                // 1. Збираємо всі активні шкали (ЗВИЧАЙНІ ТА ДЕЛЬТА)
                 let activeScaleVals = [];
                 Object.keys(selectedItems).forEach(k => {
+                    // Зчитуємо звичайні шкали
                     if (k.toLowerCase().startsWith('scalecat_')) {
                         activeScaleVals.push({ 
                             name: k.split('_')[1].toLowerCase(), 
                             val: parseInt(selectedItems[k].text) 
+                        });
+                    } 
+                    // Зчитуємо подвійні IN/OUT шкали
+                    else if (k.toLowerCase().startsWith('deltacat_')) {
+                        let isOut = selectedItems[k].lastActive === 'OUT';
+                        let valText = isOut ? selectedItems[k].outText : selectedItems[k].inText;
+                        activeScaleVals.push({ 
+                            name: k.split('_')[1].toLowerCase(), 
+                            val: parseInt(valText) 
                         });
                     }
                 });
