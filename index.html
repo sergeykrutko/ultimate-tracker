@@ -590,9 +590,19 @@
 
 
 
+    
+
+
+
+
 
     `;
     // =========================================================================
+
+
+// Унікальний ідентифікатор поточної сесії введення
+let currentSessionId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+
 
    let parsedBlocks = [];
     let selectedItems = JSON.parse(localStorage.getItem('trackerData_v7')) || {};
@@ -822,7 +832,7 @@
             let ranges = [];
             let triggersList = [];
 
-            const sepMatch = content.match(/\s+[-—–−]\s+|\s*:\s*/);
+           const sepMatch = content.match(/\s+[-—–−]\s+|\s*:\s*/);
             if (sepMatch) {
                 const idx = sepMatch.index;
                 name = content.substring(0, idx).trim();
@@ -2338,11 +2348,15 @@ function updateReport() {
     }
     
     function clearData() { 
-        // 🟢 МАГІЯ: Перед тим як очистити, зберігаємо "зліпок" останньої сесії
         if (Object.keys(selectedItems).length > 0) {
-            localStorage.setItem('trackerData_backup', JSON.stringify(selectedItems));
+            localStorage.setItem('trackerData_backup', JSON.stringify({
+                items: selectedItems,
+                sessionId: currentSessionId // Зберігаємо ID у бекап!
+            }));
         }
         selectedItems = {}; 
+        // Генеруємо НОВИЙ ID для наступної (майбутньої) сесії
+        currentSessionId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
         saveData(); 
         document.getElementById('search-input').value = ""; 
         filterItems(); 
@@ -2353,7 +2367,9 @@ function updateReport() {
     function restoreBackup() {
         const backup = localStorage.getItem('trackerData_backup');
         if (backup) {
-            selectedItems = JSON.parse(backup);
+            const parsed = JSON.parse(backup);
+            selectedItems = parsed.items;
+            currentSessionId = parsed.sessionId; // Повертаємо старий ID!
             saveAndRender();
         } else {
             alert("Попередній запис не знайдено!");
@@ -2397,7 +2413,7 @@ function updateReport() {
 
     const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwoqHUNfFEFXRJ6bzNjLyFaaHLXEKjJqQi6zvMHzajFzpDw1THCWTbpJjfjqabGXH6DHQ/exec';
 
-    function sendToCloud(event) {
+ function sendToCloud(event) {
         if (event) event.stopPropagation();
         
         const btn = event.currentTarget;
@@ -2421,8 +2437,10 @@ function updateReport() {
         const formData = new FormData();
         formData.append('report', reportText);
         formData.append('rawData', rawData);
+        // 🟢 МАГІЯ: Додаємо ID сесії до посилки
+        formData.append('sessionId', currentSessionId); 
 
-       fetch(GOOGLE_SCRIPT_URL, {
+        fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
             body: formData
         })
@@ -2435,7 +2453,7 @@ function updateReport() {
             btn.style.color = isMini ? "#34c759" : "white";
             if (!isMini) btn.style.borderColor = "#34c759";
             
-            clearData(); // 🛑 ДОДАНО ТУТ
+            clearData(); // Очищуємо екран (і генеруємо новий Session ID всередині clearData)
             
             setTimeout(() => { 
                 btn.innerHTML = origText; 
@@ -2443,7 +2461,7 @@ function updateReport() {
                 btn.style.color = ""; 
                 btn.style.borderColor = "";
                 btn.disabled = false;
-            }, 2500);
+            }, 2500); // 2.5 секунди, щоб ти встиг побачити зелену галочку успіху
         })
         .catch(err => {
             btn.innerHTML = isMini ? "❌" : "❌ Помилка";
@@ -2483,6 +2501,8 @@ function updateReport() {
         const formData = new FormData();
         formData.append('report', textToCopy);
         formData.append('rawData', rawData);
+        // 🟢 МАГІЯ: Додаємо ID сесії до посилки
+        formData.append('sessionId', currentSessionId); 
 
         fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
@@ -2502,14 +2522,14 @@ function updateReport() {
                 setTimeout(() => {
                     const shortcutName = encodeURIComponent("u-track-log"); 
                     window.location.href = `shortcuts://run-shortcut?name=${shortcutName}`;
-                }, 300); // Обов'язкова мікро-пауза для iOS
+                }, 300); // 300мс — ідеальна пауза для плавного переходу в iOS
             }
 
             setTimeout(() => { 
                 btn.innerHTML = origText; 
                 btn.style.color = ""; 
                 btn.disabled = false;
-            }, 2500);
+            }, 300);
         })
         .catch(err => {
             btn.innerHTML = "❌"; 
@@ -2519,7 +2539,7 @@ function updateReport() {
                 btn.innerHTML = origText; 
                 btn.style.color = ""; 
                 btn.disabled = false; 
-            }, 2500);
+            }, 300);
             console.error(err);
         });
     }
