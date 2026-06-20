@@ -2518,58 +2518,40 @@ function updateReport() {
             return;
         }
 
-        // 1. Копіюємо текст у буфер обміну
-        navigator.clipboard.writeText(textToCopy).catch(err => console.error("Помилка копіювання", err));
-
-        // 2. Запускаємо візуальну анімацію кнопки
         const origText = btn.innerHTML;
         btn.innerHTML = "⏳";
-        btn.disabled = true;
+
+        // 1. Копіюємо текст у буфер обміну
+        navigator.clipboard.writeText(textToCopy).catch(err => console.error("Помилка копіювання", err));
 
         const formData = new FormData();
         formData.append('report', textToCopy);
         formData.append('rawData', rawData);
-        // 🟢 МАГІЯ: Додаємо ID сесії до посилки
         formData.append('sessionId', currentSessionId); 
 
+        // 2. ВІДПРАВЛЯЄМО В GOOGLE З ПРАПОРЦЕМ KEEPALIVE (Фоновий режим гарантовано)
         fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
-            body: formData
-        })
-        .then(res => res.text())
-        .then(text => {
-            if (text.startsWith("Error")) { throw new Error(text); }
-            
-            btn.innerHTML = "✅"; 
-            btn.style.color = "#34c759";
-            
-            clearData(); // Очищуємо трекер
-            
-            // МАГІЯ: Викликаємо Shortcuts ТІЛЬКИ ПІСЛЯ того, як Google відповів "Успіх"!
-            if (isShortcutEnabled) {
-                setTimeout(() => {
-                    const shortcutName = encodeURIComponent("u-track-log"); 
-                    window.location.href = `shortcuts://run-shortcut?name=${shortcutName}`;
-                }, 300); // 300мс — ідеальна пауза для плавного переходу в iOS
-            }
+            body: formData,
+            keepalive: true // 🟢 МАГІЯ: iOS не вб'є цей запит при переході в Шорткати
+        }).catch(err => console.error("Помилка фонової відправки", err));
 
-            setTimeout(() => { 
-                btn.innerHTML = origText; 
-                btn.style.color = ""; 
-                btn.disabled = false;
-            }, 300);
-        })
-        .catch(err => {
-            btn.innerHTML = "❌"; 
-            btn.style.color = "#ff3b30";
-            
-            setTimeout(() => { 
-                btn.innerHTML = origText; 
-                btn.style.color = ""; 
-                btn.disabled = false; 
-            }, 300);
-            console.error(err);
-        });
+        // 3. БЛИСКАВИЧНИЙ ЗАПУСК ШОРТКАТУ (Не чекаємо відповіді від сервера!)
+        if (isShortcutEnabled) {
+            const shortcutName = encodeURIComponent("u-track-log"); 
+            window.location.href = `shortcuts://run-shortcut?name=${shortcutName}`;
+        }
+
+        // 4. Миттєво очищуємо трекер
+        btn.innerHTML = "✅"; 
+        btn.style.color = "#34c759";
+        clearData(); 
+
+        // Повертаємо іконку назад
+        setTimeout(() => { 
+            btn.innerHTML = origText; 
+            btn.style.color = ""; 
+        }, 1000);
     }
 
     initApp(); 
