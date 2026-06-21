@@ -624,6 +624,23 @@
 let currentSessionId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
 
 
+let historyDepth = 0; // Лічильник глибини історії
+
+// 🟢 НОВА ФУНКЦІЯ: Тихе завантаження з хмари
+function syncHistoryBackground() {
+    fetch(GOOGLE_SCRIPT_URL + '?action=getHistory')
+    .then(res => res.json())
+    .then(data => {
+        if (data && data.length > 0) {
+            localStorage.setItem('trackerHistory', JSON.stringify(data));
+            console.log("Історію тихо оновлено з бази! Записів: " + data.length);
+        }
+    })
+    .catch(err => console.error("Помилка фонової синхронізації:", err));
+}
+
+
+
    let parsedBlocks = [];
     let selectedItems = JSON.parse(localStorage.getItem('trackerData_v7')) || {};
     let isAligned = localStorage.getItem('trackerAlign') === 'true';
@@ -696,8 +713,10 @@ let currentSessionId = Date.now().toString(36) + Math.random().toString(36).subs
 
    async function initApp() {
         if (isAligned) document.getElementById('align-toggle').classList.add('active-toggle');
-        // ДОДАЄМО ПІДСВІТКУ КНОПКИ:
         if (isShortcutEnabled) document.getElementById('shortcut-toggle').classList.add('active-toggle');
+        
+        // 🟢 ЗАПУСКАЄМО ТИХУ СИНХРОНІЗАЦІЮ
+        syncHistoryBackground();
         
         try {
             const response = await fetch('database.md');
@@ -2461,14 +2480,22 @@ function updateReport() {
     
     function clearData() { 
         if (Object.keys(selectedItems).length > 0) {
-            localStorage.setItem('trackerData_backup', JSON.stringify({
-                items: selectedItems,
-                sessionId: currentSessionId // Зберігаємо ID у бекап!
-            }));
+            let history = JSON.parse(localStorage.getItem('trackerHistory') || '[]');
+            
+            // Захист від дублікатів
+            history = history.filter(h => h.sessionId !== currentSessionId);
+            
+            // Записуємо поточний стан на початок
+            history.unshift({ items: selectedItems, sessionId: currentSessionId });
+            if (history.length > 15) history.pop();
+            
+            localStorage.setItem('trackerHistory', JSON.stringify(history));
         }
+
         selectedItems = {}; 
-        // Генеруємо НОВИЙ ID для наступної (майбутньої) сесії
         currentSessionId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+        historyDepth = 0; // Скидаємо глибину занурення
+        
         saveData(); 
         document.getElementById('search-input').value = ""; 
         filterItems(); 
@@ -2477,16 +2504,27 @@ function updateReport() {
 
     // 🟢 ДОДАНО: Функція відновлення
     function restoreBackup() {
-        const backup = localStorage.getItem('trackerData_backup');
-        if (backup) {
-            const parsed = JSON.parse(backup);
-            selectedItems = parsed.items;
-            currentSessionId = parsed.sessionId; // Повертаємо старий ID!
-            saveAndRender();
-        } else {
-            alert("Попередній запис не знайдено!");
+        const history = JSON.parse(localStorage.getItem('trackerHistory') || '[]');
+        
+        if (history.length === 0) {
+            alert("Історія порожня! Зачекай секунду, йде тихе завантаження з бази ☁️");
+            return;
         }
+
+        // Якщо дійшли до кінця - йдемо по колу
+        if (historyDepth >= history.length) {
+            historyDepth = 0; 
+            alert("Починаємо з початку історії 🔄");
+        }
+
+        const backup = history[historyDepth];
+        selectedItems = backup.items;
+        currentSessionId = backup.sessionId; // ВАЖЛИВО: повертаємо ID для перезапису!
+
+        historyDepth++; // При наступному кліку відкриється ще старіший лог
+        saveAndRender();
     }
+    
     function copyReport(e) {
         if(e) e.stopPropagation();
         const reportEl = document.getElementById('report');
