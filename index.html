@@ -542,21 +542,19 @@
 <body>
 
 <div class="wrapper">
-    <div class="header-container" id="top-anchor">
-        <div class="header-top">
-            <h1>Ultimate Tracker</h1>
-            <div class="header-actions">
-            <input type="datetime-local" id="log-time" onchange="saveAndRender()" style="background: var(--card-bg); border: 1px solid var(--border); color: var(--text-main); border-radius: 8px; padding: 4px 6px; font-weight: 800; font-family: monospace; outline: none; font-size: 13px; max-width: 190px;">
-
+    <div class="header-container" id="top-anchor" style="display: flex; gap: 12px; align-items: center;">
+        <div class="search-wrapper" style="flex: 1;">
+            <input type="text" class="search-bar" id="search-input" onkeyup="filterItems()" placeholder="Search...">
+            <button id="clear-search-btn" class="search-clear-btn" onclick="clearSearch()">✕</button>
+        </div>
+        <div class="header-actions">
             <button class="icon-btn" id="layout-toggle" onclick="toggleLayout()" title="Сітка/Список">⊞</button>
             <button class="icon-btn" id="theme-toggle" onclick="toggleTheme()" title="Тема">🌙</button>
             <button class="clear-btn" onclick="clearData()">New</button>
         </div>
-        </div>
-        <div class="search-wrapper">
-            <input type="text" class="search-bar" id="search-input" onkeyup="filterItems()" placeholder="Search...">
-            <button id="clear-search-btn" class="search-clear-btn" onclick="clearSearch()">✕</button>
-        </div>
+        
+        
+        
     </div>
     
     <div class="container" id="app-container">
@@ -573,22 +571,24 @@
     <div class="panel-header">
         <span>Звіт</span>
         <div class="panel-actions">
-
-<button class="panel-icon-btn" onclick="restoreBackup()" title="Відновити після очищення">↩️</button>
-
-
-        <!-- Ракета ТІЛЬКИ відправляє -->
-        <button class="panel-icon-btn send-cloud-btn" onclick="sendToCloud(event)" title="Відправити в Таблицю">🚀</button>
-        <button class="panel-icon-btn" id="align-toggle" onclick="toggleAlign(event)" title="Вирівняти">⇥</button>
-        
-        <!-- ДОДАЄМО КНОПКУ SHORTCUTS ⚡ -->
-        <button class="panel-icon-btn" id="shortcut-toggle" onclick="toggleShortcut(event)" title="Автоматизація iOS">⚡</button>
-        
-        <!-- Ця кнопка ТІЛЬКИ копіює -->
-        <button class="panel-icon-btn copy-btn-panel" onclick="copyReport(event)" title="Скопіювати">📋</button>
-        <button class="panel-icon-btn" onclick="toggleReportPanel()">▼</button>
+            <button class="panel-icon-btn" onclick="restoreBackup()" title="Відновити після очищення">↩️</button>
+            <button class="panel-icon-btn send-cloud-btn" onclick="sendToCloud(event)" title="Відправити в Таблицю">🚀</button>
+            <button class="panel-icon-btn" id="align-toggle" onclick="toggleAlign(event)" title="Вирівняти">⇥</button>
+            <button class="panel-icon-btn" id="shortcut-toggle" onclick="toggleShortcut(event)" title="Автоматизація iOS">⚡</button>
+            <button class="panel-icon-btn copy-btn-panel" onclick="copyReport(event)" title="Скопіювати">📋</button>
+            <button class="panel-icon-btn" onclick="toggleReportPanel()">▼</button>
+        </div>
     </div>
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: var(--accent-light); border-bottom: 1px solid var(--border);">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <button onclick="changeDateOffset(-1)" style="border:none; background:var(--card-bg); width:28px; height:28px; border-radius:6px; font-size: 11px; font-weight:900; color: var(--accent); cursor: pointer; box-shadow:0 1px 3px rgba(0,0,0,0.1);">◀</button>
+            <span id="date-display" style="font-weight: 800; min-width: 65px; text-align: center; color: var(--text-main); font-size: 13px;">Сьогодні</span>
+            <button onclick="changeDateOffset(1)" style="border:none; background:var(--card-bg); width:28px; height:28px; border-radius:6px; font-size: 11px; font-weight:900; color: var(--accent); cursor: pointer; box-shadow:0 1px 3px rgba(0,0,0,0.1);">▶</button>
+        </div>
+        <input type="time" id="log-time" onchange="updateLogTime(this.value)" style="background: var(--card-bg); border: 1px solid var(--border); color: var(--text-main); border-radius: 8px; padding: 4px 8px; font-weight: 800; font-family: monospace; outline: none; font-size: 14px; box-shadow:inset 0 1px 2px rgba(0,0,0,0.05);">
     </div>
+
     <div id="report" class="report-area"></div>
 </div>
 
@@ -638,6 +638,55 @@ function getFormattedDateTime() {
 
 
 let historyDepth = 0; // Лічильник глибини історії
+
+
+
+// 🟢 ЛОГІКА ДАТИ ТА ЧАСУ
+let logDateOffset = 0; // 0 = сьогодні, -1 = вчора
+let logTimeValue = ""; 
+
+function getFormattedTime() {
+    const now = new Date();
+    return String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+}
+
+function updateDateDisplay() {
+    const display = document.getElementById('date-display');
+    if (logDateOffset === 0) display.innerText = "Сьогодні";
+    else if (logDateOffset === -1) display.innerText = "Вчора";
+    else {
+        const d = new Date(); d.setDate(d.getDate() + logDateOffset);
+        display.innerText = d.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit' });
+    }
+}
+
+function changeDateOffset(delta) {
+    logDateOffset += delta;
+    if (logDateOffset > 0) logDateOffset = 0; // Забороняємо ставити дату в майбутнє
+    updateDateDisplay();
+    saveAndRender();
+}
+
+function updateLogTime(val) {
+    logTimeValue = val;
+    localStorage.setItem('trackerTime_v7', logTimeValue);
+    saveAndRender();
+}
+
+// Формуємо безпечний рядок для відправки в Google Sheets без зсуву часових поясів
+function getFullLogDateTimeForSheets() {
+    const d = new Date();
+    d.setDate(d.getDate() + logDateOffset);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const timeStr = logTimeValue || getFormattedTime();
+    return `${yyyy}-${mm}-${dd}T${timeStr}:00`;
+}
+
+
+
+
 
 // 🟢 НОВА ФУНКЦІЯ: Тихе завантаження з хмари
 function syncHistoryBackground() {
@@ -724,13 +773,13 @@ function syncHistoryBackground() {
     applyTheme(); applyLayout();
     // --- КІНЕЦЬ: Налаштування теми та вигляду ---
 
-   async function initApp() {
-        
-        // 🟢 МАГІЯ ЧАСУ ТА ДАТИ: Відновлюємо або ставимо поточні
+  async function initApp() {
+        // 🟢 МАГІЯ ЧАСУ: Ініціалізуємо
         let savedTime = localStorage.getItem('trackerTime_v7');
-        // Якщо збереженого часу немає, або він старого формату (тільки години) - генеруємо новий
-        if (!savedTime || savedTime.length < 10) savedTime = getFormattedDateTime(); 
-        document.getElementById('log-time').value = savedTime;
+        if (!savedTime || savedTime.includes('T')) savedTime = getFormattedTime();
+        logTimeValue = savedTime;
+        document.getElementById('log-time').value = logTimeValue;
+        updateDateDisplay();
 
         if (isAligned) document.getElementById('align-toggle').classList.add('active-toggle');
   
@@ -1916,14 +1965,10 @@ if (category.toLowerCase() === 'practices') {
                 const currentNote = isSelected && selectedItems[itemId].note ? selectedItems[itemId].note : ""; // ДОДАНО
 
                 // Формуємо вміст кнопки (ІЗ КНОПКАМИ ІНФО ТА ✏️ КОМЕНТАРЕМ)
+                // Формуємо вміст кнопки (ІЗ КНОПКАМИ ІНФО)
+                // Формуємо вміст кнопки (ІЗ КНОПКАМИ ІНФО)
                 clickableArea.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                        <div class="option-name">${item.name}</div>
-                        <div style="display:flex; align-items:center; gap: 6px;">
-                            ${isSelected ? `<div class="note-toggle-btn" style="cursor:pointer; font-size:12px; opacity:0.8;" onclick="event.stopPropagation(); const w = this.closest('.option-btn').querySelector('.card-note-wrap'); w.style.display = w.style.display === 'block' ? 'none' : 'block'; if(w.style.display==='block') w.querySelector('input').focus();">✏️</div>` : ''}
-                            ${item.info ? `<div class="info-btn" style="color:var(--accent); font-size:15px; opacity:0.8; padding:0 4px; font-weight:bold;" onclick="event.stopPropagation(); const infoDiv = this.closest('.option-clickable-area').querySelector('.option-info'); infoDiv.style.display = infoDiv.style.display === 'block' ? 'none' : 'block';">ⓘ</div>` : ''}
-                        </div>
-                    </div>
+                    <div class="option-name">${renderInlineMarkdown(item.name)}</div>
                     ${item.info ? `<div class="option-info" style="display:none; font-size:11.5px; color:var(--text-desc); font-style:italic; margin: 4px 0; padding:6px 8px; background:var(--bg-color); border-radius:6px; border:1px dashed var(--border); line-height:1.3;">${renderInlineMarkdown(item.info)}</div>` : ''}
                     ${item.desc ? `<div class="option-desc">${renderInlineMarkdown(item.desc)}</div>` : ''}
                     ${tagsHtml}
@@ -2341,8 +2386,16 @@ function updateReport() {
         let fullDateTime = document.getElementById('log-time').value || getFormattedDateTime();
         let timeVal = fullDateTime.includes('T') ? fullDateTime.split('T')[1] : fullDateTime; 
         
-        let displayText = `<strong>${timeVal}</strong>\n`;
-        let copyText = `**${timeVal}**\n`;
+        // 🟢 ФОРМУЄМО ДАТУ ТА ЧАС ДЛЯ ЗВІТУ
+        let datePrefix = "";
+        if (logDateOffset === -1) datePrefix = "Вчора ";
+        else if (logDateOffset < -1) {
+            const d = new Date(); d.setDate(d.getDate() + logDateOffset);
+            datePrefix = d.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit' }) + " ";
+        }
+        
+        let displayText = `<strong>${datePrefix}${logTimeValue}</strong>\n`;
+        let copyText = `**${datePrefix}${logTimeValue}**\n`;
         
         if (isAligned) {
             scalesResult.forEach(s => { 
@@ -2511,14 +2564,13 @@ function updateReport() {
             let history = JSON.parse(localStorage.getItem('trackerHistory') || '[]');
             history = history.filter(h => h.sessionId !== currentSessionId);
             
-            // 🟢 ДОДАНО збереження часу в бекап
-            history.unshift({ 
-                items: selectedItems, 
+            history.unshift({
+                items: selectedItems,
                 sessionId: currentSessionId,
-                time: document.getElementById('log-time').value 
+                time: logTimeValue,
+                dateOffset: logDateOffset // 🟢 Зберігаємо зсув дати
             });
             if (history.length > 15) history.pop();
-            
             localStorage.setItem('trackerHistory', JSON.stringify(history));
         }
 
@@ -2526,7 +2578,15 @@ function updateReport() {
         currentSessionId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
         historyDepth = 0; 
         
-        document.getElementById('log-time').value = getFormattedDateTime(); // 🟢 Скидаємо на поточну дату/час // 🟢 Скидаємо на поточний час для нового запису!
+        // 🟢 Скидаємо на "Сьогодні" та поточний час
+        logDateOffset = 0;
+        logTimeValue = getFormattedTime();
+        
+        const timeInput = document.getElementById('log-time');
+        if (timeInput) timeInput.value = logTimeValue;
+        
+        updateDateDisplay();
+        localStorage.setItem('trackerTime_v7', logTimeValue);
         
         saveData(); 
         document.getElementById('search-input').value = ""; 
@@ -2612,9 +2672,8 @@ function updateReport() {
         const formData = new FormData();
         formData.append('report', reportText);
         formData.append('rawData', rawData);
-        // 🟢 МАГІЯ: Додаємо ID сесії до посилки
         formData.append('sessionId', currentSessionId); 
-        formData.append('logTime', document.getElementById('log-time').value); // 🟢 ВІДПРАВЛЯЄМО ЧАС НА СЕРВЕР
+        formData.append('logTime', getFullLogDateTimeForSheets()); // 🟢 Ідеальний час
 
         fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
@@ -2676,6 +2735,7 @@ function updateReport() {
         formData.append('report', textToCopy);
         formData.append('rawData', rawData);
         formData.append('sessionId', currentSessionId); 
+        formData.append('logTime', getFullLogDateTimeForSheets()); // 🟢 Ідеальний час
 
         // 2. ВІДПРАВЛЯЄМО В GOOGLE З ПРАПОРЦЕМ KEEPALIVE (Фоновий режим гарантовано)
         fetch(GOOGLE_SCRIPT_URL, {
