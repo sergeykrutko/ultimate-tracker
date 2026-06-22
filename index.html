@@ -546,10 +546,12 @@
         <div class="header-top">
             <h1>Ultimate Tracker</h1>
             <div class="header-actions">
-                <button class="icon-btn" id="layout-toggle" onclick="toggleLayout()" title="Сітка/Список">⊞</button>
-                <button class="icon-btn" id="theme-toggle" onclick="toggleTheme()" title="Тема">🌙</button>
-                <button class="clear-btn" onclick="clearData()">New</button>
-            </div>
+            <input type="datetime-local" id="log-time" onchange="saveAndRender()" style="background: var(--card-bg); border: 1px solid var(--border); color: var(--text-main); border-radius: 8px; padding: 4px 6px; font-weight: 800; font-family: monospace; outline: none; font-size: 13px; max-width: 190px;">
+
+            <button class="icon-btn" id="layout-toggle" onclick="toggleLayout()" title="Сітка/Список">⊞</button>
+            <button class="icon-btn" id="theme-toggle" onclick="toggleTheme()" title="Тема">🌙</button>
+            <button class="clear-btn" onclick="clearData()">New</button>
+        </div>
         </div>
         <div class="search-wrapper">
             <input type="text" class="search-bar" id="search-input" onkeyup="filterItems()" placeholder="Search...">
@@ -622,6 +624,17 @@
 
 // Унікальний ідентифікатор поточної сесії введення
 let currentSessionId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+
+// 🟢 ФУНКЦІЯ ОТРИМАННЯ ПОТОЧНОЇ ДАТИ ТА ЧАСУ
+function getFormattedDateTime() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`; // Формат для datetime-local
+}
 
 
 let historyDepth = 0; // Лічильник глибини історії
@@ -712,8 +725,15 @@ function syncHistoryBackground() {
     // --- КІНЕЦЬ: Налаштування теми та вигляду ---
 
    async function initApp() {
+        
+        // 🟢 МАГІЯ ЧАСУ ТА ДАТИ: Відновлюємо або ставимо поточні
+        let savedTime = localStorage.getItem('trackerTime_v7');
+        // Якщо збереженого часу немає, або він старого формату (тільки години) - генеруємо новий
+        if (!savedTime || savedTime.length < 10) savedTime = getFormattedDateTime(); 
+        document.getElementById('log-time').value = savedTime;
+
         if (isAligned) document.getElementById('align-toggle').classList.add('active-toggle');
-        if (isShortcutEnabled) document.getElementById('shortcut-toggle').classList.add('active-toggle');
+  
         
         // 🟢 ЗАПУСКАЄМО ТИХУ СИНХРОНІЗАЦІЮ
         syncHistoryBackground();
@@ -2205,7 +2225,10 @@ function saveAndRender() {
 
 
 
-    function saveData() { localStorage.setItem('trackerData_v7', JSON.stringify(selectedItems)); }
+    function saveData() { 
+        localStorage.setItem('trackerData_v7', JSON.stringify(selectedItems)); 
+        localStorage.setItem('trackerTime_v7', document.getElementById('log-time').value); // 🟢 Зберігаємо час
+    }
 
     function toggleAlign(event) {
         if(event) event.stopPropagation();
@@ -2313,8 +2336,13 @@ function updateReport() {
             }
         });
 
-        let displayText = "";
-        let copyText = "";
+        
+        // 🟢 ВИРІЗАЄМО ДАТУ ДЛЯ ЗВІТУ (Залишаємо тільки час)
+        let fullDateTime = document.getElementById('log-time').value || getFormattedDateTime();
+        let timeVal = fullDateTime.includes('T') ? fullDateTime.split('T')[1] : fullDateTime; 
+        
+        let displayText = `<strong>${timeVal}</strong>\n`;
+        let copyText = `**${timeVal}**\n`;
         
         if (isAligned) {
             scalesResult.forEach(s => { 
@@ -2481,12 +2509,14 @@ function updateReport() {
     function clearData() { 
         if (Object.keys(selectedItems).length > 0) {
             let history = JSON.parse(localStorage.getItem('trackerHistory') || '[]');
-            
-            // Захист від дублікатів
             history = history.filter(h => h.sessionId !== currentSessionId);
             
-            // Записуємо поточний стан на початок
-            history.unshift({ items: selectedItems, sessionId: currentSessionId });
+            // 🟢 ДОДАНО збереження часу в бекап
+            history.unshift({ 
+                items: selectedItems, 
+                sessionId: currentSessionId,
+                time: document.getElementById('log-time').value 
+            });
             if (history.length > 15) history.pop();
             
             localStorage.setItem('trackerHistory', JSON.stringify(history));
@@ -2494,7 +2524,9 @@ function updateReport() {
 
         selectedItems = {}; 
         currentSessionId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
-        historyDepth = 0; // Скидаємо глибину занурення
+        historyDepth = 0; 
+        
+        document.getElementById('log-time').value = getFormattedDateTime(); // 🟢 Скидаємо на поточну дату/час // 🟢 Скидаємо на поточний час для нового запису!
         
         saveData(); 
         document.getElementById('search-input').value = ""; 
@@ -2505,26 +2537,19 @@ function updateReport() {
     // 🟢 ДОДАНО: Функція відновлення
     function restoreBackup() {
         const history = JSON.parse(localStorage.getItem('trackerHistory') || '[]');
-        
-        if (history.length === 0) {
-            alert("Історія порожня! Зачекай секунду, йде тихе завантаження з бази ☁️");
-            return;
-        }
-
-        // Якщо дійшли до кінця - йдемо по колу
-        if (historyDepth >= history.length) {
-            historyDepth = 0; 
-            alert("Починаємо з початку історії 🔄");
-        }
+        if (history.length === 0) { alert("Історія порожня!"); return; }
+        if (historyDepth >= history.length) { historyDepth = 0; alert("Починаємо з початку історії 🔄"); }
 
         const backup = history[historyDepth];
         selectedItems = backup.items;
-        currentSessionId = backup.sessionId; // ВАЖЛИВО: повертаємо ID для перезапису!
+        currentSessionId = backup.sessionId; 
+        
+        if (backup.time) document.getElementById('log-time').value = backup.time; // 🟢 ВІДНОВЛЮЄМО ЧАС З БЕКАПУ!
 
-        historyDepth++; // При наступному кліку відкриється ще старіший лог
+        historyDepth++; 
         saveAndRender();
     }
-    
+
     function copyReport(e) {
         if(e) e.stopPropagation();
         const reportEl = document.getElementById('report');
@@ -2589,6 +2614,7 @@ function updateReport() {
         formData.append('rawData', rawData);
         // 🟢 МАГІЯ: Додаємо ID сесії до посилки
         formData.append('sessionId', currentSessionId); 
+        formData.append('logTime', document.getElementById('log-time').value); // 🟢 ВІДПРАВЛЯЄМО ЧАС НА СЕРВЕР
 
         fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
