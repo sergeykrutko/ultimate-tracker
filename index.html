@@ -569,7 +569,7 @@
 
 <div id="report-panel" class="report-panel">
     <div class="panel-header">
-        <span>Звіт</span>
+        <span>Report</span>
         <div class="panel-actions">
             <button class="panel-icon-btn" onclick="restoreBackup()" title="Відновити після очищення">↩️</button>
             <button class="panel-icon-btn send-cloud-btn" onclick="sendToCloud(event)" title="Відправити в Таблицю">🚀</button>
@@ -583,7 +583,7 @@
     <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: var(--accent-light); border-bottom: 1px solid var(--border);">
         <div style="display: flex; align-items: center; gap: 12px;">
             <button onclick="changeDateOffset(-1)" style="border:none; background:var(--card-bg); width:28px; height:28px; border-radius:6px; font-size: 11px; font-weight:900; color: var(--accent); cursor: pointer; box-shadow:0 1px 3px rgba(0,0,0,0.1);">◀</button>
-            <span id="date-display" style="font-weight: 800; min-width: 65px; text-align: center; color: var(--text-main); font-size: 13px;">Сьогодні</span>
+            <span id="date-display" style="font-weight: 800; min-width: 65px; text-align: center; color: var(--text-main); font-size: 13px;">today</span>
             <button onclick="changeDateOffset(1)" style="border:none; background:var(--card-bg); width:28px; height:28px; border-radius:6px; font-size: 11px; font-weight:900; color: var(--accent); cursor: pointer; box-shadow:0 1px 3px rgba(0,0,0,0.1);">▶</button>
         </div>
         <input type="time" id="log-time" onchange="updateLogTime(this.value)" style="background: var(--card-bg); border: 1px solid var(--border); color: var(--text-main); border-radius: 8px; padding: 4px 8px; font-weight: 800; font-family: monospace; outline: none; font-size: 14px; box-shadow:inset 0 1px 2px rgba(0,0,0,0.05);">
@@ -641,6 +641,10 @@ let historyDepth = 0; // Лічильник глибини історії
 
 
 
+let isEdited = false; // 🟢 НОВЕ: Відстежує, чи вносив ти зміни
+
+
+
 // 🟢 ЛОГІКА ДАТИ ТА ЧАСУ
 let logDateOffset = 0; // 0 = сьогодні, -1 = вчора
 let logTimeValue = ""; 
@@ -652,8 +656,8 @@ function getFormattedTime() {
 
 function updateDateDisplay() {
     const display = document.getElementById('date-display');
-    if (logDateOffset === 0) display.innerText = "Сьогодні";
-    else if (logDateOffset === -1) display.innerText = "Вчора";
+    if (logDateOffset === 0) display.innerText = "today";
+    else if (logDateOffset === -1) display.innerText = "yesterday";
     else {
         const d = new Date(); d.setDate(d.getDate() + logDateOffset);
         display.innerText = d.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit' });
@@ -2272,7 +2276,8 @@ function saveAndRender() {
 
     function saveData() { 
         localStorage.setItem('trackerData_v7', JSON.stringify(selectedItems)); 
-        localStorage.setItem('trackerTime_v7', document.getElementById('log-time').value); // 🟢 Зберігаємо час
+        localStorage.setItem('trackerTime_v7', document.getElementById('log-time').value);
+        isEdited = true; // 🟢 Фіксуємо, що ти щось змінив
     }
 
     function toggleAlign(event) {
@@ -2388,14 +2393,16 @@ function updateReport() {
         
         // 🟢 ФОРМУЄМО ДАТУ ТА ЧАС ДЛЯ ЗВІТУ
         let datePrefix = "";
-        if (logDateOffset === -1) datePrefix = "Вчора ";
+        if (logDateOffset === -1) datePrefix = "yesterday ";
         else if (logDateOffset < -1) {
             const d = new Date(); d.setDate(d.getDate() + logDateOffset);
             datePrefix = d.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit' }) + " ";
         }
         
-        let displayText = `<strong>${datePrefix}${logTimeValue}</strong>\n`;
-        let copyText = `**${datePrefix}${logTimeValue}**\n`;
+        // Використовуємо глобальну змінну logTimeValue
+        let timeStr = logTimeValue || getFormattedTime();
+        let displayText = `<strong>${datePrefix}${timeStr}</strong>\n`;
+        let copyText = `**${datePrefix}${timeStr}**\n`;
         
         if (isAligned) {
             scalesResult.forEach(s => { 
@@ -2560,7 +2567,7 @@ function updateReport() {
     }
     
     function clearData() { 
-        if (Object.keys(selectedItems).length > 0) {
+        if (Object.keys(selectedItems).length > 0 && isEdited) { // 🟢 Зберігає в бекап ТІЛЬКИ якщо були реальні зміни
             let history = JSON.parse(localStorage.getItem('trackerHistory') || '[]');
             history = history.filter(h => h.sessionId !== currentSessionId);
             
@@ -2568,7 +2575,7 @@ function updateReport() {
                 items: selectedItems,
                 sessionId: currentSessionId,
                 time: logTimeValue,
-                dateOffset: logDateOffset // 🟢 Зберігаємо зсув дати
+                dateOffset: logDateOffset // Зберігаємо зсув дати
             });
             if (history.length > 15) history.pop();
             localStorage.setItem('trackerHistory', JSON.stringify(history));
@@ -2578,7 +2585,7 @@ function updateReport() {
         currentSessionId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
         historyDepth = 0; 
         
-        // 🟢 Скидаємо на "Сьогодні" та поточний час
+        // 🟢 Скидаємо годинник на "Сьогодні" та поточний час
         logDateOffset = 0;
         logTimeValue = getFormattedTime();
         
@@ -2592,6 +2599,7 @@ function updateReport() {
         document.getElementById('search-input').value = ""; 
         filterItems(); 
         renderApp(); 
+        isEdited = false; // 🟢 Скидаємо прапорець для нової порожньої сесії
     }
 
     // 🟢 ДОДАНО: Функція відновлення
@@ -2604,10 +2612,33 @@ function updateReport() {
         selectedItems = backup.items;
         currentSessionId = backup.sessionId; 
         
-        if (backup.time) document.getElementById('log-time').value = backup.time; // 🟢 ВІДНОВЛЮЄМО ЧАС З БЕКАПУ!
+        // 🟢 РОЗУМНЕ ВІДНОВЛЕННЯ ЧАСУ ТА ДАТИ (Навіть із Google Sheets)
+        if (backup.time) {
+            if (backup.time.includes('T')) {
+                // Якщо це бекап з Google (формат YYYY-MM-DDTHH:MM)
+                const parts = backup.time.split('T');
+                logTimeValue = parts[1]; // Забираємо тільки HH:MM
+                
+                // Розраховуємо, скільки днів тому це було
+                const today = new Date(); today.setHours(0,0,0,0);
+                const backupDate = new Date(parts[0]); backupDate.setHours(0,0,0,0);
+                const diffDays = Math.round((backupDate - today) / (1000 * 60 * 60 * 24));
+                logDateOffset = diffDays > 0 ? 0 : diffDays; 
+            } else {
+                // Якщо це свіжий локальний бекап
+                logTimeValue = backup.time;
+                logDateOffset = backup.dateOffset !== undefined ? backup.dateOffset : 0;
+            }
+
+            // Оновлюємо годинник та стрілочки в інтерфейсі
+            const timeInput = document.getElementById('log-time');
+            if (timeInput) timeInput.value = logTimeValue;
+            updateDateDisplay();
+        }
 
         historyDepth++; 
         saveAndRender();
+        isEdited = false; // 🟢 МАГІЯ: Відновлений бекап НЕ вважається новим, поки ти сам щось у ньому не клацнеш!
     }
 
     function copyReport(e) {
