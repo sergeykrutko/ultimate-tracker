@@ -16,22 +16,6 @@
 
 \- - - - -
 
-# AWRI [delta]
-
-- \+5 — 🌊 Presence
-- \+4 — 🌐 Panoramic
-- \+3 — ⚓ Triangulation
-- \+2 — 👁️ Disidentificatn
-- \+1 — 💡 Awakening
--  0 — 🤖 Autopilot
-- \-1 — 🪝 Hooked
-- \-2 — 🌪️ Fusion
-- \-3 — ⚡ Reactivity
-- \-4 — 🧩 Fragmentation
-- \-5 — 😶‍🌫️ Dissociation
-
-\- - - - -
-
 # sub scalse
 
 ### BODY [scale]
@@ -351,6 +335,7 @@
 - night-sleep
 - nap
 - wake-up — early 1-2, mid-3, late 4-5
+- night-wake-up
 
 ### symptoms
 
@@ -771,6 +756,7 @@
 - Angry-Child — відчуває гнів або лють через незадоволені базові потреби.
 - Bullied-Teenager — підліток, який зазнав знущань і відчуває сором, неповноцінність та недовіру через те, що став жертвою
 - Heartbroken-Teenager — молода людина з розбитим серцем, яка переживає непереборний смуток через болісне розставання чи розлучення
+- Feared-Child
 - Insecure-Child
 - Impulsive-Child - Нездатність контролювати свої імпульси, відсутність терпіння
 - Happy-Child - відчуває радість, безпеку, любов і задоволення
@@ -1186,3 +1172,19 @@
 \- - - - -
 
 > 🪷
+
+# AWRS [delta]
+
+- \+5 — 🌊 Presence
+- \+4 — 🌐 Panoramic
+- \+3 — ⚓ Triangulation
+- \+2 — 👁️ Disidentificatn
+- \+1 — 💡 Awakening
+-  0 — 🤖 Autopilot
+- \-1 — 🪝 Hooked
+- \-2 — 🌪️ Fusion
+- \-3 — ⚡ Reactivity
+- \-4 — 🧩 Fragmentation
+- \-5 — 😶‍🌫️ Dissociation
+
+\- - - - -

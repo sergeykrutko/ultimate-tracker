@@ -379,7 +379,7 @@
 
 
 
-        .custom-items-wrap { margin-top: 12px; border-top: 1px dashed var(--border); padding-top: 12px; }
+        .custom-items-wrap { margin-top: 4px; padding-top: 6px; }
         .custom-tags-list { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
         .custom-tag { background: var(--accent); color: white; padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; cursor: pointer; }
         .custom-input-row { display: flex; gap: 6px; }
@@ -532,7 +532,34 @@
 
 
 
+/* ========================================= */
+        /* РОЗУМНІ ШКАЛИ (АВТОМАТИЧНА ШИРИНА)        */
+        /* ========================================= */
+        
+        /* 1. Глобальні шкали (Ті, що на скріншоті) */
+        .global-scale-widget { 
+            flex-grow: 1 !important; /* 🟢 МАГІЯ 1: Якщо шкала одна в ряді, вона займає весь вільний простір (100%) */
+            flex-basis: calc(50% - 10px) !important; /* 🟢 МАГІЯ 2: Намагається ставати по 2 в ряд */
+            min-width: 280px !important; /* 🟢 МАГІЯ 3: Якщо екран телефону вузький, вони автоматично стрибають по 1 в ряд */
+            width: auto !important; 
+        }
 
+        /* 2. Вбудовані шкали (Всередині категорій) */
+        .grid-unified .global-scale-widget {
+            grid-column: span 3 !important; /* Стандартно по 2 в ряд на планшетах/ПК */
+        }
+
+        /* 🟢 МАГІЯ 4: Якщо вбудована шкала опинилася сама в кінці списку - розтягуємо на всі 6 колонок (100%) */
+        .grid-unified .global-scale-widget:last-of-type:nth-of-type(odd) {
+            grid-column: 1 / -1 !important;
+        }
+
+        /* На мобільних телефонах вбудовані шкали завжди по 1 в ряд для зручності */
+        @media (max-width: 600px) {
+            .grid-unified .global-scale-widget { 
+                grid-column: 1 / -1 !important; 
+            }
+        }
 
 
 
@@ -586,8 +613,7 @@
             <span id="date-display" style="font-weight: 800; min-width: 65px; text-align: center; color: var(--text-main); font-size: 13px;">today</span>
             <button onclick="changeDateOffset(1)" style="border:none; background:var(--card-bg); width:28px; height:28px; border-radius:6px; font-size: 11px; font-weight:900; color: var(--accent); cursor: pointer; box-shadow:0 1px 3px rgba(0,0,0,0.1);">▶</button>
         </div>
-        <input type="time" id="log-time" onchange="updateLogTime(this.value)" style="background: var(--card-bg); border: 1px solid var(--border); color: var(--text-main); border-radius: 8px; padding: 4px 8px; font-weight: 800; font-family: monospace; outline: none; font-size: 14px; box-shadow:inset 0 1px 2px rgba(0,0,0,0.05);">
-    </div>
+    <input type="time" id="log-time" oninput="updateLogTime(this.value)" onchange="updateLogTime(this.value)" style="background: var(--card-bg); border: 1px solid var(--border); color: var(--text-main); border-radius: 8px; padding: 4px 8px; font-weight: 800; font-family: monospace; outline: none; font-size: 14px; box-shadow:inset 0 1px 2px rgba(0,0,0,0.05);">       </div>
 
     <div id="report" class="report-area"></div>
 </div>
@@ -684,8 +710,12 @@ function getFullLogDateTimeForSheets() {
     const yyyy = d.getFullYear();
     const mm = String(d.getMonth() + 1).padStart(2, '0');
     const dd = String(d.getDate()).padStart(2, '0');
-    const timeStr = logTimeValue || getFormattedTime();
-    return `${yyyy}-${mm}-${dd}T${timeStr}:00`;
+    
+    // 🟢 МАГІЯ: Беремо час прямо з поля (раптом onchange не встиг спрацювати на iOS)
+    const timeInput = document.getElementById('log-time');
+    const actualTime = (timeInput && timeInput.value) ? timeInput.value : (logTimeValue || getFormattedTime());
+    
+    return `${yyyy}-${mm}-${dd}T${actualTime}:00`;
 }
 
 
@@ -1969,15 +1999,42 @@ if (category.toLowerCase() === 'practices') {
                 const currentNote = isSelected && selectedItems[itemId].note ? selectedItems[itemId].note : ""; // ДОДАНО
 
                 // Формуємо вміст кнопки (ІЗ КНОПКАМИ ІНФО ТА ✏️ КОМЕНТАРЕМ)
-                // Формуємо вміст кнопки (ІЗ КНОПКАМИ ІНФО)
-                // Формуємо вміст кнопки (ІЗ КНОПКАМИ ІНФО)
                 clickableArea.innerHTML = `
-                    <div class="option-name">${renderInlineMarkdown(item.name)}</div>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2px;">
+                        <div class="option-name">${renderInlineMarkdown(item.name)}</div>
+                        <div style="display: flex; gap: 6px; align-items: center;">
+                            ${item.info ? `<span class="info-icon-btn" style="color:var(--accent); font-size:14px; opacity:0.8; font-weight:bold; cursor:pointer; padding: 0 4px;">ⓘ</span>` : ''}
+                            ${isSelected ? `<span class="note-icon-btn" style="font-size:12px; opacity:0.8; cursor:pointer; padding: 0 4px;">✏️</span>` : ''}
+                        </div>
+                    </div>
                     ${item.info ? `<div class="option-info" style="display:none; font-size:11.5px; color:var(--text-desc); font-style:italic; margin: 4px 0; padding:6px 8px; background:var(--bg-color); border-radius:6px; border:1px dashed var(--border); line-height:1.3;">${renderInlineMarkdown(item.info)}</div>` : ''}
                     ${item.desc ? `<div class="option-desc">${renderInlineMarkdown(item.desc)}</div>` : ''}
                     ${tagsHtml}
                 `;
                 btn.appendChild(clickableArea);
+
+                // 🟢 ОЖИВЛЯЄМО КНОПКИ ІНФО (ⓘ)
+                const infoIcon = clickableArea.querySelector('.info-icon-btn');
+                if (infoIcon) {
+                    infoIcon.onclick = (e) => {
+                        e.stopPropagation(); // Щоб картка не натискалася випадково
+                        const infoDiv = clickableArea.querySelector('.option-info');
+                        infoDiv.style.display = infoDiv.style.display === 'block' ? 'none' : 'block';
+                    };
+                }
+
+                // 🟢 ОЖИВЛЯЄМО КНОПКИ КОМЕНТАРІВ (✏️)
+                const noteIcon = clickableArea.querySelector('.note-icon-btn');
+                if (noteIcon) {
+                    noteIcon.onclick = (e) => {
+                        e.stopPropagation(); // Щоб картка не знімала виділення
+                        const noteWrap = btn.querySelector('.card-note-wrap');
+                        if (noteWrap) {
+                            noteWrap.style.display = noteWrap.style.display === 'block' ? 'none' : 'block';
+                            if (noteWrap.style.display === 'block') noteWrap.querySelector('input').focus();
+                        }
+                    };
+                }
 
                 const scaleDiv = document.createElement('div');
                 scaleDiv.className = 'scale-container';
@@ -2025,13 +2082,24 @@ if (category.toLowerCase() === 'practices') {
                     
                     const cardNoteInput = cardNoteWrap.querySelector('input');
                     cardNoteInput.onclick = (e) => e.stopPropagation();
+                    
+                    // Зберігаємо на кожному подиху
                     cardNoteInput.oninput = (e) => {
                         if (selectedItems[itemId]) {
                             selectedItems[itemId].note = e.target.value;
-                            saveData(); // Тихе збереження
+                            saveData(); 
                             updateReport();
                         }
                     };
+                    
+                    // 🟢 МАГІЯ: Залізобетонно фіксуємо і перерендеримо звіт, коли сховали клавіатуру
+                    cardNoteInput.onblur = (e) => {
+                        if (selectedItems[itemId]) {
+                            selectedItems[itemId].note = e.target.value;
+                            saveAndRender(); // М'яко оновлює весь інтерфейс
+                        }
+                    };
+                    
                     btn.appendChild(cardNoteWrap);
                 }
 
@@ -2098,8 +2166,16 @@ if (category.toLowerCase() === 'practices') {
                     
                     // Підсвічуємо поле, коли клікаємо всередину
                     input.onfocus = () => { input.style.opacity = '1'; input.style.borderColor = 'var(--accent)'; };
-                    input.onblur = () => { input.style.opacity = '0.6'; input.style.borderColor = 'var(--border)'; };
+                    // Підсвічуємо поле, коли клікаємо всередину
+                    input.onfocus = () => { input.style.opacity = '1'; input.style.borderColor = 'var(--accent)'; };
                     
+                    // 🟢 МАГІЯ: Автоматично додаємо тег, коли прибираємо фокус (натиснули "Готово" на телефоні або клікнули повз)
+                    input.onblur = () => { 
+                        input.style.opacity = '0.6'; 
+                        input.style.borderColor = 'var(--border)'; 
+                        addFunc(); // Авто-додавання!
+                    };
+
                     // Мінімалістична кнопка "+"
                     const addBtn = document.createElement('button');
                     addBtn.innerText = '➕';
@@ -2392,15 +2468,18 @@ function updateReport() {
         let timeVal = fullDateTime.includes('T') ? fullDateTime.split('T')[1] : fullDateTime; 
         
         // 🟢 ФОРМУЄМО ДАТУ ТА ЧАС ДЛЯ ЗВІТУ
+        // 🟢 ФОРМУЄМО ДАТУ ТА ЧАС ДЛЯ ЗВІТУ
         let datePrefix = "";
-        if (logDateOffset === -1) datePrefix = "yesterday ";
+        if (logDateOffset === -1) datePrefix = "Вчора ";
         else if (logDateOffset < -1) {
             const d = new Date(); d.setDate(d.getDate() + logDateOffset);
             datePrefix = d.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit' }) + " ";
         }
         
-        // Використовуємо глобальну змінну logTimeValue
-        let timeStr = logTimeValue || getFormattedTime();
+        // 🟢 БЕРЕМО СВІЖИЙ ЧАС ПРЯМО З ГОДИННИКА
+        const timeInput = document.getElementById('log-time');
+        let timeStr = (timeInput && timeInput.value) ? timeInput.value : (logTimeValue || getFormattedTime());
+        
         let displayText = `<strong>${datePrefix}${timeStr}</strong>\n`;
         let copyText = `**${datePrefix}${timeStr}**\n`;
         
@@ -2792,6 +2871,21 @@ function updateReport() {
             btn.style.color = ""; 
         }, 1000);
     }
+
+    // 🟢 ПРОКИДАННЯ ДОДАТКУ (Оновлення завислого часу з фону)
+    document.addEventListener("visibilitychange", function() {
+        if (document.visibilityState === 'visible') {
+            // Якщо трекер чистий (без обраних станів), ставимо актуальний поточний час!
+            if (Object.keys(selectedItems).length === 0 && !isEdited) {
+                logDateOffset = 0;
+                logTimeValue = getFormattedTime();
+                const timeInput = document.getElementById('log-time');
+                if (timeInput) timeInput.value = logTimeValue;
+                updateDateDisplay();
+                updateReport();
+            }
+        }
+    });
 
     initApp(); 
 </script>
