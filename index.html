@@ -2311,8 +2311,8 @@ if (category.toLowerCase() === 'practices') {
                 // 🟢 Якщо група порожня АЛЕ в ній є виконана практика — ми її НЕ видаляємо!
                 if (isEmpty && !hasActiveChecked) {
                     wrap.remove();
-                } else if (isFilteringActive || hasActiveChecked) {
-                    wrap.classList.remove('collapsed'); // Залишаємо відкритою для очей!
+                } else if (isFilteringActive) {
+                    wrap.classList.remove('collapsed'); // 🟢 ВИПРАВЛЕНО: Розгортаємо автоматично ТІЛЬКИ при роботі фільтра!
                 }
             });
 
