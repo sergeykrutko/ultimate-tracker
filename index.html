@@ -228,7 +228,20 @@
         .subheader-chevron { transition: transform 0.3s; font-size: 11px; }
         .subheader-wrap.collapsed .subheader-chevron { transform: rotate(-90deg); }
         .subheader-wrap.collapsed .sub-content { display: none !important; }
-        .category-comment { grid-column: 1 / -1; font-size: 13px; color: var(--text-main); font-style: normal; font-weight: 700; text-transform: uppercase; padding: 6px 0 4px 0; border-bottom: 1px solid var(--border); margin-top: 10px; margin-bottom: 4px; line-height: 1.3; letter-spacing: 1px;}
+        /* Оновлений стиль для описів (####) */
+        .category-comment { 
+            grid-column: 1 / -1; 
+            font-size: 13px; 
+            color: var(--text-desc); 
+            font-style: normal; 
+            font-weight: 500; 
+            text-transform: none; 
+            padding: 4px 8px 8px 8px; /* Додали відступи по боках, щоб текст не лип до країв */
+            border-bottom: none; 
+            line-height: 1.4; 
+            letter-spacing: 0;
+            margin: 0;
+        }
         /* Стиль для описів між зірочками */
 
 /* 🟢 ВИПРАВЛЕНО: Дозволяємо курсиву бути курсивом! */
@@ -703,12 +716,14 @@
 
 
 /* ========================================= */
+        /* ========================================= */
         /* ФІНАЛЬНА ЧИСТА СІТКА (6 ВІРТУАЛЬНИХ КОЛОНОК) */
         /* ========================================= */
         
         .grid-unified { 
             display: grid !important; 
-            grid-template-columns: repeat(6, 1fr) !important; 
+            /* 🟢 МАГІЯ: Жорстко забороняємо колонкам розтягуватися за межі екрана */
+            grid-template-columns: repeat(6, minmax(0, 1fr)) !important; 
             gap: 6px !important; 
             padding-top: 8px !important;
         }
@@ -768,27 +783,57 @@
 
 
         /* 🟢 УЛЬТРАЩІЛЬНА СІТКА ДЛЯ ОДНИХ ІКОНОК (ЕМOДЗІ) */
-        /* 🟢 МАГІЯ: Великі емодзі строго по центру */
         .grid-unified.icon-only-grid .option-name {
-            font-size: 20px !important; /* Збільшуємо розмір іконки */
-            text-align: center !important; /* Центруємо по горизонталі */
+            font-size: 26px !important; /* Робимо сам емодзі трохи більшим */
+            text-align: center !important;
             width: 100% !important;
-            margin: 0 !important;
-            line-height: 1 !important; /* Забираємо зайві відступи навколо емодзі */
+            margin: 4px 0 0 0 !important;
+            line-height: 1 !important;
         }
+        
+        /* 🟢 Жодна картка більше НІКОЛИ не розтягується (завжди 1 колонка) */
         .grid-unified.icon-only-grid .option-btn {
-            grid-column: span 1 !important; /* Міні-картка займає 1 колонку */
-            padding: 8px 6px !important;
+            grid-column: span 1 !important; 
+            padding: 8px 4px !important;
             align-items: center !important;
             justify-content: center !important;
-            min-height: 42px !important;
+            min-height: 46px !important;
         }
+
+        /* Робимо іконки ⓘ та ✏️ акуратними і притискаємо в самий кут, щоб не лізли на емодзі */
+        .grid-unified.icon-only-grid .option-clickable-area > div:nth-child(2) {
+            top: 2px !important;
+            right: 2px !important;
+        }
+        .grid-unified.icon-only-grid .info-icon-btn, 
+        .grid-unified.icon-only-grid .note-icon-btn {
+            font-size: 11px !important; 
+            padding: 2px !important;
+        }
+        
+        /* 🟢 МАГІЯ ДЛЯ ШКАЛИ: Вона сама стискається, щоб ідеально влізти в квадрат! */
+        .grid-unified.icon-only-grid .scale-container {
+            width: 100% !important;
+            justify-content: center !important;
+            padding-top: 6px !important;
+        }
+        .grid-unified.icon-only-grid .scale-row {
+            width: 100% !important; 
+            display: flex !important;
+        }
+        .grid-unified.icon-only-grid .scale-btn {
+            flex: 1 !important; /* Ділять ширину порівну, математично не можуть вилізти за межі! */
+            width: auto !important;
+            height: 20px !important; 
+            font-size: 11px !important; 
+            padding: 0 !important;
+        }
+
+        /* Адаптація для телефону: просто 4 ідеальні колонки */
         @media (max-width: 600px) {
             .grid-unified.icon-only-grid {
-                grid-template-columns: repeat(4, 1fr) !important; /* 4 в ряд на телефоні */
-            }
-            .grid-unified.icon-only-grid .option-btn {
-                grid-column: span 1 !important;
+                /* 🟢 МАГІЯ ДЛЯ ТЕЛЕФОНУ: 4 суворі колонки без розтягування */
+                grid-template-columns: repeat(4, minmax(0, 1fr)) !important; 
             }
         }
 
