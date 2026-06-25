@@ -13,27 +13,72 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="U-Tracker">
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Onest:wght@500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,800;1,600&display=swap" rel="stylesheet">
+    
     <style>
-        /* СВІТЛА ТЕМА */
+       /* 🎨 ЕЛІТНА ПРИРОДНА ПАЛІТРА */
         :root {
-            color-scheme: light; /* 🛑 ДОДАНО: Забороняє телефону інвертувати кольори */
-            --bg-color: #F4F5F4; --card-bg: #FFFFFF; --text-main: #2D3331;
-            --text-desc: #7A8B88; --accent: #6C8270; --accent-light: #E8EDE9; --border: #D3D9D7;
-        }
-        /* ТЕМНА ТЕМА */
-        [data-theme="dark"] {
-            color-scheme: dark; /* 🛑 ДОДАНО: Дозволяє нашій темній темі працювати правильно */
-            --bg-color: #1A1C1B; --card-bg: #232625; --text-main: #E4E8E6;
-            --text-desc: #8B9996; --accent: #8FA994; --accent-light: rgba(143, 169, 148, 0.15); --border: #3A403E;
+            color-scheme: light;
+            /* Світла тема: "Алабастер та Хвоя" (Alabaster & Pine) */
+            --bg-color: #F2F1EB;       /* Натуральний невибілений папір (дуже м'який для очей) */
+            --card-bg: #FCFCFA;        /* Майже білий, але теплий відтінок для карток */
+            --text-main: #262927;      /* Глибокий графіт із ледь помітним зеленим підтоном */
+            --text-desc: #7D857F;      /* Спокійний попелястий */
+            --accent: #485E50;         /* Насичений хвойний/темна шавлія (дає чудовий контраст) */
+            --accent-light: rgba(72, 94, 80, 0.08); /* Легка прозора заливка */
+            --border: #E1E3DF;         /* Елегантні межі */
         }
 
-        * { box-sizing: border-box; font-family: 'Inter', -apple-system, sans-serif; }
+        [data-theme="dark"] {
+            color-scheme: dark;
+            /* Темна тема: "Обсидіан та Матча" (Obsidian & Matcha) */
+            --bg-color: #0E100F;       /* Справжній глибокий темний (економить OLED-батарею) */
+            --card-bg: #161816;        /* Ледь світліший фон для відриву карток */
+            --text-main: #E4E7E5;      /* М'яка платина (не сліпить) */
+            --text-desc: #808A83;      /* Димчасто-моховий для описів */
+            --accent: #A3BFA8;         /* Світла, сяюча матча/шавлія */
+            --accent-light: rgba(163, 191, 168, 0.12);
+            --border: #252926;
+        }
+
+
+        /* ✒️ ТИПОГРАФІКА ТА ШРИФТИ */
+        * { 
+            box-sizing: border-box; 
+            font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif; 
+        }
         body { background-color: var(--bg-color); margin: 0; padding-bottom: 80px; color: var(--text-main); transition: background-color 0.3s, color 0.3s; }
         .wrapper { max-width: 650px; margin: 0 auto; }
         
         .header-container { position: sticky; top: 0; z-index: 10; background: var(--bg-color); padding: 12px 14px 8px; border-bottom: 1px solid var(--border); transition: background-color 0.3s; }
         .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        h1 { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.5px;}
+        h1 { 
+            margin: 0; 
+            font-family: 'Playfair Display', serif; 
+            font-weight: 800; 
+            font-style: italic; 
+            font-size: 24px; 
+            letter-spacing: -0.2px;
+        }
+        /* Заголовки текстових блоків Markdown */
+        .md-quote h1 { 
+            font-family: 'Playfair Display', serif; 
+            font-size: 22px; 
+            font-weight: 800; 
+            margin: 16px 0 6px 0;
+        }
+
+        /* Текст плашок головних категорій */
+        .category-header-left span:first-child {
+            font-family: 'Playfair Display', serif;
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: -0.1px;
+            color: var(--text-main);
+            text-transform: capitalize; /* 🟢 ДОДАНО: Автоматично робить першу літеру великою (Factors, Affects) */
+        }
         
         .header-actions { display: flex; gap: 6px; align-items: center; }
         .icon-btn { background: none; border: none; color: var(--text-main); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 8px; transition: background 0.2s;}
@@ -42,8 +87,24 @@
         .clear-btn { color: var(--accent); background: none; border: none; font-size: 14px; font-weight: 700; cursor: pointer; padding: 4px 8px; }
         
         .search-wrapper { position: relative; width: 100%; }
-        .search-bar { width: 100%; background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 8px 30px 8px 12px; font-size: 15px; outline: none; font-weight: 600; color: var(--text-main); transition: border-color 0.2s;}
-        .search-bar:focus { border-color: var(--accent); }
+        /* --- ОНОВЛЕНИЙ ПОШУК --- */
+        .search-bar { 
+            width: 100%; 
+            background: var(--card-bg); 
+            border: 1px solid var(--border); 
+            border-radius: 12px; 
+            padding: 10px 14px; 
+            font-size: 15px; 
+            outline: none; 
+            font-weight: 500; 
+            color: var(--text-main); 
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.02); /* Легкий ефект глибини всередину */
+            transition: all 0.2s ease;
+        }
+        .search-bar:focus { 
+            border-color: var(--accent); 
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.01), 0 0 0 3px rgba(95, 116, 100, 0.08); /* М'яке свічення навколо */
+        }
         .search-bar::placeholder { font-weight: 500; color: var(--text-desc); }
         .search-clear-btn { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; font-size: 16px; color: var(--text-desc); cursor: pointer; display: none; padding: 0;}
 
@@ -129,25 +190,51 @@
         }
 
         /* Кнопки вибору */
-       /* --- КАРТКА ОПЦІЇ --- */
+       /* --- ОНОВЛЕНА КАРТКА ОПЦІЇ --- */
         .option-btn { 
-            background-color: var(--bg-color); 
-            border: 1px solid transparent; 
-            border-radius: 10px; 
-            padding: 10px; 
-            transition: all 0.15s ease; 
+            background-color: var(--card-bg); 
+            border: 1px solid var(--border); 
+            border-radius: 12px; /* Трохи м'якші округлі кути */
+            padding: 10px 12px; 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
             display: flex; 
-            flex-direction: column; /* ПОВЕРТАЄМО текст зверху, шкалу знизу */
+            flex-direction: column; 
             justify-content: flex-start; 
+            /* М'яка паперова тінь: */
+            box-shadow: 0 1px 3px rgba(42, 46, 43, 0.04), 0 4px 12px rgba(42, 46, 43, 0.02);
         }
-        .option-btn.active { background-color: var(--accent-light); border-color: var(--accent); }
+        
+        /* Ефект при наведенні або легкому дотику */
+        .option-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Активний стан картки */
+        .option-btn.active { 
+            background-color: var(--accent-light); 
+            border-color: var(--accent); 
+            box-shadow: 0 2px 8px rgba(95, 116, 100, 0.08);
+        }
        .option-clickable-area { 
             cursor: pointer; 
             -webkit-tap-highlight-color: transparent; 
         }
-	.option-name { font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 2px; line-height: 1.2;}
+	.option-name { 
+            font-size: 14px; 
+            font-weight: 700; 
+            color: var(--text-main); 
+            margin-bottom: 2px; 
+            line-height: 1.2;
+            letter-spacing: -0.2px; /* Робить англійські заголовки ще більш стильними і зібраними */
+        }
         .option-btn.active .option-name { color: var(--accent); }
-        .option-desc { font-size: 12px; color: var(--text-desc); line-height: 1.3; font-weight: 500;}
+        .option-desc { 
+            font-size: 12.5px; /* Трохи збільшили розмір, щоб кирилиця не злипалася */
+            color: var(--text-desc); 
+            line-height: 1.35; /* Додали простору між рядками */
+            font-weight: 500;
+            letter-spacing: 0.1px; /* Мікро-відступ між літерами знімає відчуття "костурбатості" */
+        }
         /* --- ГОРИЗОНТАЛЬНА ШКАЛА (Компактна хмарка) --- */
         .scale-container { 
     display: none; 
@@ -195,8 +282,53 @@
         .practice-tags-wrap { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 4px; }
         .p-tag { font-size: 8.5px; line-height: 1; font-family: monospace; background: var(--bg-color); padding: 2px 4px; border-radius: 4px; color: var(--text-desc); font-weight: 700; border: 1px solid var(--border); opacity: 0.8; letter-spacing: -0.2px; white-space: nowrap;}
         /* Підсвічування активного тригеру (Снайперське влучання) */
-        .p-tag.active-trigger { background-color: #e8f5e9; color: #2e7d32; border-color: #4caf50; }
-        [data-theme="dark"] .p-tag.active-trigger { background-color: rgba(76, 175, 80, 0.15); color: #81c784; border-color: #388e3c; }
+        /* Підсвічування активного тригеру (Снайперське влучання) - Благородний стиль */
+        .p-tag.active-trigger { 
+            background-color: var(--accent-light) !important; 
+            color: var(--accent) !important; 
+            border-color: rgba(72, 94, 80, 0.3) !important; 
+        }
+        [data-theme="dark"] .p-tag.active-trigger { 
+            background-color: var(--accent-light) !important; 
+            color: var(--accent) !important; 
+            border-color: rgba(163, 191, 168, 0.3) !important; 
+        }
+
+
+
+
+
+        /* 👑 СТИЛЬ ДЛЯ БАТЬКІВСЬКИХ КАРТОК (Елегантний мінімалізм) */
+        
+        /* 1. Гарантовано розтягуємо на всю ширину (додали #app-container для сили правила) */
+        #app-container .grid-unified .option-btn.parent-card {
+            grid-column: 1 / -1 !important; 
+            margin-top: 16px !important;
+            margin-bottom: 4px !important;
+            
+            /* Замість брудного фону — робимо красиву акцентну лінію зліва */
+            border-left: 4px solid var(--accent) !important;
+            border-top-left-radius: 6px !important;
+            border-bottom-left-radius: 6px !important;
+        }
+        
+        /* 2. Повертаємо чистий фон (якщо це не зірочка чи смарт-картка) */
+        #app-container .grid-unified .option-btn.parent-card:not(.starred):not(.recommended):not(.active) {
+            background-color: var(--card-bg) !important;
+            border-top: 1px solid var(--border);
+            border-right: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* 3. Робимо текст назви трохи більшим та переконливішим */
+        #app-container .grid-unified .option-btn.parent-card .option-name {
+            font-size: 15.5px !important; 
+            font-weight: 800 !important;
+            letter-spacing: 0.2px;
+        }
+
+
+        
 
 
 
@@ -294,11 +426,43 @@
             padding-bottom: 16px; 
             margin-top: -6px; /* ТУТ: Від'ємний відступ підтягує бігунок впритул до тексту */
         }
-        .global-slider { width: 100%; -webkit-appearance: none; height: 5px; background: var(--border); border-radius: 3px; outline: none; margin-bottom: 8px; border: 1px solid transparent; }
-        .global-scale-widget.active .global-slider { background: var(--accent-light); border: 1px solid var(--accent); }
-        .global-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; background: #fff; border: 1px solid var(--border); border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.15); cursor: pointer; }
-        .global-scale-widget.active .global-slider::-webkit-slider-thumb { border: 2px solid var(--accent); }
+        /* --- АПГРЕЙД БІГУНКІВ ШКАЛ --- */
+        .global-slider { 
+            width: 100%; 
+            -webkit-appearance: none; 
+            height: 4px; /* Робимо лінію тоншою та витонченішою */
+            background: var(--border); 
+            border-radius: 2px; 
+            outline: none; 
+            margin-bottom: 8px; 
+            border: none; 
+        }
+        
+        /* Сам круглий бігунок */
+        .global-slider::-webkit-slider-thumb { 
+            -webkit-appearance: none; 
+            width: 17px; 
+            height: 17px; 
+            background: #FFFFFF; 
+            border: 2px solid var(--text-desc); /* Спокійний сірий обідок у пасивному стані */
+            border-radius: 70%; 
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08); 
+            cursor: pointer; 
+            transition: transform 0.1s ease, border-color 0.2s ease;
+        }
 
+        /* Коли шкала активна — бігунок отримує фірмовий колір шавлії */
+        .global-scale-widget.active .global-slider::-webkit-slider-thumb { 
+            border-color: var(--accent); 
+            background: #FFFFFF;
+        }
+
+        /* Ефект фіксації пальцем при перетягуванні */
+        .global-slider::-webkit-slider-thumb:active {
+            transform: scale(1.15);
+            background: var(--accent);
+            border-color: var(--accent);
+        }
 
         .global-slider-labels { 
             position: absolute; 
@@ -379,7 +543,15 @@
 
 
 
-        .custom-items-wrap { margin-top: 4px; padding-top: 6px; }
+        /* Поле "Свій варіант" у самому низу */
+        .custom-items-wrap input {
+            border-radius: 10px !important;
+            border: 1px solid var(--border) !important;
+            background: var(--card-bg) !important;
+            padding: 8px 12px !important;
+            font-size: 13px !important;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.01) !important;
+        }
         .custom-tags-list { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
         .custom-tag { background: var(--accent); color: white; padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; cursor: pointer; }
         .custom-input-row { display: flex; gap: 6px; }
@@ -395,12 +567,33 @@
 
 
         /* ПАНЕЛЬ ЗВІТУ (Праворуч, компактна, плаваюча) */
+        /* --- ПРЕМІУМ КНОПКА ЗВІТУ (📝) --- */
         .report-fab {
-            position: fixed; bottom: 20px; right: 20px;
-            background: var(--card-bg); border: 1px solid var(--accent); color: var(--text-main); font-weight: 800; font-size: 15px;
-            padding: 8px 8px 8px 16px; border-radius: 24px; box-shadow: 0 4px 14px rgba(0,0,0,0.15);
-            cursor: pointer; z-index: 100; display: flex; align-items: center; gap: 8px;
-            transition: transform 0.3s, opacity 0.3s;
+            position: fixed; 
+            bottom: 24px; 
+            right: 24px;
+            background: var(--text-main); /* Стильний контраст: майже чорна кнопка на кремовому фоні */
+            border: none; 
+            color: var(--bg-color); /* Колір тексту кнопки — кремовий */
+            font-weight: 700; 
+            font-size: 14px;
+            letter-spacing: 0.2px;
+            padding: 10px 14px 10px 18px; 
+            border-radius: 20px; 
+            box-shadow: 0 4px 16px rgba(20, 22, 21, 0.15), 0 8px 24px rgba(20, 22, 21, 0.1);
+            cursor: pointer; 
+            z-index: 100; 
+            display: flex; 
+            align-items: center; 
+            gap: 6px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .report-fab:active {
+            transform: scale(0.95) translateY(2px);
+        }
+        [data-theme="dark"] .report-fab {
+            background: var(--accent); /* У темній темі робимо її м'яко-шавлієвою */
+            color: var(--bg-color);
         }
         .report-fab.hidden { transform: translateY(100px); opacity: 0; pointer-events: none; }
         
@@ -525,14 +718,14 @@
         }
 
 
-/* === ДОДАНО: Окремий колір для Зірочок (Теплий Пісок) === */
+/* === ДОДАНО: Окремий колір для Зірочок (Теплий Пісок) 
 .option-btn.starred { background-color: #fffcf5; border-color: #e8d5b5; box-shadow: 0 2px 8px rgba(232, 213, 181, 0.2); }
 .option-btn.starred .option-name { color: #b88645; font-weight: 800; }
 .option-btn.starred.active { background-color: var(--accent-light); border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
 
 [data-theme="dark"] .option-btn.starred { background-color: rgba(232, 213, 181, 0.08); border-color: rgba(232, 213, 181, 0.25); box-shadow: none; }
 [data-theme="dark"] .option-btn.starred .option-name { color: #d1ab75; }
-[data-theme="dark"] .option-btn.starred.active { background-color: var(--accent-light); border-color: var(--accent); }
+[data-theme="dark"] .option-btn.starred.active { background-color: var(--accent-light); border-color: var(--accent); } === */
 
 
 
@@ -552,7 +745,7 @@
 
 [data-theme="dark"] .option-btn.starred { background-color: rgba(229, 201, 168, 0.08); border-color: rgba(229, 201, 168, 0.3); box-shadow: none; }
 [data-theme="dark"] .option-btn.starred .option-name { color: #e59f49; }
-[data-theme="dark"] .option-btn.starred.active { background-color: var(--accent-light); border-color: var(--accent); } */
+[data-theme="dark"] .option-btn.starred.active { background-color: var(--accent-light); border-color: var(--accent); } 
 
 
 
@@ -649,6 +842,54 @@
             transition: border-color 0.2s ease;
         }
 
+
+
+
+
+
+
+        /* 🎭 ЕСТЕТИЧНЕ КОЛЬОРОВЕ КОДУВАННЯ КАТЕГОРІЙ (ЛІВА ГРАНЬ) */
+        
+        .category-header {
+            border-left: 4.5px solid transparent;
+            border-top-left-radius: 4px;
+            border-bottom-left-radius: 4px;
+            transition: border-color 0.2s ease, background-color 0.2s ease;
+        }
+
+        /* 1. Навколишній контекст (FACTORS / TASKS) — Спокійний землисто-сірий */
+        [id*="factors" i] .category-header, [id*="tasks" i] .category-header {
+            border-left-color: #909692 !important;
+        }
+        
+        /* 2. Соматика та споживання (BODY / INTAKE) — Глибокий затишний індиго/синій */
+        [id*="body" i] .category-header, [id*="intake" i] .category-header {
+            border-left-color: #4A6FA5 !important;
+        }
+        [data-theme="dark"] [id*="body" i] .category-header, [data-theme="dark"] [id*="intake" i] .category-header {
+            border-left-color: #6B8EBF !important;
+        }
+
+        /* 3. Внутрішній світ та емоції (MIND / EMOTIONS / TRIGGERS) — Складна теракота / приглушений бордо */
+        [id*="mind" i] .category-header, [id*="emotions" i] .category-header, [id*="triggers" i] .category-header {
+            border-left-color: #A96B5B !important;
+        }
+        [data-theme="dark"] [id*="mind" i] .category-header, [data-theme="dark"] [id*="emotions" i] .category-header, [data-theme="dark"] [id*="triggers" i] .category-header {
+            border-left-color: #C48475 !important;
+        }
+
+        /* 4. Практики та трансформація (PRACTICES / SELF / COPINGS) — Твоя фірмова насичена шавлія */
+        [id*="practices" i] .category-header, [id*="self" i] .category-header, [id*="copings" i] .category-header {
+            border-left-color: var(--accent) !important;
+        }
+        
+        /* 5. Шкали вимірювання (SCALSE / SCALES) — Шляхетне старе золото / пісок */
+        [id*="scalse" i] .category-header, [id*="scales" i] .category-header {
+            border-left-color: #C2A670 !important;
+        }
+        [data-theme="dark"] [id*="scalse" i] .category-header, [data-theme="dark"] [id*="scales" i] .category-header {
+            border-left-color: #D6BE8D !important;
+        }
 
 
 
@@ -2132,9 +2373,12 @@ if (category.toLowerCase() === 'practices') {
                     isSmartHidden = false;
                 }
 
+                // 🟢 МАГІЯ: Перевіряємо, чи є ця картка "батьком" для будь-яких інших карток у групі
+                const isParentNode = blockData.items.some(i => i.type === 'item' && i.parent === item.name);
+
                 const btn = document.createElement('div');
-                btn.className = `option-btn ${isSelected ? 'active' : ''} ${item.desc ? 'has-desc' : ''} ${smartClass}`;
-                
+                btn.className = `option-btn ${isSelected ? 'active' : ''} ${item.desc ? 'has-desc' : ''} ${smartClass} ${isParentNode ? 'parent-card' : ''}`;
+
                 // ДОДАНО: Ховаємо кнопку, якщо вона не пройшла смарт-фільтр
                 if (isSmartHidden) {
                     btn.classList.add('smart-hidden');
@@ -2549,14 +2793,14 @@ function updateReport() {
                         } else {
                             // Якщо OUT не чіпали, поводимося як звичайна шкала (тільки IN)
                             let numStr = state.inText; if (numStr === "0" || numStr === 0) numStr = " 0";
-                            const rawLabel = items[state.inIdx].label ? items[state.inIdx].label.trim() : "";
-                            reportText = (rawLabel && !/^[-—–]/.test(rawLabel)) ? `${numStr} ${rawLabel}` : numStr;
+                            // 🟢 ВИПРАВЛЕНО: Прибрали вивід тексту/символів. Тепер у звіт йде ТІЛЬКИ цифра.
+                            reportText = numStr; 
                         }
                     } else {
                         // Логіка для звичайних шкал
                         let numStr = state.text; if (numStr === "0" || numStr === 0) numStr = " 0";
-                        const rawLabel = items[state.index].label ? items[state.index].label.trim() : "";
-                        reportText = (rawLabel && !/^[-—–]/.test(rawLabel)) ? `${numStr} ${rawLabel}` : numStr;
+                        // 🟢 ВИПРАВЛЕНО: Тепер у звіт йде ТІЛЬКИ цифра.
+                        reportText = numStr; 
                     }
                     
                     if (state.note && state.note.trim() !== "") reportText += ` *"${state.note.trim()}"*`;
@@ -2589,22 +2833,39 @@ function updateReport() {
                 // Скануємо звичайні елементи
 
                 // Скануємо звичайні елементи
+                // 🟢 РОЗУМНЕ ГРУПУВАННЯ ВКЛАДЕНИХ ПРАКТИК (через "+")
                 let catParts = [];
                 const itemsInCat = Object.values(selectedItems).filter(i => i.category === category);
+                
                 if (itemsInCat.length > 0) {
-                    catParts.push(...itemsInCat.map(i => {
-                        // Формуємо префікси: "t.p."
-                        // Формуємо префікси: "t.p."
+                    // 1. Розділяємо на самостійні елементи та елементи з батьками
+                    let standaloneParts = [];
+                    let groupedByParent = {};
+
+                    itemsInCat.forEach(i => {
                         let prefix = (i.mods && i.mods.length > 0) ? i.mods.join('.') + '.' : '';
-                        let main = i.parent ? `${i.parent}: ${i.name}` : i.name;
-                        // Формуємо суфікс: ".3" (або " (✓)" для текстових шкал)
                         let suffix = i.scale ? (isNaN(i.scale) ? ` (${i.scale})` : `.${i.scale}`) : '';
-                        
-                        // --- ДОДАЄМО КОМЕНТАР ---
                         let noteStr = (i.note && i.note.trim() !== "") ? ` *"${i.note.trim()}"*` : '';
                         
-                        return `${prefix}${main}${suffix}${noteStr}`;
-                    }));
+                        let coreName = `${prefix}${i.name}${suffix}${noteStr}`;
+
+                        if (i.parent) {
+                            // Очищаємо назву батька від можливих зірочок на всякий випадок
+                            let cleanParent = i.parent.replace(/\*/g, '').trim();
+                            if (!groupedByParent[cleanParent]) groupedByParent[cleanParent] = [];
+                            groupedByParent[cleanParent].push(coreName);
+                        } else {
+                            standaloneParts.push(coreName);
+                        }
+                    });
+
+                    // 2. Збираємо кастомні рядки для груп: "Pranayama: nadi.shodhana + anuloma.viloma"
+                    for (let parentName in groupedByParent) {
+                        let childrenString = groupedByParent[parentName].join(' + ');
+                        standaloneParts.push(`${parentName}: ${childrenString}`);
+                    }
+
+                    catParts.push(...standaloneParts);
                     totalCount += itemsInCat.length;
                 }
                 
