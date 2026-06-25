@@ -589,6 +589,70 @@
 
 
 
+
+
+
+        /* 🎨 КОЛЬОРОВЕ КОДУВАННЯ ГОЛОВНИХ КАТЕГОРІЙ */
+        
+        /* 1. Справи та події (FACTORS / TASKS) — нейтрально-сірий або графітовий акцент */
+        [id*="factors" i] .category-header, [id*="tasks" i] .category-header {
+            border-left: 4px solid  #363434 !important;
+        }
+
+        /* --- */
+        [id*="sub-parts" i] .category-header, [id*="tasks" i] .category-header {
+            border-left: 4px solid  #be21de !important;
+        }
+        
+        /* 2. Фізичний стан (BODY / INTAKE) — м'який синьо-блакитний відтінок (соматика, вода) */
+        [id*="somatic" i] .category-header, [id*="food" i] .category-header {
+            border-left: 4px solid #5a9cb8 !important;
+        }
+        [data-theme="dark"] [id*="body" i] .category-header, [data-theme="dark"] [id*="intake" i] .category-header {
+            border-left: 4px solid #7cb0c9 !important;
+        }
+
+        /* 3. Психіка та емоції (MIND / EMOTIONS / TRIGGERS) — глибокий лавандово-пурпурний */
+        [id*="affects" i] .category-header, [id*="emotions" i] .category-header, [id*="craves" i] .category-header {
+            border-left: 4px solid #e54709 !important;
+        }
+        [data-theme="dark"] [id*="affects" i] .category-header, [data-theme="dark"] [id*="emotions" i] .category-header, [data-theme="dark"] [id*="craves" i] .category-header {
+            border-left: 4px solid #831904 !important;
+        }
+
+        /* --- */
+        [id*="thoughts" i] .category-header, [id*="ocd" i] .category-header, [id*="triggers" i] .category-header {
+            border-left: 4px solid #2c90f4 !important;
+        }
+        [data-theme="dark"] [id*="thoughts" i] .category-header, [data-theme="dark"] [id*="ocd" i] .category-header, [data-theme="dark"] [id*="triggers" i] .category-header {
+            border-left: 4px solid #261076 !important;
+        }
+
+        /* 4. Практики та відновлення (PRACTICES / SELF / COPINGS) — твій улюблений шавлієвий зелений */
+        [id*="practices" i] .category-header, [id*="self" i] .category-header, [id*="copings" i] .category-header {
+            border-left: 4px solid var(--accent) !important;
+        }
+        
+        /* 5. Шкали самооцінки (SCALSE / SHORTS) — теплий сонячний / пісочний колір */
+        [id*="scales" i] .category-header, [id*="scales" i] .category-header {
+            border-left: 4px solid #bda05a !important;
+        }
+        [data-theme="dark"] [id*="scalse" i] .category-header, [data-theme="dark"] [id*="scales" i] .category-header {
+            border-left: 4px solid #d1b97d !important;
+        }
+
+        /* Загальний стиль для ліній: робимо їх округлими та красивими */
+        .category-header {
+            border-left: 4px solid transparent;
+            border-top-left-radius: 4px;
+            border-bottom-left-radius: 4px;
+            transition: border-color 0.2s ease;
+        }
+
+
+
+
+
     </style>
 </head>
 <body>
@@ -888,6 +952,7 @@ function syncHistoryBackground() {
         let quoteBuffer = [];
         let currentScale = null;
         let currentSubMods = [];
+        let currentParentItem = null; // 🟢 Додано: пам'ять для "батька"
 
         function flushQuoteBuffer() {
             if (quoteBuffer.length > 0) {
@@ -897,8 +962,8 @@ function syncHistoryBackground() {
             }
         }
 
-        lines.forEach(line => {
-            line = line.trim();
+        lines.forEach(rawLine => {
+            let line = rawLine.trim(); // Зберігаємо rawLine для перевірки відступів
             if (!line) return;
             if (line.match(/^\\?-+\s*-*\s*-*\s*-*\s*-*$/)) return;
             if (line.startsWith('# !')) return;
@@ -917,6 +982,7 @@ function syncHistoryBackground() {
                 let isScale = false; let isDelta = false; let tags = null; let mods = null;
                 currentScale = null;
                 currentSubMods = []; 
+                currentParentItem = null; // 🟢 Скидаємо батька
 
                 if (catTitle.toLowerCase().includes('[scale]')) {
                     isScale = true; catTitle = catTitle.replace(/\[scale\]/gi, '').trim();
@@ -952,6 +1018,8 @@ function syncHistoryBackground() {
             if (line.match(/^#{2,3}\s+/)) {
                 let cleanTitle = line.replace(/^#{2,3}\s+/, '').replace(/\*/g, '').trim();
                 currentSubMods = []; 
+                currentScale = null;
+                currentParentItem = null; // 🟢 Скидаємо батька
 
                 const subModsMatch = cleanTitle.match(/\[mods:\s*(.+?)\]/i);
                 if (subModsMatch) {
@@ -974,30 +1042,27 @@ function syncHistoryBackground() {
                 return;
             }
 
-
-// Зберігаємо інфу, чи був дефіс на початку рядка
-            // Зберігаємо інфу, чи був дефіс на початку рядка
-            let hasBullet = line.match(/^\\?[-*]\s+/);
-
-            // 🟢 ВИПРАВЛЕНО: Більше не видаляємо зірочки!
-           let content = line.replace(/^\\?[-*]\s+/, '').replace(/\\/g, '').trim();
+            // 🟢 КУЛЕНЕПРОБИВНИЙ ПАРСИНГ: Вкладеність + Будь-які тире від Apple
+            let bulletMatch = rawLine.match(/^(\s*)\\?[-*—–−•]\s+/);
+            let hasBullet = !!bulletMatch;
+            let isNested = hasBullet && bulletMatch[1].length > 0;
+            let content = hasBullet ? rawLine.replace(/^(\s*)\\?[-*—–−•]\s+/, '').replace(/\\/g, '').trim() : line;
             if(!content) return;
 
            // Топова шкала та Вбудована шкала
             if (currentCat.type === 'scale-category' || currentCat.type === 'delta-category') {
-                const scaleMatch = content.match(/^([+-]?\d+)(?:\s+(.+))?$/);
-                if (scaleMatch) currentCat.items.push({ type: 'scale-item', number: parseInt(scaleMatch[1]), label: scaleMatch[2] ? scaleMatch[2].trim() : "" });
+                const scaleMatch = content.match(/^([+\-−]?\d+)(?:[\s:—–-]*(.+))?$/);
+                if (scaleMatch) currentCat.items.push({ type: 'scale-item', number: parseInt(scaleMatch[1].replace('−', '-')), label: scaleMatch[2] ? scaleMatch[2].trim() : "" });
                 else if (currentCat.items.length === 0) currentCat.desc = (currentCat.desc ? currentCat.desc + "<br>" : "") + content;
                 return;
             }
             if (currentScale) {
-                const scaleMatch = content.match(/^([+-]?\d+)(?:\s+(.+))?$/);
-                if (scaleMatch) currentScale.items.push({ type: 'scale-item', number: parseInt(scaleMatch[1]), label: scaleMatch[2] ? scaleMatch[2].trim() : "" });
+                const scaleMatch = content.match(/^([+\-−]?\d+)(?:[\s:—–-]*(.+))?$/);
+                if (scaleMatch) currentScale.items.push({ type: 'scale-item', number: parseInt(scaleMatch[1].replace('−', '-')), label: scaleMatch[2] ? scaleMatch[2].trim() : "" });
                 else if (currentScale.items.length === 0) currentScale.desc = (currentScale.desc ? currentScale.desc + "<br>" : "") + content;
                 return;
             }
 
-       
             // 🟢 МАГІЯ: Якщо немає дефіса і це не шкала — це Міні-заголовок!
             if (!hasBullet) {
                 let infoText = "";
@@ -1019,14 +1084,13 @@ function syncHistoryBackground() {
             let ranges = [];
             let triggersList = [];
 
-           const sepMatch = content.match(/\s+[-—–−]\s+|\s*:\s*/);
+            const sepMatch = content.match(/\s+[-—–−]\s+|\s*:\s*/);
             if (sepMatch) {
                 const idx = sepMatch.index;
                 name = content.substring(0, idx).trim();
                 desc = content.substring(idx + sepMatch[0].length).trim();
             }
 
-            // 🟢 ДОДАНО: Примусово очищаємо назви кнопок від зірочок, щоб не ламати ID бази даних!
             name = name.replace(/\*/g, '').trim();
 
             const infoRegex = /\{\{([\s\S]*?)\}\}/g;
@@ -1048,11 +1112,18 @@ function syncHistoryBackground() {
                 if (!/^[+\-:\d\s]+$/.test(match[1])) triggersList.push(...match[1].split(',').map(t => t.trim()).filter(t => t));
             }
             let cleanDesc = tempDesc.replace(triggerRegex, '').trim();
-
             let itemMods = [...new Set([...(currentCat.mods || []), ...currentSubMods])];
 
-            currentCat.items.push({ type: 'item', name, desc: cleanDesc, info: infoText, ranges, triggers: triggersList, mods: itemMods });
-        });
+            // 🟢 МАГІЯ: Визначаємо "батька"
+            let parent = null;
+            if (isNested && currentParentItem) {
+                parent = currentParentItem;
+            } else {
+                currentParentItem = name; // Стає батьком для наступних
+            }
+
+            currentCat.items.push({ type: 'item', name, parent, desc: cleanDesc, info: infoText, ranges, triggers: triggersList, mods: itemMods });
+        }); // 🟢 Відновлена дужка закриття циклу
 
         flushQuoteBuffer();
         
@@ -2075,17 +2146,18 @@ if (category.toLowerCase() === 'practices') {
                 
                 const clickableArea = document.createElement('div');
                 clickableArea.className = 'option-clickable-area';
-                clickableArea.onclick = () => toggleItem(itemId, category, item.name);
+                clickableArea.onclick = () => toggleItem(itemId, category, item.name, item.parent);
                 
                 // 🟢 МАГІЯ 1: Робимо саму картку координатною базою
                 btn.style.position = 'relative'; 
                 clickableArea.style.width = '100%';
 
                 const currentNote = isSelected && selectedItems[itemId].note ? selectedItems[itemId].note : ""; 
+                const nestedPrefix = item.parent ? `<span style="opacity:0.5; font-weight:600; margin-right:4px;">↳</span>` : '';
 
                 // Формуємо вміст кнопки (ІЗ КНОПКАМИ ІНФО ТА ✏️ КОМЕНТАРЕМ)
                 clickableArea.innerHTML = `
-                    <div class="option-name">${renderInlineMarkdown(item.name)}</div>
+                    <div class="option-name">${nestedPrefix}${renderInlineMarkdown(item.name)}</div>
                     
                     <div style="position: absolute; top: 4px; right: 7px; display: flex; gap: 0px; z-index: 2;">
                         ${item.info ? `<span class="info-icon-btn" style="color:var(--text-desc); font-size:10.5px; opacity:0.6; font-weight:800; cursor:pointer; padding: 2px 4px;">ⓘ</span>` : ''}
@@ -2134,7 +2206,8 @@ if (category.toLowerCase() === 'practices') {
                         const isActive = isSelected && selectedItems[itemId].mods && selectedItems[itemId].mods.includes(modVal);
                         modBtn.className = `mod-btn ${isActive ? 'selected' : ''}`;
                         modBtn.innerText = modVal;
-                        modBtn.onclick = () => toggleMod(itemId, category, item.name, modVal);
+                        // Заміни рядок: modBtn.onclick = () => toggleMod(itemId, category, item.name, modVal);
+modBtn.onclick = () => toggleMod(itemId, category, item.name, modVal, item.parent);
                         modsRow.appendChild(modBtn);
                     });
                     scaleDiv.appendChild(modsRow);
@@ -2149,7 +2222,8 @@ if (category.toLowerCase() === 'practices') {
                     scaleBtn.className = `scale-btn ${currentScale === String(tagVal) ? 'selected' : ''}`;
                     if (isNaN(tagVal)) scaleBtn.classList.add('text-tag'); 
                     scaleBtn.innerText = tagVal;
-                    scaleBtn.onclick = () => setScale(itemId, category, item.name, String(tagVal));
+                    // Заміни рядок: scaleBtn.onclick = () => setScale(itemId, category, item.name, String(tagVal));
+scaleBtn.onclick = () => setScale(itemId, category, item.name, String(tagVal), item.parent);
                     scaleRow.appendChild(scaleBtn);
                 });
                 scaleDiv.appendChild(scaleRow);
@@ -2324,21 +2398,21 @@ if (category.toLowerCase() === 'practices') {
         updateReport();
     }
 
-    function toggleItem(id, category, name) {
+    function toggleItem(id, category, name, parent) {
         if (selectedItems[id]) delete selectedItems[id]; 
-        else selectedItems[id] = { category, name, scale: null, mods: [] };
+        else selectedItems[id] = { category, name, parent: parent || null, scale: null, mods: [] };
         saveAndRender();
     }
 
-    function setScale(id, category, name, scaleNum) {
-        if (!selectedItems[id]) selectedItems[id] = { category, name, scale: scaleNum, mods: [] };
+    function setScale(id, category, name, scaleNum, parent) {
+        if (!selectedItems[id]) selectedItems[id] = { category, name, parent: parent || null, scale: scaleNum, mods: [] };
         else selectedItems[id].scale = (selectedItems[id].scale === scaleNum) ? null : scaleNum;
         saveAndRender();
     }
 
-    function toggleMod(id, category, name, modVal) {
+    function toggleMod(id, category, name, modVal, parent) {
         if (!selectedItems[id]) {
-            selectedItems[id] = { category, name, scale: null, mods: [modVal] };
+            selectedItems[id] = { category, name, parent: parent || null, scale: null, mods: [modVal] };
         } else {
             if (!selectedItems[id].mods) selectedItems[id].mods = [];
             const idx = selectedItems[id].mods.indexOf(modVal);
@@ -2520,8 +2594,9 @@ function updateReport() {
                 if (itemsInCat.length > 0) {
                     catParts.push(...itemsInCat.map(i => {
                         // Формуємо префікси: "t.p."
+                        // Формуємо префікси: "t.p."
                         let prefix = (i.mods && i.mods.length > 0) ? i.mods.join('.') + '.' : '';
-                        let main = i.name;
+                        let main = i.parent ? `${i.parent}: ${i.name}` : i.name;
                         // Формуємо суфікс: ".3" (або " (✓)" для текстових шкал)
                         let suffix = i.scale ? (isNaN(i.scale) ? ` (${i.scale})` : `.${i.scale}`) : '';
                         
