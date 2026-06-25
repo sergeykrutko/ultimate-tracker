@@ -44,6 +44,71 @@
         }
 
 
+
+
+        /* 🌟 ПРЕМІУМ ІНФО-БЛОК (Абсолютно прозорий фон) */
+        .option-info, .scale-info-block {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, margin 0.3s ease, padding 0.3s ease;
+            
+            /* 🟢 Жорстко фіксуємо повну прозорість фону для будь-яких станів */
+            background: transparent !important; 
+            border-left: 3.5px solid var(--text-desc);
+            border-radius: 0; /* Прибрали заокруглення, бо фону більше немає */
+            margin: 0;
+            padding: 0 10px;
+            font-size: 12px;
+            color: var(--text-desc);
+            font-style: normal;
+            line-height: 1.4;
+        }
+        
+        /* Відкритий стан */
+        .option-info.open, .scale-info-block.open {
+            max-height: 300px;
+            opacity: 1;
+            margin: 8px 0 4px 0;
+            padding: 6px 12px;
+        }
+
+        /* 🟢 МАГІЯ: Якщо картка стає АКТИВНОЮ, змінюється ТІЛЬКИ колір лінії */
+        .option-btn.active .option-info,
+        .global-scale-widget.active .scale-info-block {
+            border-left-color: var(--accent);
+        }
+        
+        [data-theme="dark"] .option-btn.active .option-info,
+        [data-theme="dark"] .global-scale-widget.active .scale-info-block {
+            background: rgba(163, 191, 168, 0.04);
+        }
+
+
+
+       /* 🎯 РОЗУМНЕ ФОКУСУВАННЯ КАРТКИ ПРИ ВІДКРИТТІ ІНФО (ⓘ) */
+        .option-btn:has(.option-info.open) {
+            border-color: rgba(72, 94, 80, 0.35) !important;
+            box-shadow: 0 4px 16px rgba(42, 46, 43, 0.05) !important;
+        }
+
+        [data-theme="dark"] .option-btn:has(.option-info.open) {
+            border-color: rgba(163, 191, 168, 0.25) !important;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25) !important;
+        }
+
+        /* Захист для активованої карти */
+        .option-btn.active:has(.option-info.open) {
+            background-color: var(--accent-light) !important;
+            border-color: var(--accent) !important;
+        }
+
+        
+
+
+
+
+
         /* ✒️ ТИПОГРАФІКА ТА ШРИФТИ */
         * { 
             box-sizing: border-box; 
@@ -452,16 +517,26 @@
         }
 
         /* Коли шкала активна — бігунок отримує фірмовий колір шавлії */
-        .global-scale-widget.active .global-slider::-webkit-slider-thumb { 
+        /* Коли звичайна шкала активна — бігунок отримує фірмовий колір шавлії */
+        .global-scale-widget:not(.delta-widget).active .global-slider::-webkit-slider-thumb { 
             border-color: var(--accent); 
             background: #FFFFFF;
         }
-
-        /* Ефект фіксації пальцем при перетягуванні */
-        .global-slider::-webkit-slider-thumb:active {
-            transform: scale(1.15);
-            background: var(--accent);
-            border-color: var(--accent);
+        
+        /* Delta-шкали підсвічують кружечки ТІЛЬКИ коли вони індивідуально активні */
+        .global-slider.active-in::-webkit-slider-thumb { 
+            border-color: var(--text-desc) !important; 
+            background: #FFFFFF !important;
+        }
+        .global-slider.active-out::-webkit-slider-thumb { 
+            border-color: var(--accent) !important; 
+            background: #FFFFFF !important;
+        }
+        
+        /* 🟢 ДОДАНО: Якщо OUT ще не чіпали, його кружечок жорстко залишається пасивно-сірим */
+        .global-slider:not(.active-out)::-webkit-slider-thumb {
+            border-color: var(--border) !important;
+            background: var(--card-bg) !important;
         }
 
         .global-slider-labels { 
@@ -1422,7 +1497,9 @@ function renderInlineMarkdown(text) {
 // Універсальний білдер DOM для шкал
    function buildScaleDOM(title, scaleItems, isGlobal = false, rawDesc = "") {
         const widget = document.createElement('div');
-        widget.className = 'category-block global-scale-widget' + (isGlobal ? '' : ' inline-scale-widget');
+        // 🟢 ДОДАНО клас 'delta-widget' для розділення стилів
+        widget.className = 'category-block global-scale-widget delta-widget' + (isGlobal ? '' : ' inline-scale-widget');
+        
 
         let desc = "";
         let infoText = "";
@@ -1475,16 +1552,24 @@ function renderInlineMarkdown(text) {
         if (infoText) {
             const infoBtn = document.createElement('div');
             infoBtn.innerHTML = 'ⓘ';
-            infoBtn.style.color = 'var(--accent)';
-            infoBtn.style.fontSize = '15px';
-            infoBtn.style.opacity = '0.8';
-            infoBtn.style.padding = '0 4px';
+            infoBtn.style.color = 'var(--text-desc)'; // Було var(--accent)
+            infoBtn.style.fontSize = '17px'; // ЗБІЛЬШЕНО (було 15)
+            infoBtn.style.opacity = '0.6';
+            infoBtn.style.padding = '0 6px';
             infoBtn.style.fontWeight = 'bold';
             infoBtn.style.cursor = 'pointer';
+            infoBtn.style.display = 'inline-block';
+            infoBtn.style.transition = 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'; // Плавність
+            
             infoBtn.onclick = (e) => {
                 e.stopPropagation();
                 const infoDiv = widget.querySelector('.scale-info-block');
-                infoDiv.style.display = infoDiv.style.display === 'block' ? 'none' : 'block';
+                if (infoDiv) {
+                    const isOpen = infoDiv.classList.toggle('open');
+                    infoBtn.style.opacity = isOpen ? '1' : '0.6';
+                    infoBtn.style.color = isOpen ? 'var(--accent)' : 'var(--text-desc)';
+                    infoBtn.style.transform = isOpen ? 'scale(1.15)' : 'scale(1)';
+                }
             };
             titleRow.appendChild(infoBtn);
         }
@@ -1545,19 +1630,10 @@ function renderInlineMarkdown(text) {
         widget.appendChild(header);
 
         // Блок інфо
+        // 🟢 ВІДНОВЛЕНО: Блок для прихованого тексту
         if (infoText) {
             const infoDiv = document.createElement('div');
             infoDiv.className = 'scale-info-block';
-            infoDiv.style.display = 'none';
-            infoDiv.style.fontSize = '11.5px';
-            infoDiv.style.color = 'var(--text-desc)';
-            infoDiv.style.fontStyle = 'italic';
-            infoDiv.style.margin = '0 0 12px 0'; 
-            infoDiv.style.padding = '6px 8px';
-            infoDiv.style.background = 'var(--bg-color)';
-            infoDiv.style.borderRadius = '6px';
-            infoDiv.style.border = '1px dashed var(--border)';
-            infoDiv.style.lineHeight = '1.3';
             infoDiv.innerHTML = renderInlineMarkdown(infoText);
             widget.appendChild(infoDiv); 
         }
@@ -1658,16 +1734,24 @@ function buildDeltaScaleDOM(title, scaleItems, isGlobal = false, rawDesc = "") {
         if (infoText) {
             const infoBtn = document.createElement('div');
             infoBtn.innerHTML = 'ⓘ';
-            infoBtn.style.color = 'var(--accent)';
-            infoBtn.style.fontSize = '15px';
-            infoBtn.style.opacity = '0.8';
-            infoBtn.style.padding = '0 4px';
+            infoBtn.style.color = 'var(--text-desc)'; // Було var(--accent)
+            infoBtn.style.fontSize = '17px'; // ЗБІЛЬШЕНО (було 15)
+            infoBtn.style.opacity = '0.6';
+            infoBtn.style.padding = '0 6px';
             infoBtn.style.fontWeight = 'bold';
             infoBtn.style.cursor = 'pointer';
+            infoBtn.style.display = 'inline-block';
+            infoBtn.style.transition = 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'; // Плавність
+            
             infoBtn.onclick = (e) => {
                 e.stopPropagation();
                 const infoDiv = widget.querySelector('.scale-info-block');
-                if (infoDiv) infoDiv.style.display = infoDiv.style.display === 'block' ? 'none' : 'block';
+                if (infoDiv) {
+                    const isOpen = infoDiv.classList.toggle('open');
+                    infoBtn.style.opacity = isOpen ? '1' : '0.6';
+                    infoBtn.style.color = isOpen ? 'var(--accent)' : 'var(--text-desc)';
+                    infoBtn.style.transform = isOpen ? 'scale(1.15)' : 'scale(1)';
+                }
             };
             titleRow.appendChild(infoBtn);
         }
@@ -1721,19 +1805,10 @@ function buildDeltaScaleDOM(title, scaleItems, isGlobal = false, rawDesc = "") {
         widget.appendChild(header);
 
         // 🟢 ВІДНОВЛЕНО: Блок для прихованого тексту (з'являється при кліку на "ⓘ")
+        // 🟢 ВІДНОВЛЕНО: Блок для прихованого тексту
         if (infoText) {
             const infoDiv = document.createElement('div');
             infoDiv.className = 'scale-info-block';
-            infoDiv.style.display = 'none';
-            infoDiv.style.fontSize = '11.5px';
-            infoDiv.style.color = 'var(--text-desc)';
-            infoDiv.style.fontStyle = 'italic';
-            infoDiv.style.margin = '0 0 12px 0'; 
-            infoDiv.style.padding = '6px 8px';
-            infoDiv.style.background = 'var(--bg-color)';
-            infoDiv.style.borderRadius = '6px';
-            infoDiv.style.border = '1px dashed var(--border)';
-            infoDiv.style.lineHeight = '1.3';
             infoDiv.innerHTML = renderInlineMarkdown(infoText);
             widget.appendChild(infoDiv); 
         }
@@ -1762,12 +1837,30 @@ function buildDeltaScaleDOM(title, scaleItems, isGlobal = false, rawDesc = "") {
             const percent = (currentVal / maxIdx) * 100; const centerPercent = (centerIdx / maxIdx) * 100;
             const fillStart = Math.min(percent, centerPercent); const fillEnd = Math.max(percent, centerPercent);
             const color = type === 'IN' ? 'var(--text-desc)' : 'var(--accent)';
-            const bgStyle = isSelected ? `background: linear-gradient(to right, var(--border) ${fillStart}%, ${color} ${fillStart}%, ${color} ${fillEnd}%, var(--border) ${fillEnd}%); border: 1px solid ${color};` : '';
+            
+            // 1. Визначаємо, чи активний САМЕ ЦЕЙ бігунок (код чітко бачить контекст)
+            let isSliderActive = false;
+            if (isSelected) {
+                if (type === 'IN') isSliderActive = true; 
+                if (type === 'OUT' && selectedItems[stateId].outTouched === true) isSliderActive = true; 
+            }
+
+            // 2. 🟢 РОЗУМНЕ ФАРБУВАННЯ ЛІНІЇ (Перенесено сюди, де всі змінні доступні!)
+            let bgStyle = '';
+            if (isSliderActive) {
+                bgStyle = `background: linear-gradient(to right, var(--border) ${fillStart}%, ${color} ${fillStart}%, ${color} ${fillEnd}%, var(--border) ${fillEnd}%); border: 1px solid ${color};`;
+            } else {
+                // Пасивний стан (сіра тонка лінія без кольорової заливки)
+                bgStyle = `background: var(--border); border: 1px solid var(--border);`;
+            }
+            
+            // Додаємо відповідний клас для фарбування "кружечка"
+            const thumbClass = isSliderActive ? (type === 'IN' ? 'active-in' : 'active-out') : '';
 
             const sliderDiv = document.createElement('div');
             sliderDiv.className = 'slider-container'; sliderDiv.style.flex = '1'; sliderDiv.style.margin = '0'; sliderDiv.style.paddingBottom = '14px';
             sliderDiv.innerHTML = `
-                <input type="range" min="0" max="${maxIdx}" value="${currentVal}" class="global-slider" style="${bgStyle}" 
+                <input type="range" min="0" max="${maxIdx}" value="${currentVal}" class="global-slider ${thumbClass}" style="${bgStyle}" 
                 onpointerdown="if('${type}' === 'OUT') markOutTouched('${title}')"
                 oninput="updateDeltaSlider('${title}', '${type}', this.value, this)" 
                 onchange="saveAndRender()">
@@ -1778,7 +1871,6 @@ function buildDeltaScaleDOM(title, scaleItems, isGlobal = false, rawDesc = "") {
                 </div>
             `;
 
-            // 🌟 ЗМІНЕНО: Додаємо тільки лейбл (IN/OUT) та сам бігунок. Ніяких цифр збоку!
             row.appendChild(label); 
             row.appendChild(sliderDiv); 
             return row;
@@ -1840,9 +1932,19 @@ function buildDeltaScaleDOM(title, scaleItems, isGlobal = false, rawDesc = "") {
             const maxIdx = items.length - 1; const centerIdx = Math.floor(maxIdx / 2);
             const percent = (idx / maxIdx) * 100; const centerPercent = (centerIdx / maxIdx) * 100;
             const fillStart = Math.min(percent, centerPercent); const fillEnd = Math.max(percent, centerPercent);
-            const color = type === 'IN' ? 'var(--text-desc)' : 'var(--accent)';
-            sliderEl.style.background = `linear-gradient(to right, var(--border) ${fillStart}%, ${color} ${fillStart}%, ${color} ${fillEnd}%, var(--border) ${fillEnd}%)`;
-            sliderEl.style.border = `1px solid ${color}`;
+            
+            // 🟢 ВИПРАВЛЕНО: Якщо рухаємо IN, або якщо це OUT і він активний — фарбуємо. Інакше — сірий.
+            let isRowActive = (type === 'IN') || (type === 'OUT' && selectedItems[stateId].outTouched);
+            
+            if (isRowActive) {
+                const color = type === 'IN' ? 'var(--text-desc)' : 'var(--accent)';
+                sliderEl.style.background = `linear-gradient(to right, var(--border) ${fillStart}%, ${color} ${fillStart}%, ${color} ${fillEnd}%, var(--border) ${fillEnd}%)`;
+                sliderEl.style.border = `1px solid ${color}`;
+                sliderEl.classList.add(type === 'IN' ? 'active-in' : 'active-out');
+            } else {
+                sliderEl.style.background = `var(--border)`;
+                sliderEl.style.border = `1px solid var(--border)`;
+            }
         }
         updateReport();
     }
@@ -2404,23 +2506,29 @@ if (category.toLowerCase() === 'practices') {
                     <div class="option-name">${nestedPrefix}${renderInlineMarkdown(item.name)}</div>
                     
                     <div style="position: absolute; top: 4px; right: 7px; display: flex; gap: 0px; z-index: 2;">
-                        ${item.info ? `<span class="info-icon-btn" style="color:var(--text-desc); font-size:10.5px; opacity:0.6; font-weight:800; cursor:pointer; padding: 2px 4px;">ⓘ</span>` : ''}
+                        ${item.info ? `<span class="info-icon-btn" style="color:var(--text-desc); font-size:12.5px; opacity:0.6; font-weight:800; cursor:pointer; padding: 2px 6px; display:inline-block; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);">ⓘ</span>` : ''}
                         ${isSelected ? `<span class="note-icon-btn" style="font-size:10.5px; opacity:0.9; cursor:pointer; padding: 2px 4px;">✏️</span>` : ''}
                     </div>
 
-                    ${item.info ? `<div class="option-info" style="display:none; font-size:11.5px; color:var(--text-desc); font-style:italic; margin: 4px 0; padding:6px 8px; background:var(--bg-color); border-radius:6px; border:1px dashed var(--border); line-height:1.3; text-align:left;">${renderInlineMarkdown(item.info)}</div>` : ''}
+                    ${item.info ? `<div class="option-info">${renderInlineMarkdown(item.info)}</div>` : ''}
                     ${item.desc ? `<div class="option-desc" style="text-align:left;">${renderInlineMarkdown(item.desc)}</div>` : ''}
                     ${tagsHtml}
                 `;
                 btn.appendChild(clickableArea);
 
-                // 🟢 ОЖИВЛЯЄМО КНОПКИ ІНФО (ⓘ)
+
+                // 🟢 ОЖИВЛЯЄМО КНОПКИ ІНФО (ⓘ) - З ДИНАМІКОЮ
                 const infoIcon = clickableArea.querySelector('.info-icon-btn');
                 if (infoIcon) {
                     infoIcon.onclick = (e) => {
-                        e.stopPropagation(); // Щоб картка не натискалася випадково
+                        e.stopPropagation(); 
                         const infoDiv = clickableArea.querySelector('.option-info');
-                        infoDiv.style.display = infoDiv.style.display === 'block' ? 'none' : 'block';
+                        const isOpen = infoDiv.classList.toggle('open'); // Плавне відкриття
+                        
+                        // Кнопка реагує на натискання: збільшується та стає зеленою
+                        infoIcon.style.opacity = isOpen ? '1' : '0.6';
+                        infoIcon.style.color = isOpen ? 'var(--accent)' : 'var(--text-desc)';
+                        infoIcon.style.transform = isOpen ? 'scale(1.15)' : 'scale(1)';
                     };
                 }
 
@@ -3276,10 +3384,27 @@ function updateReport() {
             keepalive: true // 🟢 МАГІЯ: iOS не вб'є цей запит при переході в Шорткати
         }).catch(err => console.error("Помилка фонової відправки", err));
 
-        // 3. БЛИСКАВИЧНИЙ ЗАПУСК ШОРТКАТУ (Не чекаємо відповіді від сервера!)
+       
+        // 3. БЛИСКАВИЧНИЙ ЗАПУСК ШОРТКАТУ (Розділяємо iOS та Mac)
         if (isShortcutEnabled) {
-            const shortcutName = encodeURIComponent("u-track-log"); 
-            window.location.href = `shortcuts://run-shortcut?name=${shortcutName}`;
+            // Точно визначаємо, з якого пристрою ми сидимо
+            const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+            const isMac = /Mac/i.test(navigator.platform) && !isIOS;
+
+            let targetShortcut = "";
+            if (isIOS) {
+                targetShortcut = "u-track-log";
+            } else if (isMac) {
+                targetShortcut = "u-track-log-mac";
+            }
+
+            // Якщо це пристрій Apple, запускаємо відповідну команду
+            if (targetShortcut) {
+                const shortcutName = encodeURIComponent(targetShortcut); 
+                window.location.href = `shortcuts://run-shortcut?name=${shortcutName}`;
+            } else {
+                console.log("Запуск пропущено: шорткати підтримуються тільки на Apple");
+            }
         }
 
         // 4. Миттєво очищуємо трекер
