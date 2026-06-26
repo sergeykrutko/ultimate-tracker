@@ -228,19 +228,24 @@
         .subheader-chevron { transition: transform 0.3s; font-size: 11px; }
         .subheader-wrap.collapsed .subheader-chevron { transform: rotate(-90deg); }
         .subheader-wrap.collapsed .sub-content { display: none !important; }
-        /* Оновлений стиль для описів (####) */
+  
+        /* 💬 ЕСТЕТИЧНІ ПІДКАЗКИ (####) */
         .category-comment { 
             grid-column: 1 / -1; 
-            font-size: 13px; 
+            font-size: 11.5px; /* Робимо шрифт трохи меншим */
             color: var(--text-desc); 
-            font-style: normal; 
+            opacity: 0.75; /* Приглушуємо яскравість, щоб не відволікати */
+            font-style: italic; /* Курсив додає відчуття "нотатки на берегах" */
             font-weight: 500; 
             text-transform: none; 
-            padding: 4px 8px 8px 8px; /* Додали відступи по боках, щоб текст не лип до країв */
-            border-bottom: none; 
-            line-height: 1.4; 
-            letter-spacing: 0;
-            margin: 0;
+            
+            /* Створюємо ефект цитати (блоку >) */
+            padding: 4px 10px 4px 12px; 
+            margin: 2px 4px 10px 4px; 
+            border-left: 1px solid var(--border); /* Акуратна лінія зліва */
+            
+            line-height: 1.35; 
+            letter-spacing: 0.2px;
         }
         /* Стиль для описів між зірочками */
 
