@@ -261,10 +261,10 @@
 
         .mini-header {
             grid-column: 1 / -1 !important;
-            font-size: 12.5px;
+            font-size: 14px;
             font-weight: 500;
             color: var(--text-desc);
-            margin: 2px 2px;
+            margin: 4px 10px 4px;
             
             border-bottom: none; /* 🟢 ПРИБРАЛИ ЛІНІЮ */
             line-height: 1;
@@ -731,6 +731,7 @@
             grid-template-columns: repeat(6, minmax(0, 1fr)) !important; 
             gap: 6px !important; 
             padding-top: 8px !important;
+            align-items: start !important; /* 🟢 ГОЛОВНИЙ ФІКС: Забороняє порожнім карткам тягнутися за сусідами */
         }
 
         /* 1. БАЗОВО: всі картки займають 2 колонки (рівно 3 В РЯД) */
@@ -738,6 +739,7 @@
             grid-column: span 2 !important; 
             width: 100% !important;
             margin: 0 !important;
+            align-self: start !important; /* 🟢 ФІКС: Забороняє карткам тягнутися у висоту за сусідами */
         }
 
         /* 2. ВЕЛИКІ КАРТКИ (Практики, Копінги, Емоції тощо) займають 3 колонки (рівно 2 В РЯД) */
@@ -796,6 +798,7 @@
             line-height: 1 !important;
         }
         
+       
         /* 🟢 Жодна картка більше НІКОЛИ не розтягується (завжди 1 колонка) */
         .grid-unified.icon-only-grid .option-btn {
             grid-column: span 1 !important; 
@@ -803,6 +806,28 @@
             align-items: center !important;
             justify-content: center !important;
             min-height: 46px !important;
+            align-self: start !important; /* 🟢 ФІКС: Щоб іконки не ставали довгими сосисками */
+        }
+
+        /* 🟢 Жодна картка більше НІКОЛИ не розтягується (завжди 1 колонка) */
+        .grid-unified.icon-only-grid .option-btn {
+            grid-column: span 1 !important; 
+            padding: 8px 4px !important;
+            align-items: center !important;
+            justify-content: center !important;
+            min-height: 46px !important;
+        }
+
+        /* 🟢 МЕГА-ФІКС UX: Якщо ми відкрили ⓘ, іконка тимчасово розтягується на всю ширину для читання! */
+        .grid-unified.icon-only-grid .option-btn:has(.option-info.open) {
+            grid-column: 1 / -1 !important; /* На весь ряд */
+            align-items: flex-start !important; /* Текст іконки притискається вліво */
+            padding: 8px 12px !important; /* Повертаємо комфортні відступи */
+        }
+        
+        .grid-unified.icon-only-grid .option-btn:has(.option-info.open) .option-name {
+            text-align: left !important; /* Емодзі стає зліва */
+            margin-bottom: 6px !important;
         }
 
         /* Робимо іконки ⓘ та ✏️ акуратними і притискаємо в самий кут, щоб не лізли на емодзі */
@@ -1118,6 +1143,8 @@
             color: var(--text-desc);
             display: flex;
             justify-content: space-between;
+            align-items: flex-start; /* 🟢 ФІКС: Вирівнює текст по верху при переносі */
+            gap: 6px; /* 🟢 ФІКС: Задає безпечну відстань між текстом і відсотком */
             padding: 3px 0 3px 14px;
             position: relative;
         }
@@ -1125,13 +1152,21 @@
             content: "•";
             position: absolute;
             left: 4px;
-            color: var(--accent); /* Колір твоєї теми */
+            top: 4px; /* 🟢 ФІКС: Жорстко фіксує крапку зверху, якщо текст в 2 рядки */
+            color: var(--accent); 
             opacity: 0.8;
+        }
+        .synapse-item span:first-child {
+            flex: 1; /* 🟢 ФІКС: Текст займає весь вільний простір... */
+            word-break: break-word; /* ...і акуратно переноситься, якщо не влазить */
+            line-height: 1.2;
         }
         .synapse-percent {
             font-family: monospace;
             opacity: 0.6;
             font-size: 10px;
+            flex-shrink: 0; /* 🟢 ФІКС: Жорстко забороняє відсотку здавлюватися */
+            margin-top: 1px;
         }
 
 
@@ -1770,6 +1805,7 @@ function renderInlineMarkdown(text) {
         // 🟢 СТАТИСТИКА ТА КОРЕЛЯЦІЇ
         let statsHtml = '';
         let linksHtml = '';
+        let lagHtml = '';
         let hasLinks = false;
         
         if (trackerStats[title]) {
@@ -1780,12 +1816,15 @@ function renderInlineMarkdown(text) {
             if (links && links.length > 0) {
                 hasLinks = true;
                 let linksList = links.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('');
-                linksHtml = `
-                    <div class="synapses-wrap ${infoText ? '' : 'no-border'}" style="margin-bottom: 8px;">
-                        <div class="synapses-title">🔗 sync:</div>
-                        ${linksList}
-                    </div>
-                `;
+                linksHtml = `<div class="synapses-wrap ${infoText ? '' : 'no-border'}" style="margin-bottom: 8px;"><div class="synapses-title">🔗 Синхронізується з:</div>${linksList}</div>`;
+            }
+
+            // 🟢 ВІДКЛАДЕНІ НАСЛІДКИ
+            let lags = trackerStats[title].lags;
+            if (lags && lags.length > 0) {
+                hasLinks = true;
+                let lagsList = lags.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('');
+                lagHtml = `<div class="synapses-wrap ${!infoText && !linksHtml ? 'no-border' : ''}" style="margin-bottom: 8px;"><div class="synapses-title" style="color:#d48a49;">⏳ Передувало (до 24 год):</div>${lagsList}</div>`;
             }
         }
         titleSpan.innerHTML = title + statsHtml;
@@ -1870,7 +1909,7 @@ function renderInlineMarkdown(text) {
         if (infoText || hasLinks) {
             const infoDiv = document.createElement('div');
             infoDiv.className = 'scale-info-block';
-            infoDiv.innerHTML = (infoText ? renderInlineMarkdown(infoText) : '') + linksHtml;
+            infoDiv.innerHTML = (infoText ? renderInlineMarkdown(infoText) : '') + linksHtml + lagHtml;
             widget.appendChild(infoDiv); 
         }
 
@@ -1963,6 +2002,7 @@ function renderInlineMarkdown(text) {
         // 🟢 СТАТИСТИКА ТА КОРЕЛЯЦІЇ
         let statsHtml = '';
         let linksHtml = '';
+        let lagHtml = '';
         let hasLinks = false;
         
         if (trackerStats[title]) {
@@ -1973,12 +2013,15 @@ function renderInlineMarkdown(text) {
             if (links && links.length > 0) {
                 hasLinks = true;
                 let linksList = links.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('');
-                linksHtml = `
-                    <div class="synapses-wrap ${infoText ? '' : 'no-border'}" style="margin-bottom: 8px;">
-                        <div class="synapses-title">🔗 sync:</div>
-                        ${linksList}
-                    </div>
-                `;
+                linksHtml = `<div class="synapses-wrap ${infoText ? '' : 'no-border'}" style="margin-bottom: 8px;"><div class="synapses-title">🔗 Синхронізується з:</div>${linksList}</div>`;
+            }
+
+            // 🟢 ВІДКЛАДЕНІ НАСЛІДКИ
+            let lags = trackerStats[title].lags;
+            if (lags && lags.length > 0) {
+                hasLinks = true;
+                let lagsList = lags.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('');
+                lagHtml = `<div class="synapses-wrap ${!infoText && !linksHtml ? 'no-border' : ''}" style="margin-bottom: 8px;"><div class="synapses-title" style="color:#d48a49;">⏳ Передувало (до 24 год):</div>${lagsList}</div>`;
             }
         }
         titleSpan.innerHTML = title + statsHtml;
@@ -2061,7 +2104,7 @@ function renderInlineMarkdown(text) {
         if (infoText || hasLinks) {
             const infoDiv = document.createElement('div');
             infoDiv.className = 'scale-info-block';
-            infoDiv.innerHTML = (infoText ? renderInlineMarkdown(infoText) : '') + linksHtml;
+            infoDiv.innerHTML = (infoText ? renderInlineMarkdown(infoText) : '') + linksHtml + lagHtml;
             widget.appendChild(infoDiv); 
         }
 
@@ -2631,7 +2674,9 @@ if (category.toLowerCase() === 'practices') {
 
                     for (let n = subIndex + 1; n < blockData.items.length; n++) {
                         const nextItem = blockData.items[n];
-                        if (nextItem.type === 'subheader' || nextItem.type === 'comment') break;
+                        
+                        // 🟢 ВЕЛИЧЕЗНИЙ ФІКС: Брейкаємо ТІЛЬКИ на наступному підзаголовку, а не на коментарях!
+                        if (nextItem.type === 'subheader') break; 
                         
                         if (nextItem.type === 'inline-scale' || nextItem.type === 'inline-delta') {
                             subHasInlineScales = true;
@@ -2686,6 +2731,51 @@ if (category.toLowerCase() === 'practices') {
                     
                     return;
                 }
+
+
+                // 🟢 РЕНДЕР МІНІ-ЗАГОЛОВКІВ (Текст без дефіса або порожні рядки)
+                if (item.type === 'mini-header') {
+                    const mHeaderWrap = document.createElement('div');
+                    mHeaderWrap.style.gridColumn = '1 / -1'; 
+                    mHeaderWrap.style.marginTop = '6px'; // Додаємо трохи простору
+                    
+                    const mHeader = document.createElement('div');
+                    mHeader.className = 'mini-header';
+                    
+                    // МАГІЯ: Якщо це просто порожній рядок або &nbsp;, робимо невидиму розпірку
+                    if (!item.title || item.title.trim() === '&nbsp;' || item.title.trim() === '') {
+                        mHeader.style.height = '12px';
+                        mHeader.style.border = 'none';
+                    } else {
+                        mHeader.innerHTML = `<span>${renderInlineMarkdown(item.title)}</span>`;
+                        if (item.info) {
+                            const infoBtn = document.createElement('span');
+                            infoBtn.innerHTML = 'ⓘ';
+                            infoBtn.style.cssText = 'color:var(--accent); font-size:14px; opacity:0.8; padding:0 6px; font-weight:bold; cursor:pointer; margin-left: 4px;';
+                            infoBtn.onclick = (e) => {
+                                e.stopPropagation();
+                                const infoDiv = mHeaderWrap.querySelector('.option-info');
+                                infoDiv.style.display = infoDiv.style.display === 'block' ? 'none' : 'block';
+                            };
+                            mHeader.appendChild(infoBtn);
+                        }
+                    }
+                    
+                    mHeaderWrap.appendChild(mHeader);
+
+                    if (item.info) {
+                        const infoDiv = document.createElement('div');
+                        infoDiv.className = 'option-info';
+                        infoDiv.style.cssText = 'display:none; font-size:11.5px; color:var(--text-desc); font-style:italic; margin: 4px 0 8px 0; padding:6px 8px; background:var(--bg-color); border-radius:6px; border:1px dashed var(--border); line-height:1.3;';
+                        infoDiv.innerHTML = renderInlineMarkdown(item.info);
+                        mHeaderWrap.appendChild(infoDiv);
+                    }
+                    
+                    currentGrid.appendChild(mHeaderWrap);
+                    return;
+                }
+
+
 
                 // 🟢 ВІДНОВЛЕНО: Рендер вбудованих шкал та дельт (було випадково видалено при відкаті)
                 if (item.type === 'inline-scale') {
@@ -2780,26 +2870,30 @@ if (category.toLowerCase() === 'practices') {
                 // ==========================================
                 let statsHtml = '';
                 let linksHtml = '';
+                let lagHtml = ''; // Нова змінна
                 let hasLinks = false;
 
                 if (trackerStats[item.name]) {
-                    // Бейдж кількості
                     let count = statsMode === 'month' ? trackerStats[item.name].month : trackerStats[item.name].all;
                     if (count > 0) statsHtml = `<span class="stats-badge">${count}</span>`;
                     
-                    // ТОП-5 зв'язків
                     let links = trackerStats[item.name].links;
                     if (links && links.length > 0) {
                         hasLinks = true;
                         let linksList = links.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('');
-                        linksHtml = `
-                            <div class="synapses-wrap ${item.info ? '' : 'no-border'}">
-                                <div class="synapses-title">🔗 sync:</div>
-                                ${linksList}
-                            </div>
-                        `;
+                        linksHtml = `<div class="synapses-wrap ${item.info ? '' : 'no-border'}"><div class="synapses-title">🔗 Синхронізується з:</div>${linksList}</div>`;
+                    }
+
+                    // 🟢 ВІДКЛАДЕНІ НАСЛІДКИ
+                    let lags = trackerStats[item.name].lags;
+                    if (lags && lags.length > 0) {
+                        hasLinks = true;
+                        let lagsList = lags.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('');
+                        lagHtml = `<div class="synapses-wrap ${!item.info && !linksHtml ? 'no-border' : ''}"><div class="synapses-title" style="color:#d48a49;">⏳ Передувало (до 24 год):</div>${lagsList}</div>`;
                     }
                 }
+
+                
 
                 // Кнопка ⓘ з'являється, якщо є або твій опис, або знайдені зв'язки
                 const hasInfoBtn = item.info || hasLinks;
@@ -2820,6 +2914,7 @@ if (category.toLowerCase() === 'practices') {
                         <div class="option-info">
                             ${item.info ? `<div>${renderInlineMarkdown(item.info)}</div>` : ''}
                             ${linksHtml}
+                            ${lagHtml}
                         </div>
                     ` : ''}
                     
