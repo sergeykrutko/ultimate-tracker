@@ -67,10 +67,10 @@
         
         /* Відкритий стан */
         .option-info.open, .scale-info-block.open {
-            max-height: 300px;
+            max-height: 1500px !important; /* 🟢 ФІКС: Даємо картці достатньо місця для будь-якого тексту */
+            margin-top: 8px;
             opacity: 1;
-            margin: 8px 0 4px 0;
-            padding: 6px 12px;
+            padding-bottom: 8px; /* Додаємо трохи повітря знизу */
         }
 
         /* 🟢 МАГІЯ: Якщо картка стає АКТИВНОЮ, змінюється ТІЛЬКИ колір лінії */
@@ -205,10 +205,33 @@
         /* ========================================= */
         /* РОЗУМНА ДИНАМІЧНА СІТКА (6 КОЛОНОК) */
         /* ========================================= */
-        .grid-unified { display: grid !important; grid-template-columns: repeat(6, 1fr) !important; gap: 6px !important; padding-top: 8px !important; }
-        
+        .grid-unified { 
+            display: grid !important; 
+            grid-template-columns: repeat(6, minmax(0, 1fr)) !important; 
+            gap: 6px !important; 
+            padding-top: 8px !important;
+            align-items: stretch !important; /* 🟢 БАЗОВО: Рівняє висоту всіх карток у ряду */
+        }
+        /* 🟢 МАГІЯ: Якщо відкрито ⓘ, вимикаємо розтягування, щоб сусіди не стали гігантами */
+        .grid-unified:has(.option-info.open) {
+            align-items: start !important; 
+        }
+
         /* Класи призначаються автоматично через JS залежно від довжини тексту! */
-        .grid-unified .option-btn { margin: 0 !important; width: 100% !important; }
+        /* 1. БАЗОВО: всі картки займають 2 колонки (рівно 3 В РЯД) */
+        .grid-unified .option-btn { 
+            grid-column: span 2 !important; 
+            width: 100% !important;
+            height: 100% !important; /* 🟢 ГОЛОВНИЙ ФІКС: Примушуємо рамку і фон тягнутися на всю висоту ряду */
+            margin: 0 !important;
+            align-self: stretch !important; 
+        }
+
+        /* 🟢 МАГІЯ: Якщо ми відкрили ⓘ, вимикаємо жорстку висоту, щоб сусіди не стали гігантами на весь екран */
+        .grid-unified:has(.option-info.open) .option-btn {
+            align-self: start !important; 
+            height: auto !important; /* 🟢 Повертаємо гнучкість при читанні статистики */
+        }
         .grid-unified .option-btn.span-2 { grid-column: span 2 !important; } /* 3 в ряд */
         .grid-unified .option-btn.span-3 { grid-column: span 3 !important; } /* 2 в ряд */
         .grid-unified .option-btn.span-6 { grid-column: 1 / -1 !important; } /* 1 в ряд */
@@ -1067,6 +1090,17 @@
             vertical-align: middle;
             display: inline-block;
         }
+
+        /* 🟢 ДОДАНО: Стиль для статистично значущої кількості трекінгів */
+        .stats-badge.high-volume {
+            color: var(--accent);
+            background: var(--accent-light);
+            border-color: rgba(72, 94, 80, 0.3);
+            opacity: 1;
+        }
+        [data-theme="dark"] .stats-badge.high-volume {
+            border-color: rgba(163, 191, 168, 0.3);
+        }
         
         /* Для емодзі-карток бейдж красиво висить у лівому верхньому кутку */
         .grid-unified.icon-only-grid .stats-badge {
@@ -1810,8 +1844,11 @@ function renderInlineMarkdown(text) {
         
         if (trackerStats[title]) {
             let count = statsMode === 'month' ? trackerStats[title].month : trackerStats[title].all;
-            if (count > 0) statsHtml = `<span class="stats-badge" style="margin-left:8px;">${count}</span>`;
-            
+            if (count > 0) {
+                let badgeClass = count >= 10 ? 'stats-badge high-volume' : 'stats-badge';
+                statsHtml = `<span class="${badgeClass}" style="margin-left:8px;">${count}</span>`;
+            }
+
             let links = trackerStats[title].links;
             if (links && links.length > 0) {
                 hasLinks = true;
@@ -2007,8 +2044,10 @@ function renderInlineMarkdown(text) {
         
         if (trackerStats[title]) {
             let count = statsMode === 'month' ? trackerStats[title].month : trackerStats[title].all;
-            if (count > 0) statsHtml = `<span class="stats-badge" style="margin-left:8px;">${count}</span>`;
-            
+            if (count > 0) {
+                let badgeClass = count >= 10 ? 'stats-badge high-volume' : 'stats-badge';
+                statsHtml = `<span class="${badgeClass}" style="margin-left:8px;">${count}</span>`;
+            }
             let links = trackerStats[title].links;
             if (links && links.length > 0) {
                 hasLinks = true;
@@ -2700,8 +2739,10 @@ if (category.toLowerCase() === 'practices') {
                     const isSubIconOnly = !subHasInlineScales && subItems.length > 0 && subItems.every(i => !i.desc && (!/[a-zA-Zа-яА-ЯіІїЇєЄґҐ]{4,}/.test(i.name)));
                     
                     // 🟢 Формуємо HTML для бейджа історичної статистики
+                    // 🟢 Формуємо HTML для бейджа історичної статистики
+                    let badgeClass = historicalSubTotal >= 20 ? 'stats-badge high-volume' : 'stats-badge';
                     let historicalBadgeHtml = historicalSubTotal > 0 
-                        ? `<span class="stats-badge" style="margin-left: 6px; font-size: 10px; opacity: 0.6; padding: 1px 5px; font-weight: 800;">${historicalSubTotal}</span>` 
+                        ? `<span class="${badgeClass}" style="margin-left: 6px; font-size: 10px; padding: 1px 5px; font-weight: 800;">${historicalSubTotal}</span>` 
                         : '';
 
                     // Формуємо заголовок із бейджами (статистика + активні зараз)
@@ -2875,7 +2916,10 @@ if (category.toLowerCase() === 'practices') {
 
                 if (trackerStats[item.name]) {
                     let count = statsMode === 'month' ? trackerStats[item.name].month : trackerStats[item.name].all;
-                    if (count > 0) statsHtml = `<span class="stats-badge">${count}</span>`;
+                    if (count > 0) {
+                    let badgeClass = count >= 10 ? 'stats-badge high-volume' : 'stats-badge';
+                    statsHtml = `<span class="${badgeClass}">${count}</span>`;
+                }
                     
                     let links = trackerStats[item.name].links;
                     if (links && links.length > 0) {
