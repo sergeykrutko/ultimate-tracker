@@ -46,61 +46,84 @@
 
 
 
-        /* 🌟 ПРЕМІУМ ІНФО-БЛОК (Абсолютно прозорий фон) */
+        /* =========================================================
+           🌟 УНІВЕРСАЛЬНЕ СПЛИВАЮЧЕ ВІКНО (POPUP) ДЛЯ ВСІХ КАРТОК
+           ========================================================= */
+        
+        /* Знімаємо рамки з категорії та сітки, щоб вікно не обрізалося краєм екрана */
+        .category-block:has(.option-info.open),
+        .category-block:has(.scale-info-block.open) {
+            overflow: visible !important;
+            z-index: 100 !important;
+            position: relative;
+        }
+        .grid-unified { overflow: visible !important; }
+
+        /* Робимо саму картку "Якорем" для спливаючого вікна */
+        .option-btn, .global-scale-widget {
+            position: relative !important; 
+            z-index: 1;
+        }
+
+        /* Піднімаємо активну картку над усіма іншими */
+        .option-btn:has(.option-info.open),
+        .global-scale-widget:has(.scale-info-block.open) {
+            z-index: 50 !important; 
+        }
+
+        /* 🟢 МАГІЯ: Формуємо дизайн абсолютного спливаючого вікна */
         .option-info, .scale-info-block {
+            position: absolute !important;
+            top: calc(100% + 6px) !important;
+            left: 0 !important;
+            width: 260px !important;
+            max-width: calc(100vw - 32px) !important; /* Захист від виходу за межі екрана */
             max-height: 0;
             opacity: 0;
             overflow: hidden;
-            transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, margin 0.3s ease, padding 0.3s ease;
+            pointer-events: none; /* Щоб закрите вікно не перехоплювало кліки */
             
-            /* 🟢 Жорстко фіксуємо повну прозорість фону для будь-яких станів */
-            background: transparent !important; 
-            border-left: 3.5px solid var(--text-desc);
-            border-radius: 0; /* Прибрали заокруглення, бо фону більше немає */
-            margin: 0;
-            padding: 0 10px;
+            background: var(--card-bg) !important;
+            border: 1px solid var(--accent) !important;
+            border-radius: 12px !important;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.15), 0 4px 12px rgba(0,0,0,0.08) !important;
+            z-index: 100 !important;
+            padding: 0 12px !important;
+            margin: 0 !important;
+            
             font-size: 12px;
             color: var(--text-desc);
-            font-style: normal;
             line-height: 1.4;
+            transition: opacity 0.15s ease, transform 0.15s ease;
+            transform: translateY(-5px); /* Легка анімація вильоту */
         }
-        
-        /* Відкритий стан */
+
+        /* 🟢 Відкритий стан Popup */
         .option-info.open, .scale-info-block.open {
-            max-height: 1500px !important; /* 🟢 ФІКС: Даємо картці достатньо місця для будь-якого тексту */
-            margin-top: 8px;
+            max-height: 250px !important;
             opacity: 1;
-            padding-bottom: 8px; /* Додаємо трохи повітря знизу */
+            transform: translateY(0);
+            pointer-events: auto;
+            padding: 12px !important;
+            overflow-y: auto !important; /* Скрол всередині вікна */
+            overscroll-behavior: contain;
         }
 
-        /* 🟢 МАГІЯ: Якщо картка стає АКТИВНОЮ, змінюється ТІЛЬКИ колір лінії */
-        .option-btn.active .option-info,
-        .global-scale-widget.active .scale-info-block {
-            border-left-color: var(--accent);
-        }
-        
-        [data-theme="dark"] .option-btn.active .option-info,
-        [data-theme="dark"] .global-scale-widget.active .scale-info-block {
-            background: rgba(163, 191, 168, 0.04);
-        }
-
-
-
-       /* 🎯 РОЗУМНЕ ФОКУСУВАННЯ КАРТКИ ПРИ ВІДКРИТТІ ІНФО (ⓘ) */
-        .option-btn:has(.option-info.open) {
-            border-color: rgba(72, 94, 80, 0.35) !important;
-            box-shadow: 0 4px 16px rgba(42, 46, 43, 0.05) !important;
+        /* 🟢 РОЗУМНЕ ПОЗИЦІОНУВАННЯ (щоб вікно не вилазило за екран справа) */
+        /* Для класичної сітки (3 в ряд) */
+        [data-layout="grid"] .option-btn:nth-child(3n + 3) .option-info.open,
+        /* Для емодзі (4 в ряд) */
+        .icon-only-grid .option-btn:nth-child(4n + 3) .option-info.open,
+        .icon-only-grid .option-btn:nth-child(4n + 4) .option-info.open {
+            left: auto !important;
+            right: 0 !important;
         }
 
-        [data-theme="dark"] .option-btn:has(.option-info.open) {
-            border-color: rgba(163, 191, 168, 0.25) !important;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25) !important;
-        }
-
-        /* Захист для активованої карти */
-        .option-btn.active:has(.option-info.open) {
-            background-color: var(--accent-light) !important;
-            border-color: var(--accent) !important;
+        /* Для великих карток (на всю ширину) вікно теж займає всю ширину */
+        .option-btn.parent-card .option-info.open,
+        [data-layout="list"] .option-btn .option-info.open {
+            width: 100% !important;
+            max-width: 100% !important;
         }
 
         
@@ -202,46 +225,65 @@
 
 
 
-        /* ========================================= */
-        /* РОЗУМНА ДИНАМІЧНА СІТКА (6 КОЛОНОК) */
-        /* ========================================= */
+        /* =========================================================
+           1. ДИНАМІЧНА ГУМОВА СІТКА (Хмарка тегів)
+           ========================================================= */
         .grid-unified { 
-            display: grid !important; 
-            grid-template-columns: repeat(6, minmax(0, 1fr)) !important; 
+            display: flex !important; 
+            flex-wrap: wrap !important; 
             gap: 6px !important; 
             padding-top: 8px !important;
-            align-items: stretch !important; /* 🟢 БАЗОВО: Рівняє висоту всіх карток у ряду */
+            align-items: stretch !important; /* 🟢 ПОВЕРНУЛИ ФІКС ВИСОТИ: Тепер картки в одному ряду знову однакової висоти */
         }
-        /* 🟢 МАГІЯ: Якщо відкрито ⓘ, вимикаємо розтягування, щоб сусіди не стали гігантами */
+
+        /* 🟢 МАГІЯ РОЗГОРТАННЯ: Коли відкрили ⓘ, вимикаємо розтягування, щоб сусіди не стали гігантами */
         .grid-unified:has(.option-info.open) {
-            align-items: start !important; 
+            align-items: flex-start !important; 
         }
 
-        /* Класи призначаються автоматично через JS залежно від довжини тексту! */
-        /* 1. БАЗОВО: всі картки займають 2 колонки (рівно 3 В РЯД) */
+        /* 🟢 ДИНАМІЧНА ШИРИНА: Картки облягають контент. Короткі (4-5 в ряд), довгі (1-2 в ряд) */
         .grid-unified .option-btn { 
-            grid-column: span 2 !important; 
-            width: 100% !important;
-            height: 100% !important; /* 🟢 ГОЛОВНИЙ ФІКС: Примушуємо рамку і фон тягнутися на всю висоту ряду */
+            width: auto !important;
+            max-width: 100% !important; /* Захист, щоб довгий текст не виліз за екран */
+            flex: 0 1 auto !important; /* Займає рівно стільки місця, скільки треба тексту */
+            height: auto !important; 
             margin: 0 !important;
-            align-self: stretch !important; 
         }
 
-        /* 🟢 МАГІЯ: Якщо ми відкрили ⓘ, вимикаємо жорстку висоту, щоб сусіди не стали гігантами на весь екран */
-        .grid-unified:has(.option-info.open) .option-btn {
-            align-self: start !important; 
-            height: auto !important; /* 🟢 Повертаємо гнучкість при читанні статистики */
+        /* 🟢 МАГІЯ РОЗГОРТАННЯ: Розгорнута картка плавно стає на 100% ширини */
+        .grid-unified .option-btn:has(.option-info.open) {
+            width: 100% !important;
+            flex: 1 1 100% !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important; 
+            border-color: var(--accent) !important; 
+            margin-bottom: 4px !important; 
         }
-        .grid-unified .option-btn.span-2 { grid-column: span 2 !important; } /* 3 в ряд */
-        .grid-unified .option-btn.span-3 { grid-column: span 3 !important; } /* 2 в ряд */
-        .grid-unified .option-btn.span-6 { grid-column: 1 / -1 !important; } /* 1 в ряд */
 
-        .grid-unified .global-scale-widget { grid-column: span 3 !important; width: 100% !important; margin-bottom: 0 !important; }
-        [data-layout="list"] .grid-unified .option-btn { grid-column: 1 / -1 !important; }
+        /* Шкали (Слайдери) завжди на всю ширину */
+        .grid-unified .global-scale-widget { 
+            flex: 1 1 100% !important; 
+            width: 100% !important; 
+            margin-bottom: 0 !important; 
+        }
 
-        @media (max-width: 600px) {
-            /* Шкали на телефоні стають на всю ширину */
-            .grid-unified .global-scale-widget { grid-column: 1 / -1 !important; }
+        /* =========================================================
+           2. ФІКСИ НАКЛАДАНЬ (Meditation та PRACTICES)
+           ========================================================= */
+        /* 🟢 Відсуваємо підпункти (antar.mauna) */
+        .sub-items-container {
+            margin-top: 8px !important;
+            padding-top: 4px !important;
+        }
+
+        /* 🟢 Дозволяємо іконкам у шапці (PRACTICES) переноситися */
+        .category-header {
+            flex-wrap: wrap !important;
+            gap: 8px !important;
+        }
+        
+        .category-controls {
+            flex-wrap: wrap !important;
+            gap: 6px !important;
         }
 
 
@@ -280,17 +322,17 @@
 
 
 
-        /* 🟢 ДОДАНО: Міні-заголовки (Текст без дефісів) */
 
+
+        /* 🟢 ДОДАНО: Міні-заголовки (Текст без дефісів) */
         .mini-header {
             grid-column: 1 / -1 !important;
-            font-size: 14px;
-            font-weight: 500;
+            font-size: 12.5px !important; /* 🟢 Зменшили шрифт, щоб не кричав */
+            font-weight: 600 !important;
             color: var(--text-desc);
-            margin: 4px 10px 4px;
-            
-            border-bottom: none; /* 🟢 ПРИБРАЛИ ЛІНІЮ */
-            line-height: 1;
+            margin: 6px 10px 2px !important; /* 🟢 Зробили його більш компактним */
+            border-bottom: none; 
+            line-height: 1.3;
             display: flex;
             align-items: center;
         }
@@ -343,13 +385,15 @@
         }
         /* --- ГОРИЗОНТАЛЬНА ШКАЛА (Компактна хмарка) --- */
         .scale-container { 
-    display: none; 
-    margin-top: auto; 
-    padding-top: 8px; 
-    justify-content: flex-start; /* ТЕПЕР ГРУПУЮТЬСЯ ЗЛІВА */
-    flex-wrap: wrap; /* Дозволяє переносити на новий рядок, якщо не влізли */
-    gap: 6px; 
-}
+            display: none; 
+            margin-top: auto; 
+            padding-top: 8px; 
+            
+            /* 🟢 МАГІЯ: Тепер модифікатори і шкала будуть акуратно у два рядки! */
+            flex-direction: column !important; 
+            align-items: flex-start !important; 
+            gap: 8px !important; 
+        }
         .option-btn.active .scale-container { display: flex; }
 
 
@@ -443,12 +487,15 @@
        .scale-btn { 
             width: 20px; height: 20px; 
             background: var(--card-bg); 
-            border: none; /* Прибираємо індивідуальні рамки */
-            border-right: 1px solid var(--border); /* Лишаємо тільки розділювач */
-            border-radius: 0; /* Прибираємо індивідуальні кути */
-            color: var(--text-desc); font-size: 12px; font-weight: 800; 
+            border: none; border-right: 1px solid var(--border);
+            border-radius: 0;
+            color: var(--text-desc); 
+            font-size: 10px !important; /* 🟢 Зменшили */
+            font-weight: 800; 
             display: flex; align-items: center; justify-content: center; 
         }
+        
+        
         .scale-btn:last-child { border-right: none; } /* Прибираємо розділювач у останньої */
         .scale-btn.selected { background: var(--accent); color: white; transform: none; box-shadow: none; }
         
@@ -979,10 +1026,10 @@
         }
 
         /* 3. Психіка та емоції (MIND / EMOTIONS / TRIGGERS) — глибокий лавандово-пурпурний */
-        [id*="affects" i] .category-header, [id*="emotions" i] .category-header, [id*="craves" i] .category-header {
+        [id*="affects" i] .category-header, [id*="emotions" i] .category-header, [id*="urges" i] .category-header {
             border-left: 4px solid #e54709 !important;
         }
-        [data-theme="dark"] [id*="affects" i] .category-header, [data-theme="dark"] [id*="emotions" i] .category-header, [data-theme="dark"] [id*="craves" i] .category-header {
+        [data-theme="dark"] [id*="affects" i] .category-header, [data-theme="dark"] [id*="emotions" i] .category-header, [data-theme="dark"] [id*="urges" i] .category-header {
             border-left: 4px solid #831904 !important;
         }
 
@@ -1201,6 +1248,109 @@
             font-size: 10px;
             flex-shrink: 0; /* 🟢 ФІКС: Жорстко забороняє відсотку здавлюватися */
             margin-top: 1px;
+        }
+
+
+
+
+
+
+      /* =========================================================
+           👑 ТРИ РЕЖИМИ ВІДОБРАЖЕННЯ (ОЧИЩЕНІ ВІД РОЗТЯГУВАНЬ)
+           ========================================================= */
+
+        /* --- 1. РЕЖИМ СІТКИ (⊞) --- */
+        [data-layout="grid"] .grid-unified:not(.icon-only-grid) {
+            display: grid !important;
+            grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+            align-items: start !important; /* 🟢 Більше ніяких порожніх гігантських карток у ряду */
+        }
+        [data-layout="grid"] .grid-unified:not(.icon-only-grid) .option-btn {
+            grid-column: span 2 !important;
+            width: 100% !important;
+            height: auto !important; 
+        }
+        [data-layout="grid"] .grid-unified:not(.icon-only-grid) .option-btn.parent-card { grid-column: 1 / -1 !important; }
+        [data-layout="grid"] [id*="practices" i] .option-btn,
+        [data-layout="grid"] [id*="copings" i] .option-btn,
+        [data-layout="grid"] [id*="emotions" i] .option-btn,
+        [data-layout="grid"] [id*="sub-parts" i] .option-btn,
+        [data-layout="grid"] [id*="ocd" i] .option-btn { grid-column: span 3 !important; }
+        
+        @media (max-width: 600px) {
+            [data-layout="grid"] .grid-unified:not(.icon-only-grid) .option-btn { grid-column: span 3 !important; }
+            [data-layout="grid"] [id*="practices" i] .option-btn,
+            [data-layout="grid"] [id*="copings" i] .option-btn,
+            [data-layout="grid"] [id*="emotions" i] .option-btn,
+            [data-layout="grid"] [id*="sub-parts" i] .option-btn,
+            [data-layout="grid"] [id*="ocd" i] .option-btn { grid-column: 1 / -1 !important; }
+        }
+
+        /* --- 2. РЕЖИМ СПИСКУ (☰) --- */
+        [data-layout="list"] .grid-unified:not(.icon-only-grid) {
+            display: grid !important;
+            grid-template-columns: 1fr !important;
+            align-items: start !important;
+        }
+        [data-layout="list"] .grid-unified:not(.icon-only-grid) .option-btn {
+            width: 100% !important;
+            grid-column: 1 / -1 !important;
+        }
+
+        /* --- 3. РЕЖИМ ХМАРКИ (☁️) --- */
+        [data-layout="cloud"] .grid-unified:not(.icon-only-grid) {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            align-items: flex-start !important; /* 🟢 Відмінили вертикальне розтягування */
+        }
+        [data-layout="cloud"] .grid-unified:not(.icon-only-grid) .option-btn {
+            width: auto !important;
+            max-width: 100% !important;
+            flex: 1 1 auto !important;
+            height: auto !important;
+        }
+        [data-layout="cloud"] .grid-unified:not(.icon-only-grid) .option-btn div[style*="justify-content:space-between"] {
+            justify-content: flex-start !important; gap: 8px !important;
+        }
+        [data-layout="cloud"] .grid-unified:not(.icon-only-grid) .option-btn.parent-card,
+        [data-layout="cloud"] .grid-unified:not(.icon-only-grid) > div[style*="grid-column: 1 / -1"] {
+            width: 100% !important; flex: 1 1 100% !important;
+        }
+
+        /* 🟢 Управління відображенням описів */
+        [data-layout="cloud"] .option-desc { display: none !important; }
+        .info-desc-clone { 
+            display: block !important; font-size: 11.5px; margin-bottom: 10px; 
+            font-style: italic; padding-left: 12px; border-left: 1px solid var(--border); color: var(--text-desc); 
+        }
+        [data-layout="list"] .info-desc-clone { display: none !important; }
+        [data-layout="list"] .option-desc { display: block !important; }
+
+        /* --- 🟢 ІЗОЛЬОВАНА СІТКА ЕМОДЗІ --- */
+        [data-layout] .grid-unified.icon-only-grid {
+            display: grid !important;
+            grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+        }
+        @media (max-width: 600px) {
+            [data-layout] .grid-unified.icon-only-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+        }
+        [data-layout] .grid-unified.icon-only-grid .option-btn { 
+            width: 100% !important; 
+            grid-column: span 1 !important; 
+            flex: none !important; 
+            min-height: 46px !important;
+        }
+
+        /* --- 🟢 ФІКС МІНІ-ЗАГОЛОВКІВ --- */
+        .mini-header {
+            font-size: 12px !important;
+            margin: 2px 6px !important;
+            padding: 0 !important;
+            line-height: 1.2 !important;
+        }
+        body .grid-unified > div[style*="grid-column: 1 / -1"]:has(.mini-header) {
+            margin-top: 2px !important;
+            margin-bottom: 2px !important;
         }
 
 
@@ -1475,11 +1625,18 @@ function syncHistoryBackground() {
     
     function applyLayout() {
         document.documentElement.setAttribute('data-layout', currentLayout);
-        document.getElementById('layout-toggle').innerText = currentLayout === 'grid' ? '☰' : '⊞';
+        const btn = document.getElementById('layout-toggle');
+        if (currentLayout === 'grid') btn.innerText = '⊞';
+        else if (currentLayout === 'list') btn.innerText = '☰';
+        else if (currentLayout === 'cloud') btn.innerText = '☁️';
     }
     
     function toggleLayout() {
-        currentLayout = currentLayout === 'grid' ? 'list' : 'grid';
+        // 🟢 МАГІЯ: Тепер кнопка циклічно перемикає 3 режими!
+        if (currentLayout === 'grid') currentLayout = 'list';
+        else if (currentLayout === 'list') currentLayout = 'cloud';
+        else currentLayout = 'grid';
+        
         localStorage.setItem('layout', currentLayout);
         applyLayout();
     }
@@ -2656,7 +2813,7 @@ if (category.toLowerCase() === 'practices') {
             const regularItems = blockData.items.filter(i => i.type === 'item');
             const hasInlineScales = blockData.items.some(i => i.type === 'inline-scale' || i.type === 'inline-delta');
             
-            const isIconOnly = !hasInlineScales && regularItems.length > 0 && regularItems.every(i => !i.desc && (!/[a-zA-Zа-яА-ЯіІїЇєЄґҐ]{4,}/.test(i.name)));
+            const isIconOnly = !hasInlineScales && regularItems.length > 0 && regularItems.every(i => !/[a-zA-Zа-яА-ЯіІїЇєЄґҐ]{4,}/.test(i.name));
 
             currentGrid.className = 'grid-unified' + (isIconOnly ? ' icon-only-grid' : '');
             containerWrap.appendChild(currentGrid);
@@ -2736,8 +2893,8 @@ if (category.toLowerCase() === 'practices') {
                     }
 
                     // Визначаємо ультращільність сітки (тільки якщо немає шкал)
-                    const isSubIconOnly = !subHasInlineScales && subItems.length > 0 && subItems.every(i => !i.desc && (!/[a-zA-Zа-яА-ЯіІїЇєЄґҐ]{4,}/.test(i.name)));
-                    
+                    const isSubIconOnly = !subHasInlineScales && subItems.length > 0 && subItems.every(i => !/[a-zA-Zа-яА-ЯіІїЇєЄґҐ]{4,}/.test(i.name));
+
                     // 🟢 Формуємо HTML для бейджа історичної статистики
                     // 🟢 Формуємо HTML для бейджа історичної статистики
                     let badgeClass = historicalSubTotal >= 20 ? 'stats-badge high-volume' : 'stats-badge';
@@ -2939,30 +3096,33 @@ if (category.toLowerCase() === 'practices') {
 
                 
 
-                // Кнопка ⓘ з'являється, якщо є або твій опис, або знайдені зв'язки
-                const hasInfoBtn = item.info || hasLinks;
+                // 🟢 МАГІЯ: Тепер кнопка ⓘ з'являється і для звичайного опису (item.desc) теж!
+                const hasInfoBtn = item.info || item.desc || hasLinks || lagHtml !== '';
 
                 const currentNote = isSelected && selectedItems[itemId].note ? selectedItems[itemId].note : ""; 
                 const nestedPrefix = item.parent ? `<span style="opacity:0.5; font-weight:600; margin-right:4px;">↳</span>` : '';
 
                 // Формуємо вміст кнопки
+                // 🟢 МАГІЯ: Робимо відступ для тексту, щоб він не бився об іконку ⓘ
+                const padRight = (hasInfoBtn || isSelected) ? 'padding-right: 26px;' : '';
+                
                 clickableArea.innerHTML = `
-                    <div class="option-name">${nestedPrefix}${renderInlineMarkdown(item.name)}${statsHtml}</div>
+                    <div class="option-name" style="${padRight}">${nestedPrefix}${renderInlineMarkdown(item.name)}${statsHtml}</div>
 
-                    <div style="position: absolute; top: 4px; right: 7px; display: flex; gap: 0px; z-index: 2;">
+                    <div style="position: absolute; top: 4px; right: 6px; display: flex; gap: 0px; z-index: 2;">
                         ${hasInfoBtn ? `<span class="info-icon-btn" style="color:var(--text-desc); font-size:12.5px; opacity:0.6; font-weight:800; cursor:pointer; padding: 2px 6px; display:inline-block; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);">ⓘ</span>` : ''}
                         ${isSelected ? `<span class="note-icon-btn" style="font-size:10.5px; opacity:0.9; cursor:pointer; padding: 2px 4px;">✏️</span>` : ''}
                     </div>
 
                     ${hasInfoBtn ? `
                         <div class="option-info">
-                            ${item.info ? `<div>${renderInlineMarkdown(item.info)}</div>` : ''}
+                            ${item.desc ? `<div style="font-size:11.5px; margin-bottom:10px; font-style:italic; padding-left:12px; border-left:1px solid var(--border); color:var(--text-desc);">${renderInlineMarkdown(item.desc)}</div>` : ''}
+                            ${item.info ? `<div style="margin-bottom: 8px;">${renderInlineMarkdown(item.info)}</div>` : ''}
                             ${linksHtml}
                             ${lagHtml}
                         </div>
                     ` : ''}
                     
-                    ${item.desc ? `<div class="option-desc" style="text-align:left;">${renderInlineMarkdown(item.desc)}</div>` : ''}
                     ${tagsHtml}
                 `;
                 btn.appendChild(clickableArea);
