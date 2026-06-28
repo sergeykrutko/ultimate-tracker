@@ -50,7 +50,6 @@
            🌟 УНІВЕРСАЛЬНЕ СПЛИВАЮЧЕ ВІКНО (POPUP) ДЛЯ ВСІХ КАРТОК
            ========================================================= */
         
-        /* Знімаємо рамки з категорії та сітки, щоб вікно не обрізалося краєм екрана */
         .category-block:has(.option-info.open),
         .category-block:has(.scale-info-block.open) {
             overflow: visible !important;
@@ -59,29 +58,27 @@
         }
         .grid-unified { overflow: visible !important; }
 
-        /* Робимо саму картку "Якорем" для спливаючого вікна */
         .option-btn, .global-scale-widget {
             position: relative !important; 
             z-index: 1;
         }
 
-        /* Піднімаємо активну картку над усіма іншими */
         .option-btn:has(.option-info.open),
         .global-scale-widget:has(.scale-info-block.open) {
             z-index: 50 !important; 
         }
 
-        /* 🟢 МАГІЯ: Формуємо дизайн абсолютного спливаючого вікна */
+        /* 🟢 Формуємо дизайн абсолютного спливаючого вікна */
         .option-info, .scale-info-block {
             position: absolute !important;
             top: calc(100% + 6px) !important;
-            left: 0 !important;
-            width: 200px !important;
-            max-width: calc(100vw - 32px) !important; /* Захист від виходу за межі екрана */
+            left: 0 !important; /* Базова позиція, JS її змінить за потреби */
+            width: 260px !important;
+            max-width: calc(100vw - 32px) !important; 
             max-height: 0;
             opacity: 0;
             overflow: hidden;
-            pointer-events: none; /* Щоб закрите вікно не перехоплювало кліки */
+            pointer-events: none; 
             
             background: var(--card-bg) !important;
             border: 1px solid var(--accent) !important;
@@ -95,28 +92,17 @@
             color: var(--text-desc);
             line-height: 1.4;
             transition: opacity 0.15s ease, transform 0.15s ease;
-            transform: translateY(-5px); /* Легка анімація вильоту */
+            transform: translateY(-5px); 
         }
 
-        /* 🟢 Відкритий стан Popup */
         .option-info.open, .scale-info-block.open {
             max-height: 250px !important;
             opacity: 1;
             transform: translateY(0);
             pointer-events: auto;
-            padding: 12px 12px 4px 12px !important;
-            overflow-y: auto !important; /* Скрол всередині вікна */
+            padding: 12px !important;
+            overflow-y: auto !important; 
             overscroll-behavior: contain;
-        }
-
-        /* 🟢 РОЗУМНЕ ПОЗИЦІОНУВАННЯ (щоб вікно не вилазило за екран справа) */
-        /* Для класичної сітки (3 в ряд) */
-        [data-layout="grid"] .option-btn:nth-child(3n + 3) .option-info.open,
-        /* Для емодзі (4 в ряд) */
-        .icon-only-grid .option-btn:nth-child(4n + 3) .option-info.open,
-        .icon-only-grid .option-btn:nth-child(4n + 4) .option-info.open {
-            left: auto !important;
-            right: 0 !important;
         }
 
         /* Для великих карток (на всю ширину) вікно теж займає всю ширину */
@@ -310,7 +296,7 @@
         .subheader-title { font-size: 13px; font-weight: 800; color: var(--text-desc); text-transform: uppercase; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); margin-bottom: 4px; -webkit-tap-highlight-color: transparent; }
         .subheader-chevron { transition: transform 0.3s; font-size: 11px; }
         .subheader-wrap.collapsed .subheader-chevron { transform: rotate(-90deg); }
-        .subheader-wrap.collapsed .sub-content { display: none !important; }
+        #app-container .subheader-wrap.collapsed .sub-content { display: none !important; }
   
         /* 💬 ЕСТЕТИЧНІ ПІДКАЗКИ (####) */
         .category-comment { 
@@ -1273,19 +1259,17 @@
 
 
       /* =========================================================
-           👑 ТРИ РЕЖИМИ ВІДОБРАЖЕННЯ (ОЧИЩЕНІ ВІД РОЗТЯГУВАНЬ)
+           👑 ТРИ РЕЖИМИ ВІДОБРАЖЕННЯ 
            ========================================================= */
 
         /* --- 1. РЕЖИМ СІТКИ (⊞) --- */
         [data-layout="grid"] .grid-unified:not(.icon-only-grid) {
             display: grid !important;
             grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
-            align-items: start !important; /* 🟢 Більше ніяких порожніх гігантських карток у ряду */
+            align-items: start !important;
         }
         [data-layout="grid"] .grid-unified:not(.icon-only-grid) .option-btn {
-            grid-column: span 2 !important;
-            width: 100% !important;
-            height: auto !important; 
+            grid-column: span 2 !important; width: 100% !important; height: 100% !important;
         }
         [data-layout="grid"] .grid-unified:not(.icon-only-grid) .option-btn.parent-card { grid-column: 1 / -1 !important; }
         [data-layout="grid"] [id*="practices" i] .option-btn,
@@ -1305,76 +1289,77 @@
 
         /* --- 2. РЕЖИМ СПИСКУ (☰) --- */
         [data-layout="list"] .grid-unified:not(.icon-only-grid) {
-            display: grid !important;
-            grid-template-columns: 1fr !important;
-            align-items: start !important;
+            display: grid !important; grid-template-columns: 1fr !important; align-items: start !important;
         }
-        [data-layout="list"] .grid-unified:not(.icon-only-grid) .option-btn {
-            width: 100% !important;
-            grid-column: 1 / -1 !important;
-        }
+        [data-layout="list"] .grid-unified:not(.icon-only-grid) .option-btn { width: 100% !important; grid-column: 1 / -1 !important; }
 
         /* --- 3. РЕЖИМ ХМАРКИ (☁️) --- */
         [data-layout="cloud"] .grid-unified:not(.icon-only-grid) {
-            display: flex !important;
-            flex-wrap: wrap !important;
-            align-items: flex-start !important; /* 🟢 Відмінили вертикальне розтягування */
+            display: flex !important; flex-wrap: wrap !important; align-items: flex-start !important;
         }
         [data-layout="cloud"] .grid-unified:not(.icon-only-grid) .option-btn {
-            width: auto !important;
-            max-width: 100% !important;
-            flex: 1 1 auto !important;
-            height: auto !important;
+            width: auto !important; max-width: 100% !important; flex: 1 1 auto !important; height: auto !important;
         }
         [data-layout="cloud"] .grid-unified:not(.icon-only-grid) .option-btn div[style*="justify-content:space-between"] {
             justify-content: flex-start !important; gap: 8px !important;
         }
-        [data-layout="cloud"] .grid-unified:not(.icon-only-grid) .option-btn.parent-card,
-        [data-layout="cloud"] .grid-unified:not(.icon-only-grid) > div[style*="grid-column: 1 / -1"] {
-            width: 100% !important; flex: 1 1 100% !important;
-        }
+        [data-layout="cloud"] .grid-unified:not(.icon-only-grid) .option-btn.parent-card { width: 100% !important; flex: 1 1 100% !important; }
 
-        /* 🟢 Управління відображенням описів */
-        [data-layout="cloud"] .option-desc { display: none !important; }
-        .info-desc-clone { 
-            display: block !important; font-size: 11.5px; margin-bottom: 10px; 
-            font-style: italic; padding-left: 12px; border-left: 1px solid var(--border); color: var(--text-desc); 
-        }
-        [data-layout="list"] .info-desc-clone { display: none !important; }
+        /* 🟢 МАГІЯ ОПИСІВ: Опис після тире показується ТІЛЬКИ коли картка АКТИВНА або в режимі СПИСКУ */
+        .option-desc { display: none !important; margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--border); }
+        .option-btn.active .option-desc { display: block !important; }
         [data-layout="list"] .option-desc { display: block !important; }
 
+        /* 🟢 МАГІЯ РОЗДІЛЕННЯ: Вставки (міні-заголовки, коментарі) гарантовано розривають ряд */
+        .category-comment, body .grid-unified > div[style*="grid-column: 1 / -1"] {
+            flex: 1 1 100% !important; width: 100% !important;
+        }
+
         /* --- 🟢 ІЗОЛЬОВАНА СІТКА ЕМОДЗІ --- */
-        [data-layout] .grid-unified.icon-only-grid {
-            display: grid !important;
-            grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
-        }
-        @media (max-width: 600px) {
-            [data-layout] .grid-unified.icon-only-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
-        }
-        [data-layout] .grid-unified.icon-only-grid .option-btn { 
-            width: 100% !important; 
-            grid-column: span 1 !important; 
-            flex: none !important; 
-            min-height: 46px !important;
-        }
+        [data-layout] .grid-unified.icon-only-grid { display: grid !important; grid-template-columns: repeat(6, minmax(0, 1fr)) !important; }
+        @media (max-width: 600px) { [data-layout] .grid-unified.icon-only-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; } }
+        [data-layout] .grid-unified.icon-only-grid .option-btn { width: 100% !important; grid-column: span 1 !important; flex: none !important; min-height: 46px !important; }
 
         /* --- 🟢 ФІКС МІНІ-ЗАГОЛОВКІВ --- */
-        .mini-header {
-            font-size: 12px !important;
-            margin: 2px 6px !important;
-            padding: 0 !important;
-            line-height: 1.2 !important;
+        .mini-header { font-size: 12px !important; margin: 6px 6px 2px !important; padding: 0 !important; line-height: 1.2 !important; }
+
+
+
+
+
+
+
+        /* 🟢 ФІКС 1: Вбиваємо розтягування батьківських карток (Connection) на 100% екрана */
+        #app-container .grid-unified .option-btn.parent-card {
+            grid-column: span 2 !important; /* Повертаємо нормальний розмір у сітці */
+            width: auto !important; /* Повертаємо нормальний розмір у хмарці */
+            margin-top: 6px !important;
+            margin-bottom: 4px !important;
+            border-left: 4px solid var(--accent) !important;
+            border-top-left-radius: 6px !important;
+            border-bottom-left-radius: 6px !important;
         }
-        body .grid-unified > div[style*="grid-column: 1 / -1"]:has(.mini-header) {
-            margin-top: 2px !important;
-            margin-bottom: 2px !important;
+
+        /* 🟢 ФІКС 2: Дизайн опису всередині картки (як у "Нудота") */
+        .option-desc { 
+            display: none !important; 
+            margin-top: 6px; 
+            padding-top: 6px; 
+            border-top: 1px dashed var(--border); 
+            color: var(--text-desc); 
+            font-size: 11.5px; 
+            line-height: 1.35; 
+            font-style: normal !important; /* Прямий шрифт, а не курсив */
+            white-space: normal !important; 
+            word-wrap: break-word !important;
+            max-width: 250px !important; /* 🟢 МАГІЯ: Жорстко забороняє опису розтягувати картку на весь екран! */
         }
-
-
-
-
-
-
+        
+        /* Гарантуємо, що опис завжди показується, коли картка активна */
+        .option-btn.active .option-desc { display: block !important; }
+        [data-layout="list"] .option-desc { display: block !important; }
+        [data-layout="cloud"] .option-desc { display: none !important; }
+        [data-layout="cloud"] .option-btn.active .option-desc { display: block !important; }
         
 
 
@@ -1464,8 +1449,12 @@
     // =========================================================================
 
 
+
+
 // Унікальний ідентифікатор поточної сесії введення
 let currentSessionId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+
+
 
 // 🟢 ФУНКЦІЯ ОТРИМАННЯ ПОТОЧНОЇ ДАТИ ТА ЧАСУ
 function getFormattedDateTime() {
@@ -2065,6 +2054,18 @@ function renderInlineMarkdown(text) {
                     infoBtn.style.opacity = isOpen ? '1' : '0.6';
                     infoBtn.style.color = isOpen ? 'var(--accent)' : 'var(--text-desc)';
                     infoBtn.style.transform = isOpen ? 'scale(1.15)' : 'scale(1)';
+
+                    if (isOpen) {
+                        infoDiv.style.left = '0';
+                        infoDiv.style.right = 'auto';
+                        requestAnimationFrame(() => {
+                            const rect = infoDiv.getBoundingClientRect();
+                            if (rect.right > window.innerWidth - 10) {
+                                infoDiv.style.left = 'auto';
+                                infoDiv.style.right = '0';
+                            }
+                        });
+                    }
                 }
             };
             titleRow.appendChild(infoBtn);
@@ -2264,6 +2265,18 @@ function renderInlineMarkdown(text) {
                     infoBtn.style.opacity = isOpen ? '1' : '0.6';
                     infoBtn.style.color = isOpen ? 'var(--accent)' : 'var(--text-desc)';
                     infoBtn.style.transform = isOpen ? 'scale(1.15)' : 'scale(1)';
+
+                    if (isOpen) {
+                        infoDiv.style.left = '0';
+                        infoDiv.style.right = 'auto';
+                        requestAnimationFrame(() => {
+                            const rect = infoDiv.getBoundingClientRect();
+                            if (rect.right > window.innerWidth - 10) {
+                                infoDiv.style.left = 'auto';
+                                infoDiv.style.right = '0';
+                            }
+                        });
+                    }
                 }
             };
             titleRow.appendChild(infoBtn);
@@ -2807,7 +2820,6 @@ if (category.toLowerCase() === 'practices') {
 
             const header = document.createElement('div');
             header.className = 'category-header';
-            header.onclick = () => block.classList.toggle('expanded');
             header.innerHTML = `
                 <div class="category-header-left">
                     <span>${category}</span>
@@ -2816,13 +2828,46 @@ if (category.toLowerCase() === 'practices') {
                 </div>
                 <div class="category-header-right">
                     ${smartBtnHtml}
-                    ${hasSubheaders ? `<div class="subgroups-toggle-btn" title="Всі підгрупи">⇕</div>` : ''}
+                    ${hasSubheaders ? `<div class="subgroups-toggle-btn" title="Всі підгрупи">↕</div>` : ''}
                     <div class="category-chevron">▼</div>
                 </div>
             `;
+
+            // 1. Бронебійний клік по самій шапці (▼ або фон)
+            header.addEventListener('click', (e) => {
+                // Якщо клікнули по ⇕ або смарт-фільтрах — шапка не реагує!
+                if (e.target.closest('.subgroups-toggle-btn') || e.target.closest('.smart-toggle')) return;
+                
+                const isNowExpanded = block.classList.toggle('expanded');
+                if (!isNowExpanded) {
+                    block.querySelectorAll('.subheader-wrap').forEach(w => w.classList.add('collapsed'));
+                }
+            });
+
+            // 2. Бронебійний клік по кнопці ⇕
+            const toggleBtn = header.querySelector('.subgroups-toggle-btn');
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Блокуємо, щоб клік не пішов на шапку
+                    
+                    const isCategoryExpanded = block.classList.contains('expanded');
+                    const subWraps = block.querySelectorAll('.subheader-wrap');
+                    
+                    if (!isCategoryExpanded) {
+                        block.classList.add('expanded');
+                        subWraps.forEach(w => w.classList.remove('collapsed'));
+                    } else {
+                        const anyCollapsed = Array.from(subWraps).some(w => w.classList.contains('collapsed'));
+                        if (anyCollapsed) {
+                            subWraps.forEach(w => w.classList.remove('collapsed'));
+                        } else {
+                            subWraps.forEach(w => w.classList.add('collapsed'));
+                        }
+                    }
+                });
+            }
+
             block.appendChild(header);
-
-
 
             const contentDiv = document.createElement('div');
             contentDiv.className = 'category-content';
@@ -2830,47 +2875,17 @@ if (category.toLowerCase() === 'practices') {
             const containerWrap = document.createElement('div');
             let currentGrid = document.createElement('div');
             
-            // 🟢 КУЛЕНЕПРОБИВНА АВТО-ДЕТЕКЦІЯ: Перевіряємо, чи немає тексту, і чи немає всередині вбудованих шкал
             const regularItems = blockData.items.filter(i => i.type === 'item');
             const hasInlineScales = blockData.items.some(i => i.type === 'inline-scale' || i.type === 'inline-delta');
-            
-            const isIconOnly = !hasInlineScales && regularItems.length > 0 && regularItems.every(i => !/[a-zA-Zа-яА-ЯіІїЇєЄґҐ]{4,}/.test(i.name));
+            const isIconOnly = !hasInlineScales && regularItems.length > 0 && regularItems.every(i => !i.desc && (!/[a-zA-Zа-яА-ЯіІїЇєЄґҐ]{4,}/.test(i.name)));
 
             currentGrid.className = 'grid-unified' + (isIconOnly ? ' icon-only-grid' : '');
             containerWrap.appendChild(currentGrid);
 
             let subheaderWraps = [];
+            // Тут ми назавжди позбулися глючного setTimeout!
 
-            if (hasSubheaders) {
-                setTimeout(() => {
-                    const toggleBtn = block.querySelector('.subgroups-toggle-btn');
-                    if(toggleBtn) {
-                        toggleBtn.onclick = (e) => {
-                            e.stopPropagation();
-                            
-                            // Перевіряємо, чи розгорнута сама головна категорія
-                            const isCategoryExpanded = block.classList.contains('expanded');
-                            
-                            if (!isCategoryExpanded) {
-                                // 1. Якщо категорія згорнута: відкриваємо її та розгортаємо всі підгрупи
-                                block.classList.add('expanded');
-                                subheaderWraps.forEach(w => w.classList.remove('collapsed'));
-                            } else {
-                                // 2. Якщо категорія вже розгорнута: працюємо як тогл тільки для підгруп
-                                const anySubExpanded = subheaderWraps.some(w => !w.classList.contains('collapsed'));
-                                
-                                if (anySubExpanded) {
-                                    // Якщо хоч одна підгрупа відкрита -> згортаємо всі (категорія лишається відкритою)
-                                    subheaderWraps.forEach(w => w.classList.add('collapsed'));
-                                } else {
-                                    // Якщо всі підгрупи згорнуті -> розгортаємо всі
-                                    subheaderWraps.forEach(w => w.classList.remove('collapsed'));
-                                }
-                            }
-                        };
-                    }
-                }, 0);
-            }
+            // 🟢 ЗВІДСИ НАЗАВЖДИ ВИДАЛЕНО СТАРИЙ ГЛЮЧНИЙ setTimeout!
 
             blockData.items.forEach((item) => {
                if (item.type === 'comment') {
@@ -2881,9 +2896,13 @@ if (category.toLowerCase() === 'practices') {
                 if (item.type === 'subheader') {
                     const subWrap = document.createElement('div');
                     subWrap.className = 'subheader-wrap collapsed'; // ЗГОРНУТО ЗА ЗАМОВЧУВАННЯМ
+                    
+        
+                   
 
                     // 🟢 Розумний збір елементів підгрупи та перевірка на емодзі/короткі теги
                     let subIndex = blockData.items.indexOf(item);
+                    subWrap.id = `subwrap-${category.replace(/\s+/g, '-')}-${subIndex}`;
                     let subItems = [];
                     let activeSubCount = 0;
                     let subHasInlineScales = false; // Перевірка на шкали всередині підгрупи
@@ -2923,7 +2942,7 @@ if (category.toLowerCase() === 'practices') {
                         ? `<span class="${badgeClass}" style="margin-left: 6px; font-size: 10px; padding: 1px 5px; font-weight: 800;">${historicalSubTotal}</span>` 
                         : '';
 
-                    // Формуємо заголовок із бейджами (статистика + активні зараз)
+                    // Формуємо заголовок із бейджами
                     const subTitle = document.createElement('div');
                     subTitle.className = 'subheader-title';
                     subTitle.innerHTML = `
@@ -2933,7 +2952,13 @@ if (category.toLowerCase() === 'practices') {
                         </div>
                         <span class="subheader-chevron">▼</span>
                     `;
-                    subTitle.onclick = () => subWrap.classList.toggle('collapsed');
+
+                    // Бронебійний клік по підкатегорії
+                    subTitle.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        subWrap.classList.toggle('collapsed');
+                    });
+                    
 
                     currentGrid = document.createElement('div');
                     currentGrid.className = 'grid-unified sub-content' + (isSubIconOnly ? ' icon-only-grid' : '');
@@ -3117,16 +3142,15 @@ if (category.toLowerCase() === 'practices') {
 
                 
 
-                // 🟢 МАГІЯ: Тепер кнопка ⓘ з'являється і для звичайного опису (item.desc) теж!
-                const hasInfoBtn = item.info || item.desc || hasLinks || lagHtml !== '';
+                // 🟢 МАГІЯ: Тепер іконка ⓘ з'являється ТІЛЬКИ якщо є текст у {{}} або статистика.
+                // Опис після тире (item.desc) більше не викликає іконку ⓘ!
+                const hasInfoBtn = item.info || hasLinks || lagHtml !== '';
 
                 const currentNote = isSelected && selectedItems[itemId].note ? selectedItems[itemId].note : ""; 
                 const nestedPrefix = item.parent ? `<span style="opacity:0.5; font-weight:600; margin-right:4px;">↳</span>` : '';
-
-                // Формуємо вміст кнопки
-                // 🟢 МАГІЯ: Робимо відступ для тексту, щоб він не бився об іконку ⓘ
                 const padRight = (hasInfoBtn || isSelected) ? 'padding-right: 26px;' : '';
                 
+                // Формуємо вміст кнопки
                 clickableArea.innerHTML = `
                     <div class="option-name" style="${padRight}">${nestedPrefix}${renderInlineMarkdown(item.name)}${statsHtml}</div>
 
@@ -3137,30 +3161,42 @@ if (category.toLowerCase() === 'practices') {
 
                     ${hasInfoBtn ? `
                         <div class="option-info">
-                            ${item.desc ? `<div style="font-size:11.5px; margin-bottom:10px; font-style:italic; padding-left:12px; border-left:1px solid var(--border); color:var(--text-desc);">${renderInlineMarkdown(item.desc)}</div>` : ''}
                             ${item.info ? `<div style="margin-bottom: 8px;">${renderInlineMarkdown(item.info)}</div>` : ''}
                             ${linksHtml}
                             ${lagHtml}
                         </div>
                     ` : ''}
                     
+                    ${item.desc ? `<div class="option-desc" style="text-align:left;">${renderInlineMarkdown(item.desc)}</div>` : ''}
                     ${tagsHtml}
                 `;
                 btn.appendChild(clickableArea);
 
 
-                // 🟢 ОЖИВЛЯЄМО КНОПКИ ІНФО (ⓘ) - З ДИНАМІКОЮ
+                // 🟢 ОЖИВЛЯЄМО КНОПКИ ІНФО (ⓘ) - З РОЗУМНИМ ПОЗИЦІОНУВАННЯМ
                 const infoIcon = clickableArea.querySelector('.info-icon-btn');
                 if (infoIcon) {
                     infoIcon.onclick = (e) => {
                         e.stopPropagation(); 
                         const infoDiv = clickableArea.querySelector('.option-info');
-                        const isOpen = infoDiv.classList.toggle('open'); // Плавне відкриття
+                        const isOpen = infoDiv.classList.toggle('open'); 
                         
-                        // Кнопка реагує на натискання: збільшується та стає зеленою
                         infoIcon.style.opacity = isOpen ? '1' : '0.6';
                         infoIcon.style.color = isOpen ? 'var(--accent)' : 'var(--text-desc)';
                         infoIcon.style.transform = isOpen ? 'scale(1.15)' : 'scale(1)';
+
+                        if (isOpen) {
+                            infoDiv.style.left = '0';
+                            infoDiv.style.right = 'auto';
+                            // Даємо браузеру мілісекунду на рендер, щоб поміряти ширину
+                            requestAnimationFrame(() => {
+                                const rect = infoDiv.getBoundingClientRect();
+                                if (rect.right > window.innerWidth - 10) {
+                                    infoDiv.style.left = 'auto';
+                                    infoDiv.style.right = '0';
+                                }
+                            });
+                        }
                     };
                 }
 
@@ -3461,16 +3497,23 @@ function saveAndRender() {
         const currentScroll = window.scrollY;
 
         const expandedIds = Array.from(document.querySelectorAll('.category-block.expanded')).map(el => el.id);
-        const expandedSubgroups = Array.from(document.querySelectorAll('.subheader-wrap:not(.collapsed) .subheader-title span:first-child')).map(el => el.innerText);
+        
+        // 🟢 ФІКС: Використовуємо ID підкатегорій, а не innerText (який пустий, якщо блок прихований)
+        const expandedSubIds = Array.from(document.querySelectorAll('.subheader-wrap:not(.collapsed)')).map(el => el.id);
 
         renderApp();
         
         document.querySelectorAll('.category-block').forEach(block => {
             if (expandedIds.includes(block.id)) block.classList.add('expanded');
         });
+        
         document.querySelectorAll('.subheader-wrap').forEach(wrap => {
-            const title = wrap.querySelector('.subheader-title span:first-child').innerText;
-            if (expandedSubgroups.includes(title)) wrap.classList.remove('collapsed');
+            // 🟢 ФІКС: Відновлюємо стан за унікальним ID
+            if (expandedSubIds.includes(wrap.id)) {
+                wrap.classList.remove('collapsed');
+            } else {
+                wrap.classList.add('collapsed');
+            }
         });
 
         const query = document.getElementById('search-input').value;
