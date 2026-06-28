@@ -76,7 +76,7 @@
             position: absolute !important;
             top: calc(100% + 6px) !important;
             left: 0 !important;
-            width: 260px !important;
+            width: 200px !important;
             max-width: calc(100vw - 32px) !important; /* Захист від виходу за межі екрана */
             max-height: 0;
             opacity: 0;
@@ -104,7 +104,7 @@
             opacity: 1;
             transform: translateY(0);
             pointer-events: auto;
-            padding: 12px !important;
+            padding: 12px 12px 4px 12px !important;
             overflow-y: auto !important; /* Скрол всередині вікна */
             overscroll-behavior: contain;
         }
@@ -216,7 +216,15 @@
         .category-badge.has-items { display: block; }
         
         .category-header-right { display: flex; align-items: center; gap: 12px; }
-        .subgroups-toggle-btn { font-size: 16px; color: var(--accent); opacity: 0.8; padding: 4px;}
+        .subgroups-toggle-btn { 
+    font-size: 16px; 
+    color: var(--accent); 
+    opacity: 0.8; 
+    padding: 4px; 
+    cursor: pointer !important; /* 🟢 ФІКС */
+    position: relative; /* 🟢 ФІКС */
+    z-index: 10; /* 🟢 ФІКС: щоб клік точно йшов у неї */
+}
         .category-chevron { font-size: 13px; color: var(--text-desc); transition: transform 0.3s; }
         
         .category-content { display: none; padding: 0 12px 12px; border-top: 1px solid var(--border); }
@@ -249,6 +257,16 @@
             height: auto !important; 
             margin: 0 !important;
         }
+
+        /* 2. 👻 МАГІЯ: Невидимий "привид", який забирає порожнечу лише в останньому рядку */
+#app-container .grid-unified::after {
+    content: "";
+    flex-grow: 999 !important; /* Привид забирає весь вільний простір на себе */
+    height: 0 !important;
+    display: block;
+}
+
+
 
         /* 🟢 МАГІЯ РОЗГОРТАННЯ: Розгорнута картка плавно стає на 100% ширини */
         .grid-unified .option-btn:has(.option-info.open) {
@@ -300,17 +318,17 @@
             font-size: 11.5px; /* Робимо шрифт трохи меншим */
             color: var(--text-desc); 
             opacity: 0.75; /* Приглушуємо яскравість, щоб не відволікати */
-            font-style: italic; /* Курсив додає відчуття "нотатки на берегах" */
+            font-style: normal; /* Курсив додає відчуття "нотатки на берегах" */
             font-weight: 500; 
             text-transform: none; 
             
             /* Створюємо ефект цитати (блоку >) */
             padding: 4px 10px 4px 12px; 
-            margin: 2px 4px 10px 4px; 
+            margin: 2px 14px 10px 2px; 
             border-left: 1px solid var(--border); /* Акуратна лінія зліва */
             
-            line-height: 1.35; 
-            letter-spacing: 0.2px;
+            line-height: 1; 
+            letter-spacing: 0.1px;
         }
         /* Стиль для описів між зірочками */
 
@@ -368,7 +386,7 @@
             -webkit-tap-highlight-color: transparent; 
         }
 	.option-name { 
-            font-size: 14px; 
+            font-size: 12px; 
             font-weight: 700; 
             color: var(--text-main); 
             margin-bottom: 2px; 
@@ -377,10 +395,10 @@
         }
         .option-btn.active .option-name { color: var(--accent); }
         .option-desc { 
-            font-size: 12.5px; /* Трохи збільшили розмір, щоб кирилиця не злипалася */
+            font-size: 11.5px; /* Трохи збільшили розмір, щоб кирилиця не злипалася */
             color: var(--text-desc); 
             line-height: 1.35; /* Додали простору між рядками */
-            font-weight: 500;
+            font-weight: 400;
             letter-spacing: 0.1px; /* Мікро-відступ між літерами знімає відчуття "костурбатості" */
         }
         /* --- ГОРИЗОНТАЛЬНА ШКАЛА (Компактна хмарка) --- */
@@ -408,7 +426,7 @@
             width: fit-content;
         }
         .mods-row { display: flex; gap: 4px; flex-wrap: wrap; }
-        .mod-btn { background: var(--bg-color); border: 1px dashed var(--accent); color: var(--accent); border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 800; cursor: pointer; transition: all 0.15s ease; text-transform: uppercase; }
+        .mod-btn { background: var(--bg-color); border: 0.5px dashed var(--accent); color: var(--accent); border-radius: 8px; padding: 1px 4px; font-size: 11px; font-weight: 800; cursor: pointer; transition: all 0.15s ease; text-transform: uppercase; }
         .mod-btn.selected { background: var(--accent); color: white; border-style: solid; }
 
 
@@ -862,7 +880,7 @@
         .grid-unified.icon-only-grid .option-name {
             font-size: 26px !important; /* Робимо сам емодзі трохи більшим */
             text-align: center !important;
-            width: 100% !important;
+            width: 130% !important;
             margin: 4px 0 0 0 !important;
             line-height: 1 !important;
         }
@@ -889,14 +907,14 @@
 
         /* 🟢 МЕГА-ФІКС UX: Якщо ми відкрили ⓘ, іконка тимчасово розтягується на всю ширину для читання! */
         .grid-unified.icon-only-grid .option-btn:has(.option-info.open) {
-            grid-column: 1 / -1 !important; /* На весь ряд */
+            grid-column: 0 !important; /* На весь ряд */
             align-items: flex-start !important; /* Текст іконки притискається вліво */
-            padding: 8px 12px !important; /* Повертаємо комфортні відступи */
+            /* padding: 8px 12px !important; /* Повертаємо комфортні відступи */
         }
         
         .grid-unified.icon-only-grid .option-btn:has(.option-info.open) .option-name {
-            text-align: left !important; /* Емодзі стає зліва */
-            margin-bottom: 6px !important;
+            text-align: center !important; /* Емодзі стає зліва */
+            margin-bottom: 0px !important;
         }
 
         /* Робимо іконки ⓘ та ✏️ акуратними і притискаємо в самий кут, щоб не лізли на емодзі */
@@ -906,8 +924,8 @@
         }
         .grid-unified.icon-only-grid .info-icon-btn, 
         .grid-unified.icon-only-grid .note-icon-btn {
-            font-size: 11px !important; 
-            padding: 2px !important;
+            font-size: 12px !important; 
+            padding: 4px !important;
         }
         
         /* 🟢 МАГІЯ ДЛЯ ШКАЛИ: Вона сама стискається, щоб ідеально влізти в квадрат! */
@@ -986,10 +1004,10 @@
             grid-column: span 3 !important; /* Стандартно по 2 в ряд на планшетах/ПК */
         }
 
-        /* 🟢 МАГІЯ 4: Якщо вбудована шкала опинилася сама в кінці списку - розтягуємо на всі 6 колонок (100%) */
+        /* 🟢 МАГІЯ 4: Якщо вбудована шкала опинилася сама в кінці списку - розтягуємо на всі 6 колонок (100%) 
         .grid-unified .global-scale-widget:last-of-type:nth-of-type(odd) {
             grid-column: 1 / -1 !important;
-        }
+        } */
 
         /* На мобільних телефонах вбудовані шкали завжди по 1 в ряд для зручності */
         @media (max-width: 600px) {
@@ -1354,6 +1372,10 @@
 
 
 
+
+
+
+        
 
 
 
@@ -4041,6 +4063,9 @@ function updateReport() {
     });
     // 🎯 ФІКС ДЛЯ iOS: iPhone часто ігнорує visibilitychange, але ідеально реагує на 'focus'
     window.addEventListener("focus", wakeUpTime);
+    
+
+    
 
     initApp(); 
 </script>
