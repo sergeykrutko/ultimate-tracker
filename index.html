@@ -530,7 +530,7 @@
             padding-top: 0 !important;
         }
 
-        
+
 
 
 
@@ -1571,6 +1571,89 @@
             transform: scale(1.15);
         }
         
+
+        /* ========================================= */
+        /* 📱 ФІКС: ІНФО-ВІКНО (ⓘ) ЯК ТУЛТИП НА МОБІЛЬНОМУ */
+        /* ========================================= */
+        @media (max-width: 768px) {
+            #app-container .grid-unified .option-info.open {
+                position: absolute !important; /* Відв'язуємо від екрану, прив'язуємо до самої картки */
+                top: 100% !important;          /* Змушуємо вистрибувати знизу, як олівець */
+                bottom: auto !important;
+                transform: none !important;    /* Відміняємо жорстке центрування */
+                
+                width: 260px !important;       /* Робимо компактним, а не на весь екран */
+                max-width: calc(100vw - 32px) !important; /* Захист, щоб не вилізло за краї на дуже вузьких екранах */
+                
+                margin-top: 6px !important;    /* Акуратний відступ вниз від картки */
+                z-index: 100 !important;       /* Щоб завжди було поверх інших карток */
+            }
+        }
+
+        /* ========================================= */
+        /* 📱 ФІКС: ЕМОДЗІ-КАРТКИ НА МОБІЛЬНОМУ (ХМАРКА) */
+        /* ========================================= */
+        @media (max-width: 768px) {
+            
+            /* 1. Робимо картки ширшими (максимум 3-4 в ряд) */
+            [data-layout="cloud"] #app-container .grid-unified .option-btn:not(.parent-card) {
+                min-width: 85px !important; /* Гарантована ширина */
+                flex: 1 1 calc(33% - 8px) !important; /* Намагаємось ставити по 3-4 в ряд */
+            }
+
+            /* 2. Залізобетонно центруємо емодзі, ЗАБОРОНЯЄМО йому стрибати при появі ✎ */
+            [data-layout="cloud"] #app-container .grid-unified .option-btn .option-name {
+                padding-right: 0 !important; /* Вбиваємо динамічний відступ, який генерує JS */
+                text-align: center !important;
+                width: 100% !important;
+            }
+
+            /* 3. Щоб іконки ⓘ та ✎ не зливалися з фоном/емодзі на маленьких картках */
+            [data-layout="cloud"] #app-container .grid-unified .option-btn > div:nth-child(2) {
+                background: var(--card-bg); /* Робимо мікро-підкладку під іконками */
+                border-radius: 4px;
+                padding-left: 2px;
+            }
+
+            /* 4. ФІКС ШКАЛИ: Робимо її нормальною ширини і вирівнюємо чітко по центру під карткою */
+            [data-layout="cloud"] #app-container .grid-unified .scale-container {
+                min-width: 160px !important; /* Щоб цифри 1-5 не злипались, як на "12345" */
+                left: 50% !important;
+                transform: translateX(-50%) !important; /* Відцентровуємо відносно вузької картки */
+            }
+        }
+
+
+
+        /* ========================================= */
+        /* 🛠 ФІКС: ШИРОКЕ ВІКОНЦЕ ШКАЛИ ДЛЯ ЕМОДЗІ  */
+        /* ========================================= */
+        
+        /* 1. Робимо саме спливаюче вікно ширшим (мінімум 200px), центруємо його */
+        [data-layout="cloud"] #app-container .grid-unified .option-btn .scale-container {
+            min-width: 100px !important; 
+            width: max-content !important; 
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            padding: 8px 10px !important; /* Додаємо простору по краях */
+            box-sizing: border-box !important;
+        }
+
+        /* 2. Даємо цифрам (1-5) дихати всередині: розсуваємо їх і додаємо відступ (gap) */
+        [data-layout="cloud"] #app-container .grid-unified .option-btn .scale-row {
+            display: flex !important;
+            justify-content: center !important;
+            gap: 2px !important; /* Гарантована відстань між кружечками з цифрами */
+            width: 100% !important;
+        }
+        
+        /* 3. Трохи відбиваємо поле коментаря вниз від шкали, щоб усе виглядало охайно */
+        [data-layout="cloud"] #app-container .grid-unified .option-btn .card-note-wrap {
+            margin-top: 1px !important;
+            width: 100% !important;
+        }
+
+
 
 
     </style>
