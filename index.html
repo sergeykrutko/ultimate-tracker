@@ -1624,14 +1624,20 @@
             overflow-x: hidden !important; 
         }
 
-        /* 2. Десктоп: віконце акуратно по центру картки */
+        /* 2. Віконце олівця ЗАВЖДИ ПРИВ'ЯЗАНЕ ДО КАРТКИ на всіх екранах */
         [data-layout="cloud"] #app-container .grid-unified .option-btn .scale-container {
-            min-width: 180px !important; 
-            width: max-content !important; 
+            position: absolute !important; /* Жорстко кріпимо до картки */
+            top: calc(100% + 6px) !important; /* Вистрибує знизу картки */
             left: 50% !important;
             transform: translateX(-50%) !important;
+            
+            min-width: 180px !important; 
+            width: max-content !important; 
+            max-width: 260px !important; /* Захист, щоб не розривало екран на телефоні */
+            
             padding: 8px 10px !important; 
             box-sizing: border-box !important;
+            z-index: 9999 !important; /* Завжди поверх інших карток */
         }
 
         [data-layout="cloud"] #app-container .grid-unified .option-btn .scale-row {
@@ -1646,33 +1652,34 @@
             width: 100% !important;
         }
 
-        /* 3. МОБІЛЬНИЙ ТЕЛЕФОН: Шкала вистрибує як "шторка" ЗНИЗУ екрану */
+        /* 3. МОБІЛЬНИЙ ТЕЛЕФОН: Тільки захист від зуму клавіатури (без відриву вікна) */
         @media (max-width: 768px) {
-            [data-layout="cloud"] #app-container .grid-unified .option-btn .scale-container {
-                position: fixed !important; /* Відриваємо від картки */
-                top: auto !important;
-                bottom: 24px !important;    /* Притискаємо до низу екрану */
-                left: 50% !important;
-                transform: translateX(-50%) !important;
-                
-                width: calc(100vw - 32px) !important; /* На всю ширину екрану */
-                max-width: 360px !important;
-                
-                background: var(--card-bg) !important;
-                border: 1px solid var(--border) !important;
-                border-radius: 16px !important;
-                padding: 16px !important; 
-                box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important; /* Глибока тінь */
-                z-index: 9999 !important; /* Завжди поверх усього */
-            }
-            
-            /* Фікс авто-зуму клавіатури на iPhone */
             .note-input-field { 
-                font-size: 16px !important; 
+                font-size: 16px !important; /* Забороняє iPhone наближати екран при введенні тексту */
             }
         }
 
 
+
+        /* ========================================= */
+        /* 🛠 ФІКС: РОЗУМНА ШИРИНА ВІКОНЦЯ (ⓘ)       */
+        /* ========================================= */
+        
+        /* 1. Ширина підлаштовується під текст (ніякого зайвого простору) */
+        #app-container .grid-unified .option-info,
+        #app-container .grid-unified .scale-info-block {
+            width: max-content !important; 
+            max-width: 280px !important;   /* Захист від надто довгих текстів */
+            min-width: 100px !important;   
+        }
+
+        /* 2. Мобільна адаптація */
+        @media (max-width: 768px) {
+            #app-container .grid-unified .option-info,
+            #app-container .grid-unified .scale-info-block {
+                max-width: calc(100vw - 32px) !important;
+            }
+        }
 
 
     </style>
