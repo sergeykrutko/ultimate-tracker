@@ -1594,21 +1594,21 @@
         /* 📱 ФІКС: ЕМОДЗІ-КАРТКИ НА МОБІЛЬНОМУ (ХМАРКА) */
         /* ========================================= */
         @media (max-width: 768px) {
-            /* 1. Робимо картки ширшими (максимум 3-4 в ряд) */
-            [data-layout="cloud"] #app-container .grid-unified .option-btn:not(.parent-card) {
+            /* 1. Робимо картки ширшими ТІЛЬКИ для категорій з емодзі */
+            [data-layout="cloud"] #app-container .grid-unified.icon-only-grid .option-btn:not(.parent-card) {
                 min-width: 85px !important; 
                 flex: 1 1 calc(33% - 8px) !important; 
             }
 
-            /* 2. Залізобетонно центруємо емодзі, ЗАБОРОНЯЄМО йому стрибати при появі ✎ */
-            [data-layout="cloud"] #app-container .grid-unified .option-btn .option-name {
+            /* 2. Центруємо ТІЛЬКИ емодзі, щоб не ламати звичайний текст і не перекривати іконки ⓘ */
+            [data-layout="cloud"] #app-container .grid-unified.icon-only-grid .option-btn .option-name {
                 padding-right: 0 !important; 
                 text-align: center !important;
                 width: 100% !important;
             }
 
-            /* 3. Щоб іконки ⓘ та ✎ не зливалися з фоном/емодзі на маленьких картках */
-            [data-layout="cloud"] #app-container .grid-unified .option-btn > div:nth-child(2) {
+            /* 3. Щоб іконки ⓘ та ✎ не зливалися з фоном емодзі */
+            [data-layout="cloud"] #app-container .grid-unified.icon-only-grid .option-btn > div:nth-child(2) {
                 background: var(--card-bg); 
                 border-radius: 4px;
                 padding-left: 2px;
