@@ -112,6 +112,24 @@
             max-width: 100% !important;
         }
 
+
+        /* 📱 МОБІЛЬНА АДАПТАЦІЯ ДЛЯ ВІКНА ⓘ (Центрування + Затемнення фону) */
+        @media (max-width: 600px) {
+            .option-info.open, .scale-info-block.open {
+                position: fixed !important; /* Відв'язуємо від картки */
+                top: 50% !important; /* Рівно по центру висоти */
+                left: 16px !important; /* Безпечні відступи з боків */
+                right: 16px !important; 
+                width: auto !important;
+                max-width: none !important;
+                transform: translateY(-50%) !important; /* Ідеальне центрування */
+                z-index: 9999 !important; /* Завжди поверх усього */
+                
+                /* Магія: тінь генерує ефект затемнення всього екрана позаду вікна */
+                box-shadow: 0 20px 40px rgba(0,0,0,0.3), 0 0 0 100vw rgba(0,0,0,0.4) !important; 
+            }
+        }
+
         
 
 
@@ -449,33 +467,39 @@
 
 
 
-        /* 👑 СТИЛЬ ДЛЯ БАТЬКІВСЬКИХ КАРТОК (Елегантний мінімалізм) */
-        
-        /* 1. Гарантовано розтягуємо на всю ширину (додали #app-container для сили правила) */
-        #app-container .grid-unified .option-btn.parent-card {
+       /* ========================================= */
+        /* 👑 ДИЗАЙН БАТЬКІВСЬКИХ КАРТОК (SEEK, RAGE)*/
+        /* ========================================= */
+
+        /* 1. У Сітці (⊞) та Списку (☰) батьки ЗАВЖДИ на 100% ширини */
+        [data-layout="grid"] #app-container .grid-unified .option-btn.parent-card,
+        [data-layout="list"] #app-container .grid-unified .option-btn.parent-card {
             grid-column: 1 / -1 !important; 
-            margin-top: 16px !important;
+            width: 100% !important;
+            margin-top: 12px !important; 
+        }
+
+        /* 2. У Хмарці (☁️) згорнуті батьки — це КОМПАКТНІ ТЕГИ */
+        [data-layout="cloud"] #app-container .grid-unified .option-btn.parent-card {
+            width: auto !important;
+            flex: 0 1 auto !important;
+            margin-top: 2px !important;
+            transition: all 0.3s ease; /* Плавне розширення */
+        }
+
+        /* 3. У Хмарці РОЗГОРНУТІ батьки розтягуються на 100%, щоб діти були під ними */
+        [data-layout="cloud"] #app-container .grid-unified .option-btn.parent-card.is-expanded {
+            width: 100% !important;
+            flex: 1 1 100% !important;
+            margin-top: 4px !important; /* Відбиваємо від верхніх сусідів */
+        }
+
+        /* Спільний візуальний стиль (зелена смужка зліва) */
+        #app-container .grid-unified .option-btn.parent-card {
             margin-bottom: 4px !important;
-            
-            /* Замість брудного фону — робимо красиву акцентну лінію зліва */
             border-left: 4px solid var(--accent) !important;
             border-top-left-radius: 6px !important;
             border-bottom-left-radius: 6px !important;
-        }
-        
-        /* 2. Повертаємо чистий фон (якщо це не зірочка чи смарт-картка) */
-        #app-container .grid-unified .option-btn.parent-card:not(.starred):not(.recommended):not(.active) {
-            background-color: var(--card-bg) !important;
-            border-top: 1px solid var(--border);
-            border-right: 1px solid var(--border);
-            border-bottom: 1px solid var(--border);
-        }
-
-        /* 3. Робимо текст назви трохи більшим та переконливішим */
-        #app-container .grid-unified .option-btn.parent-card .option-name {
-            font-size: 12.5px !important; 
-            font-weight: 700 !important;
-            letter-spacing: 0.2px;
         }
 
 
@@ -1092,10 +1116,10 @@
 
         /* 3. Внутрішній світ та емоції (MIND / EMOTIONS / TRIGGERS) — Складна теракота / приглушений бордо */
         [id*="mind" i] .category-header, [id*="emotions" i] .category-header, [id*="triggers" i] .category-header {
-            border-left-color: #A96B5B !important;
+            border-left-color: #e62630 !important;
         }
         [data-theme="dark"] [id*="mind" i] .category-header, [data-theme="dark"] [id*="emotions" i] .category-header, [data-theme="dark"] [id*="triggers" i] .category-header {
-            border-left-color: #C48475 !important;
+            border-left-color: #9d242a !important;
         }
 
         /* 4. Практики та трансформація (PRACTICES / SELF / COPINGS) — Твоя фірмова насичена шавлія */
@@ -1321,7 +1345,49 @@
         .mini-header { font-size: 12px !important; margin: 6px 6px 2px !important; padding: 0 !important; line-height: 1.2 !important; }
 
 
+        /* 🟢 ФІКС: Вбудовані шкали (суб-шкали) по 2 в ряд у режимі Хмарки */
+        [data-layout="cloud"] .grid-unified .global-scale-widget {
+            flex: 1 1 calc(50% - 6px) !important; /* Намагається стати на 50% мінус відступ */
+            min-width: 280px !important; /* Захист: на вузьких екранах телефонів стануть по 1 */
+            width: auto !important;
+        }
 
+
+        
+
+/* 🟢 МАГІЯ: Спливаюча шкала в режимі Хмарки (без стрибків інтерфейсу) */
+        
+        [data-layout="cloud"] .category-block:has(.option-btn.active) {
+            overflow: visible !important;
+        }
+
+        /* 1. За замовчуванням ховаємо шкалу активної картки в хмарці */
+        [data-layout="cloud"] .option-btn.active .scale-container {
+            display: none !important;
+        }
+
+        /* 2. Показуємо ТІЛЬКИ для картки, по якій клікнули щойно (.show-cloud-popup) */
+        [data-layout="cloud"] .option-btn.active.show-cloud-popup .scale-container {
+            display: flex !important;
+            position: absolute !important;
+            top: calc(100% + 6px) !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            background: var(--card-bg) !important;
+            border: 1px solid var(--accent) !important;
+            border-radius: 12px !important;
+            padding: 8px 12px !important;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.15), 0 4px 12px rgba(0,0,0,0.08) !important;
+            z-index: 101 !important;
+            width: max-content !important;
+        }
+
+        /* Піднімаємо саму картку, щоб шкала не ховалася під іншими */
+        [data-layout="cloud"] .option-btn.active.show-cloud-popup {
+            z-index: 100 !important;
+        }
+
+        [data-layout="cloud"] .option-btn.active .option-desc { display: none !important; }
 
 
 
@@ -1339,16 +1405,17 @@
         /* У хмарці (☁️): залишаємо твій ідеальний компактний розмір (НЕ розтягуємо) */
         [data-layout="cloud"] #app-container .grid-unified .option-btn.parent-card {
             width: auto !important;
+            padding-right: 20px !important; 
             grid-column: auto !important;
-            margin-top: 6px !important;
+            margin-top: 0px !important;
         }
 
         /* Спільний візуальний стиль (зелена смужка зліва) */
         #app-container .grid-unified .option-btn.parent-card {
             margin-bottom: 4px !important;
-            border-left: 4px solid var(--accent) !important;
-            border-top-left-radius: 6px !important;
-            border-bottom-left-radius: 6px !important;
+            border-left: 4px solid var(--accent-light) !important;
+            border-top-left-radius: 10px !important;
+            border-bottom-left-radius: 10px !important;
         }
 
         /* 🟢 ФІКС 2: Дизайн опису всередині картки (як у "Нудота") */
@@ -1390,8 +1457,65 @@
         .option-btn.active .option-desc { display: block !important; }
         [data-layout="list"] .option-desc { display: block !important; }
         [data-layout="cloud"] .option-desc { display: none !important; }
-        [data-layout="cloud"] .option-btn.active .option-desc { display: block !important; }
+        [data-layout="cloud"] .option-btn.active .option-desc { display: none !important; } /* 🟢 ФІКС: Жорстко ховаємо в хмарці! */
         
+
+/* 🟢 МАГІЯ: Ховаємо меню шкали, коли відкрита довідка ⓘ, щоб вони не накладалися */
+        .option-btn:has(.option-info.open) .scale-container {
+            opacity: 0 !important;
+            pointer-events: none !important;
+            transition: opacity 0.2s ease;
+        }
+
+
+
+
+        /* ========================================= */
+        /* 📝 ДИЗАЙН ПОЛЯ КОМЕНТАРЯ (Компактний)     */
+        /* ========================================= */
+        
+        /* Робимо обгортку гнучкою */
+        .card-note-wrap {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .note-input-field {
+            width: 0px !important;  /* 🟢 МАГІЯ: Обнуляємо заводську ширину, щоб не розпирало меню! */
+            min-width: 100% !important; /* 🟢 Але розтягуємо на ширину кнопок */
+            box-sizing: border-box; 
+            
+            /* Забороняємо довгому тексту ламати поле */
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+            
+            background: var(--bg-color); 
+            border: 1px dashed var(--border); 
+            border-radius: 6px; 
+            padding: 4px 8px; 
+            font-size: 11.5px; 
+            color: var(--text-main); 
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        
+        .note-input-field:focus {
+            background: var(--card-bg) !important;
+            border: 1px dashed var(--accent) !important;
+            color: var(--text-main) !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        /* Ефект збереженого коментаря (кольорова заливка) */
+        .note-input-field.saved {
+            background: var(--accent-light) !important;
+            border: 1px solid rgba(247, 247, 247, 0.3) !important;
+            color: var(--accent) !important;
+            font-weight: 700;
+        }
+
 
 
 
@@ -1485,6 +1609,43 @@
 // Унікальний ідентифікатор поточної сесії введення
 let currentSessionId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
 
+// 🟢 НОВЕ: Пам'ять для спливаючих шкал у хмарці
+let activeCloudPopupId = null;
+
+// 🟢 НОВЕ: Глобальний слухач кліків (закриває все, якщо клікнути повз)
+document.addEventListener('click', (e) => {
+    let needsRender = false;
+
+    // 1. Закриваємо всі інфо-вікна (ⓘ)
+    if (!e.target.closest('.option-info') && !e.target.closest('.info-icon-btn')) {
+        const openInfos = document.querySelectorAll('.option-info.open');
+        if (openInfos.length > 0) {
+            openInfos.forEach(el => {
+                el.classList.remove('open');
+                const icon = el.parentElement.querySelector('.info-icon-btn');
+                if(icon) { icon.style.opacity = '0.6'; icon.style.color = 'var(--text-desc)'; icon.style.transform = 'scale(1)'; }
+            });
+        }
+    }
+
+    // 2. Закриваємо спливаючу шкалу в хмарці
+    if (activeCloudPopupId && !e.target.closest('.option-btn')) {
+        activeCloudPopupId = null;
+        needsRender = true;
+    }
+
+    // 3. 🟢 НОВЕ: Закриваємо порожні поля коментарів, якщо клікнули повз
+    if (!e.target.closest('.card-note-wrap') && !e.target.closest('.note-icon-btn')) {
+        document.querySelectorAll('.card-note-wrap').forEach(wrap => {
+            const input = wrap.querySelector('input');
+            if (input && !input.value.trim() && wrap.style.display === 'block') {
+                wrap.style.display = 'none'; // Ховаємо, бо нічого не ввели
+            }
+        });
+    }
+
+    if (needsRender) saveAndRender();
+});
 
 
 // 🟢 ФУНКЦІЯ ОТРИМАННЯ ПОТОЧНОЇ ДАТИ ТА ЧАСУ
@@ -1847,11 +2008,11 @@ function syncHistoryBackground() {
                 return;
             }
 
-            // 🟢 КУЛЕНЕПРОБИВНИЙ ПАРСИНГ: Вкладеність + Будь-які тире від Apple
-            let bulletMatch = rawLine.match(/^(\s*)\\?[-*—–−•]\s+/);
+            // 🟢 КУЛЕНЕПРОБИВНИЙ ПАРСИНГ: Вкладеність + Будь-які тире від Apple ТА ПЛЮСИ (+)
+            let bulletMatch = rawLine.match(/^(\s*)\\?[-*—–−•\+]\s+/);
             let hasBullet = !!bulletMatch;
             let isNested = hasBullet && bulletMatch[1].length > 0;
-            let content = hasBullet ? rawLine.replace(/^(\s*)\\?[-*—–−•]\s+/, '').replace(/\\/g, '').trim() : line;
+            let content = hasBullet ? rawLine.replace(/^(\s*)\\?[-*—–−•\+]\s+/, '').replace(/\\/g, '').trim() : line;
             if(!content) return;
 
            // Топова шкала та Вбудована шкала
@@ -2164,7 +2325,7 @@ function renderInlineMarkdown(text) {
         noteWrap.className = 'scale-note-block';
         noteWrap.style.display = (isSelected && currentNote) ? 'block' : 'none'; 
         noteWrap.style.margin = '0 0 12px 0';
-        noteWrap.innerHTML = `<input type="text" placeholder="Ваш коментар..." value="${currentNote}" style="width: 100%; background: var(--bg-color); border: 1px dashed var(--accent); border-radius: 6px; padding: 4px 8px; font-size: 12px; color: var(--text-main); outline: none;">`;
+        noteWrap.innerHTML = `<input type="text" placeholder="comment..." value="${currentNote}" style="width: 100%; background: var(--bg-color); border: 1px dashed var(--accent); border-radius: 6px; padding: 4px 8px; font-size: 12px; color: var(--text-main); outline: none;">`;
         
         const noteInput = noteWrap.querySelector('input');
         noteInput.onclick = (e) => e.stopPropagation();
@@ -2372,7 +2533,7 @@ function renderInlineMarkdown(text) {
         const noteWrap = document.createElement('div');
         noteWrap.style.display = (isSelected && currentNote) ? 'block' : 'none';
         noteWrap.style.margin = '0 0 12px 0';
-        noteWrap.innerHTML = `<input type="text" placeholder="Коментар..." value="${currentNote}" style="width: 100%; background: var(--bg-color); border: 1px dashed var(--accent); border-radius: 6px; padding: 4px 8px; font-size: 12px; color: var(--text-main); outline: none;">`;
+        noteWrap.innerHTML = `<input type="text" placeholder="Comment..." value="${currentNote}" style="width: 100%; background: var(--bg-color); border: 1px dashed var(--accent); border-radius: 6px; padding: 4px 8px; font-size: 12px; color: var(--text-main); outline: none;">`;
         noteWrap.querySelector('input').onclick = (e) => e.stopPropagation();
         noteWrap.querySelector('input').oninput = (e) => { if (selectedItems[stateId]) { selectedItems[stateId].note = e.target.value; saveData(); updateReport(); } };
         widget.appendChild(noteWrap);
@@ -3120,8 +3281,15 @@ if (category.toLowerCase() === 'practices') {
                 // 🟢 МАГІЯ: Перевіряємо, чи є ця картка "батьком" для будь-яких інших карток у групі
                 const isParentNode = blockData.items.some(i => i.type === 'item' && i.parent === item.name);
 
+                // 🟢 Ініціалізуємо глобальну пам'ять для розгорнутих батьків
+                window.expandedParents = window.expandedParents || new Set();
+
+                const isCloudPopup = (activeCloudPopupId === itemId);
+                const isExpanded = window.expandedParents.has(item.name); // 🟢 НОВЕ: Перевіряємо, чи розгорнута картка
+                
                 const btn = document.createElement('div');
-                btn.className = `option-btn ${isSelected ? 'active' : ''} ${item.desc ? 'has-desc' : ''} ${smartClass} ${isParentNode ? 'parent-card' : ''}`;
+                // 🟢 НОВЕ: Додаємо клас is-expanded, якщо батько розгорнутий
+                btn.className = `option-btn ${isSelected ? 'active' : ''} ${item.desc ? 'has-desc' : ''} ${smartClass} ${isParentNode ? 'parent-card' : ''} ${isCloudPopup ? 'show-cloud-popup' : ''} ${isExpanded ? 'is-expanded' : ''}`;
 
                 // ДОДАНО: Ховаємо кнопку, якщо вона не пройшла смарт-фільтр
                 if (isSmartHidden) {
@@ -3129,12 +3297,43 @@ if (category.toLowerCase() === 'practices') {
                     btn.style.display = 'none';
                 }
 
-
-
+                // 🟢 НОВЕ: Ховаємо дочірню картку, якщо її батько НЕ розгорнутий (і ми зараз не в пошуку)
+                const searchInput = document.getElementById('search-input');
+                const isSearching = searchInput && searchInput.value.trim().length > 0;
+                
+                if (item.parent && !window.expandedParents.has(item.parent) && !isSearching) {
+                    btn.style.display = 'none';
+                    btn.classList.add('collapsed-child');
+                }
                 
                 const clickableArea = document.createElement('div');
                 clickableArea.className = 'option-clickable-area';
-                clickableArea.onclick = () => toggleItem(itemId, category, item.name, item.parent);
+                clickableArea.onclick = (e) => {
+                    // 1. Закриваємо всі довідки ⓘ при кліку на картку
+                    document.querySelectorAll('.option-info.open').forEach(el => {
+                        el.classList.remove('open');
+                        const icon = el.parentElement.querySelector('.info-icon-btn');
+                        if(icon) { icon.style.opacity = '0.6'; icon.style.color = 'var(--text-desc)'; icon.style.transform = 'scale(1)'; }
+                    });
+
+                    // 2. Якщо ми в хмарці і картка ВЖЕ активна, але її шкала схована -> просто показуємо шкалу
+                    if (currentLayout === 'cloud' && selectedItems[itemId] && activeCloudPopupId !== itemId) {
+                        e.stopPropagation();
+                        activeCloudPopupId = itemId;
+                        saveAndRender();
+                        return;
+                    }
+
+                    // 3. Стандартне перемикання (увімкнути/вимкнути картку)
+                    if (selectedItems[itemId]) {
+                        delete selectedItems[itemId];
+                        if (activeCloudPopupId === itemId) activeCloudPopupId = null;
+                    } else {
+                        selectedItems[itemId] = { category: category, name: item.name, parent: item.parent || null, scale: null, mods: [] };
+                        activeCloudPopupId = itemId; // Одразу показуємо шкалу для нової картки
+                    }
+                    saveAndRender();
+                };
                 
                 // 🟢 МАГІЯ 1: Робимо саму картку координатною базою
                 btn.style.position = 'relative'; 
@@ -3145,7 +3344,7 @@ if (category.toLowerCase() === 'practices') {
                 // ==========================================
                 let statsHtml = '';
                 let linksHtml = '';
-                let lagHtml = ''; // Нова змінна
+                let lagHtml = ''; 
                 let hasLinks = false;
 
                 if (trackerStats[item.name]) {
@@ -3162,7 +3361,6 @@ if (category.toLowerCase() === 'practices') {
                         linksHtml = `<div class="synapses-wrap ${item.info ? '' : 'no-border'}"><div class="synapses-title">🔗 Синхронізується з:</div>${linksList}</div>`;
                     }
 
-                    // 🟢 ВІДКЛАДЕНІ НАСЛІДКИ
                     let lags = trackerStats[item.name].lags;
                     if (lags && lags.length > 0) {
                         hasLinks = true;
@@ -3171,37 +3369,53 @@ if (category.toLowerCase() === 'practices') {
                     }
                 }
 
-                
-
-                // 🟢 МАГІЯ: Тепер іконка ⓘ з'являється ТІЛЬКИ якщо є текст у {{}} або статистика.
-                // Опис після тире (item.desc) більше не викликає іконку ⓘ!
-                const hasInfoBtn = item.info || hasLinks || lagHtml !== '';
+                // 🟢 МАГІЯ: Розумний відступ справа, щоб іконки не наїжджали на лічильник
+                const hasInfoBtn = item.desc || item.info || hasLinks || lagHtml !== '';
+                let rightIconsCount = 0;
+                if (hasInfoBtn) rightIconsCount++;
+                if (isSelected) rightIconsCount++;
+                if (isParentNode) rightIconsCount++;
+                const padRight = rightIconsCount > 0 ? `padding-right: ${rightIconsCount * 22}px;` : '';
 
                 const currentNote = isSelected && selectedItems[itemId].note ? selectedItems[itemId].note : ""; 
                 const nestedPrefix = item.parent ? `<span style="opacity:0.5; font-weight:600; margin-right:4px;">↳</span>` : '';
-                const padRight = (hasInfoBtn || isSelected) ? 'padding-right: 26px;' : '';
                 
-                // Формуємо вміст кнопки
+                // Формуємо вміст кнопки (🟢 НОВЕ: додано іконку ▼ для батьків)
                 clickableArea.innerHTML = `
                     <div class="option-name" style="${padRight}">${nestedPrefix}${renderInlineMarkdown(item.name)}${statsHtml}</div>
 
-                    <div style="position: absolute; top: 4px; right: 6px; display: flex; gap: 0px; z-index: 2;">
+                    <div style="position: absolute; top: 4px; right: 6px; display: flex; gap: 0px; z-index: 2; align-items: center;">
                         ${hasInfoBtn ? `<span class="info-icon-btn" style="color:var(--text-desc); font-size:12.5px; opacity:0.6; font-weight:800; cursor:pointer; padding: 2px 6px; display:inline-block; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);">ⓘ</span>` : ''}
                         ${isSelected ? `<span class="note-icon-btn" style="font-size:10.5px; opacity:0.9; cursor:pointer; padding: 2px 4px;">✏️</span>` : ''}
+                        ${isParentNode ? `<span class="parent-chevron-btn" style="color:var(--text-desc); font-size:12px; opacity:0.8; cursor:pointer; padding: 2px 6px; transition: transform 0.3s; transform: rotate(${window.expandedParents.has(item.name) ? '180deg' : '0deg'});">▼</span>` : ''}
                     </div>
 
                     ${hasInfoBtn ? `
                         <div class="option-info">
-                            ${item.info ? `<div style="margin-bottom: 8px;">${renderInlineMarkdown(item.info)}</div>` : ''}
+                            ${item.desc ? `<div style="margin-bottom: ${item.info || hasLinks || lagHtml ? '8px' : '0'}; font-style: normal; line-height: 1.35;">${renderInlineMarkdown(item.desc)}</div>` : ''}
+                            ${item.info ? `<div style="margin-bottom: ${hasLinks || lagHtml ? '8px' : '0'}; border-top: ${item.desc ? '1px dashed var(--border)' : 'none'}; padding-top: ${item.desc ? '8px' : '0'};">${renderInlineMarkdown(item.info)}</div>` : ''}
                             ${linksHtml}
                             ${lagHtml}
                         </div>
                     ` : ''}
                     
-                    ${item.desc ? `<div class="option-desc" style="text-align:left;">${renderInlineMarkdown(item.desc)}</div>` : ''}
                     ${tagsHtml}
                 `;
                 btn.appendChild(clickableArea);
+
+                // 🟢 ОЖИВЛЯЄМО КНОПКУ ЗГОРТАННЯ/РОЗГОРТАННЯ ДІТЕЙ (▼)
+                const chevronBtn = clickableArea.querySelector('.parent-chevron-btn');
+                if (chevronBtn) {
+                    chevronBtn.onclick = (e) => {
+                        e.stopPropagation(); // Щоб сама картка не виділялась
+                        if (window.expandedParents.has(item.name)) {
+                            window.expandedParents.delete(item.name);
+                        } else {
+                            window.expandedParents.add(item.name);
+                        }
+                        saveAndRender(); 
+                    };
+                }
 
 
                 // 🟢 ОЖИВЛЯЄМО КНОПКИ ІНФО (ⓘ) - З РОЗУМНИМ ПОЗИЦІОНУВАННЯМ
@@ -3209,6 +3423,23 @@ if (category.toLowerCase() === 'practices') {
                 if (infoIcon) {
                     infoIcon.onclick = (e) => {
                         e.stopPropagation(); 
+                        
+                        // 1. ФІКС НАКЛАДАННЯ: Якщо відкрита шкала хмарки — миттєво її ховаємо
+                        if (activeCloudPopupId) {
+                            document.querySelectorAll('.show-cloud-popup').forEach(el => el.classList.remove('show-cloud-popup'));
+                            activeCloudPopupId = null;
+                        }
+
+                        // 2. Закриваємо всі інші відкриті вікна ⓘ
+                        document.querySelectorAll('.option-info.open').forEach(el => {
+                            if (el !== clickableArea.querySelector('.option-info')) {
+                                el.classList.remove('open');
+                                const icon = el.parentElement.querySelector('.info-icon-btn');
+                                if(icon) { icon.style.opacity = '0.6'; icon.style.color = 'var(--text-desc)'; icon.style.transform = 'scale(1)'; }
+                            }
+                        });
+
+                        // 3. Відкриваємо/закриваємо поточне вікно
                         const infoDiv = clickableArea.querySelector('.option-info');
                         const isOpen = infoDiv.classList.toggle('open'); 
                         
@@ -3219,7 +3450,6 @@ if (category.toLowerCase() === 'practices') {
                         if (isOpen) {
                             infoDiv.style.left = '0';
                             infoDiv.style.right = 'auto';
-                            // Даємо браузеру мілісекунду на рендер, щоб поміряти ширину
                             requestAnimationFrame(() => {
                                 const rect = infoDiv.getBoundingClientRect();
                                 if (rect.right > window.innerWidth - 10) {
@@ -3236,6 +3466,15 @@ if (category.toLowerCase() === 'practices') {
                 if (noteIcon) {
                     noteIcon.onclick = (e) => {
                         e.stopPropagation(); // Щоб картка не знімала виділення
+                        
+                        // 1. Якщо ми в хмарці, а меню сховане — примусово відкриваємо його
+                        if (currentLayout === 'cloud' && activeCloudPopupId !== itemId) {
+                            activeCloudPopupId = itemId;
+                            saveAndRender();
+                            return; 
+                        }
+
+                        // 2. Стандартна логіка: ховаємо/показуємо поле і даємо йому фокус
                         const noteWrap = btn.querySelector('.card-note-wrap');
                         if (noteWrap) {
                             noteWrap.style.display = noteWrap.style.display === 'block' ? 'none' : 'block';
@@ -3257,8 +3496,7 @@ if (category.toLowerCase() === 'practices') {
                         const isActive = isSelected && selectedItems[itemId].mods && selectedItems[itemId].mods.includes(modVal);
                         modBtn.className = `mod-btn ${isActive ? 'selected' : ''}`;
                         modBtn.innerText = modVal;
-                        // Заміни рядок: modBtn.onclick = () => toggleMod(itemId, category, item.name, modVal);
-modBtn.onclick = () => toggleMod(itemId, category, item.name, modVal, item.parent);
+                        modBtn.onclick = () => toggleMod(itemId, category, item.name, modVal, item.parent);
                         modsRow.appendChild(modBtn);
                     });
                     scaleDiv.appendChild(modsRow);
@@ -3273,45 +3511,55 @@ modBtn.onclick = () => toggleMod(itemId, category, item.name, modVal, item.paren
                     scaleBtn.className = `scale-btn ${currentScale === String(tagVal) ? 'selected' : ''}`;
                     if (isNaN(tagVal)) scaleBtn.classList.add('text-tag'); 
                     scaleBtn.innerText = tagVal;
-                    // Заміни рядок: scaleBtn.onclick = () => setScale(itemId, category, item.name, String(tagVal));
-scaleBtn.onclick = () => setScale(itemId, category, item.name, String(tagVal), item.parent);
+                    scaleBtn.onclick = () => setScale(itemId, category, item.name, String(tagVal), item.parent);
                     scaleRow.appendChild(scaleBtn);
                 });
                 scaleDiv.appendChild(scaleRow);
 
-                btn.appendChild(scaleDiv);
-
-                // ДОДАНО: Поле для коментаря (в самому низу картки)
+                // 🟢 ФІКС: Поле коментаря завжди ВСЕРЕДИНІ scaleDiv
                 if (isSelected) {
                     const cardNoteWrap = document.createElement('div');
                     cardNoteWrap.className = 'card-note-wrap';
-                    cardNoteWrap.style.display = currentNote ? 'block' : 'none';
-                    cardNoteWrap.style.marginTop = '8px';
+                    
+                    cardNoteWrap.style.display = (currentLayout === 'cloud' || currentNote) ? 'block' : 'none';
+                    cardNoteWrap.style.marginTop = '4px'; 
                     cardNoteWrap.style.width = '100%';
-                    cardNoteWrap.innerHTML = `<input type="text" placeholder="Ваш коментар..." value="${currentNote}" style="width: 100%; background: var(--bg-color); border: 1px dashed var(--accent); border-radius: 6px; padding: 4px 8px; font-size: 11px; color: var(--text-main); outline: none;">`;
+                    
+                    cardNoteWrap.innerHTML = `<input type="text" class="note-input-field ${currentNote ? 'saved' : ''}" placeholder="Коментар..." value="${currentNote}">`;
                     
                     const cardNoteInput = cardNoteWrap.querySelector('input');
                     cardNoteInput.onclick = (e) => e.stopPropagation();
                     
-                    // Зберігаємо на кожному подиху
                     cardNoteInput.oninput = (e) => {
                         if (selectedItems[itemId]) {
                             selectedItems[itemId].note = e.target.value;
+                            if (e.target.value.trim() !== '') {
+                                e.target.classList.add('saved');
+                            } else {
+                                e.target.classList.remove('saved');
+                            }
                             saveData(); 
                             updateReport();
                         }
                     };
                     
-                    // 🟢 МАГІЯ: Залізобетонно фіксуємо і перерендеримо звіт, коли сховали клавіатуру
+                    // 🟢 ФІКС ЗАКРИТТЯ: Даємо браузеру мілісекунду, щоб зареєструвати клік повз
                     cardNoteInput.onblur = (e) => {
                         if (selectedItems[itemId]) {
                             selectedItems[itemId].note = e.target.value;
-                            saveAndRender(); // М'яко оновлює весь інтерфейс
+                            saveData(); 
+                            
+                            setTimeout(() => {
+                                updateReport();
+                                saveAndRender(); 
+                            }, 100); 
                         }
                     };
                     
-                    btn.appendChild(cardNoteWrap);
+                    scaleDiv.appendChild(cardNoteWrap);
                 }
+
+                btn.appendChild(scaleDiv);
 
                 currentGrid.appendChild(btn);
 
