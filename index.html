@@ -1616,7 +1616,7 @@
         }
 
         /* ========================================= */
-        /* 🛡️ БЕЗПЕЧНА ШКАЛА (ЩОБ НЕ ЛАМАВСЯ ЕКРАН)  */
+        /* 📱 ФІКС: IPHONE ЗУМ ТА БЛОКУВАННЯ ЗСУВУ   */
         /* ========================================= */
         
         /* 1. Блокуємо випадковий горизонтальний зсув всієї сторінки */
@@ -1624,38 +1624,10 @@
             overflow-x: hidden !important; 
         }
 
-        /* 2. Віконце олівця ЗАВЖДИ ПРИВ'ЯЗАНЕ ДО КАРТКИ на всіх екранах */
-        [data-layout="cloud"] #app-container .grid-unified .option-btn .scale-container {
-            position: absolute !important; /* Жорстко кріпимо до картки */
-            top: calc(100% + 6px) !important; /* Вистрибує знизу картки */
-            left: 50% !important;
-            transform: translateX(-50%) !important;
-            
-            min-width: 180px !important; 
-            width: max-content !important; 
-            max-width: 260px !important; /* Захист, щоб не розривало екран на телефоні */
-            
-            padding: 8px 10px !important; 
-            box-sizing: border-box !important;
-            z-index: 9999 !important; /* Завжди поверх інших карток */
-        }
-
-        [data-layout="cloud"] #app-container .grid-unified .option-btn .scale-row {
-            display: flex !important;
-            justify-content: center !important;
-            gap: 6px !important; 
-            width: 100% !important;
-        }
-        
-        [data-layout="cloud"] #app-container .grid-unified .option-btn .card-note-wrap {
-            margin-top: 8px !important;
-            width: 100% !important;
-        }
-
-        /* 3. МОБІЛЬНИЙ ТЕЛЕФОН: Тільки захист від зуму клавіатури (без відриву вікна) */
+        /* 2. Захист від авто-зуму на iPhone при кліку на поле коментаря */
         @media (max-width: 768px) {
             .note-input-field { 
-                font-size: 16px !important; /* Забороняє iPhone наближати екран при введенні тексту */
+                font-size: 16px !important; 
             }
         }
 
@@ -3611,13 +3583,17 @@ if (category.toLowerCase() === 'practices') {
                         infoIcon.style.transform = isOpen ? 'scale(1.15)' : 'scale(1)';
 
                         if (isOpen) {
-                            infoDiv.style.left = '0';
-                            infoDiv.style.right = 'auto';
+                            infoDiv.style.setProperty('left', '0', 'important');
+                            infoDiv.style.setProperty('right', 'auto', 'important');
+                            
                             requestAnimationFrame(() => {
                                 const rect = infoDiv.getBoundingClientRect();
-                                if (rect.right > window.innerWidth - 10) {
-                                    infoDiv.style.left = 'auto';
-                                    infoDiv.style.right = '0';
+                                const containerRect = document.getElementById('app-container').getBoundingClientRect();
+                                
+                                // 🟢 МАГІЯ: Тепер перевіряємо, чи не вилізло за межі самого трекера (або екрана)
+                                if (rect.right > containerRect.right - 10 || rect.right > window.innerWidth - 10) {
+                                    infoDiv.style.setProperty('left', 'auto', 'important');
+                                    infoDiv.style.setProperty('right', '0', 'important');
                                 }
                             });
                         }
