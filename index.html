@@ -471,12 +471,19 @@
         /* 👑 ДИЗАЙН БАТЬКІВСЬКИХ КАРТОК (SEEK, RAGE)*/
         /* ========================================= */
 
-        /* 1. У Сітці (⊞) та Списку (☰) батьки ЗАВЖДИ на 100% ширини */
-        [data-layout="grid"] #app-container .grid-unified .option-btn.parent-card,
+        /* 1. ТІЛЬКИ у Списку (☰) батьки ЗАВЖДИ на 100% ширини */
         [data-layout="list"] #app-container .grid-unified .option-btn.parent-card {
             grid-column: 1 / -1 !important; 
             width: 100% !important;
-            margin-top: 12px !important; 
+            
+            
+        }
+
+        /* 🟢 ФІКС: У Сітці (⊞) батьки стають звичайними картками, щоб не налазити один на одного */
+        [data-layout="grid"] #app-container .grid-unified .option-btn.parent-card {
+            grid-column: auto !important; /* Стають у звичайну колонку, як усі інші */
+            width: 100% !important;
+            margin: 0 !important; /* Обнуляємо марджини, щоб працював чистий інтервал сітки (gap) */
         }
 
         /* 2. У Хмарці (☁️) згорнуті батьки — це КОМПАКТНІ ТЕГИ */
@@ -496,7 +503,6 @@
 
         /* Спільний візуальний стиль (зелена смужка зліва) */
         #app-container .grid-unified .option-btn.parent-card {
-            margin-bottom: 4px !important;
             border-left: 4px solid var(--accent) !important;
             border-top-left-radius: 6px !important;
             border-bottom-left-radius: 6px !important;
@@ -504,7 +510,27 @@
 
 
         
+/* ========================================= */
+        /* 🚫 ФІКС ДУБЛЮВАННЯ ОПИСУ В РЕЖИМІ СПИСКУ  */
+        /* ========================================= */
+        
+        /* 1. Якщо у картки Є ТІЛЬКИ короткий опис — ховаємо кнопку ⓘ (текст і так видно) */
+        [data-layout="list"] #app-container .grid-unified .info-icon-btn.only-desc-btn {
+            display: none !important;
+        }
 
+        /* 2. Ховаємо дубль короткого опису всередині спливаючого віконця */
+        [data-layout="list"] #app-container .grid-unified .option-info .info-popup-desc {
+            display: none !important; 
+        }
+
+        /* 3. Прибираємо зайву пунктирну лінію над розширеним інфо */
+        [data-layout="list"] #app-container .grid-unified .option-info .info-popup-ext {
+            border-top: none !important; 
+            padding-top: 0 !important;
+        }
+
+        
 
 
 
@@ -1399,7 +1425,7 @@
         [data-layout="list"] #app-container .grid-unified .option-btn.parent-card {
             grid-column: 1 / -1 !important; /* Займає всі колонки, скидаючи сусідів вниз */
             width: 100% !important;
-            margin-top: 12px !important; /* Даємо трохи повітря зверху */
+           
         }
 
         /* У хмарці (☁️): залишаємо твій ідеальний компактний розмір (НЕ розтягуємо) */
@@ -1413,7 +1439,7 @@
         /* Спільний візуальний стиль (зелена смужка зліва) */
         #app-container .grid-unified .option-btn.parent-card {
             margin-bottom: 4px !important;
-            border-left: 4px solid var(--accent-light) !important;
+            border-left: 4px solid var(--accent) !important;
             border-top-left-radius: 10px !important;
             border-bottom-left-radius: 10px !important;
         }
@@ -1495,7 +1521,7 @@
             border: 1px dashed var(--border); 
             border-radius: 6px; 
             padding: 4px 8px; 
-            font-size: 11.5px; 
+            font-size: 10px; 
             color: var(--text-main); 
             outline: none;
             transition: all 0.2s ease;
@@ -1508,15 +1534,43 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
         
-        /* Ефект збереженого коментаря (кольорова заливка) */
+        /* Ефект збереженого коментаря */
         .note-input-field.saved {
-            background: var(--accent-light) !important;
-            border: 1px solid rgba(247, 247, 247, 0.3) !important;
-            color: var(--accent) !important;
-            font-weight: 700;
+            background: var(--card-bg) !important;
+            border: 1px solid var(--accent) !important;
+            color: var(--text-main) !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
 
 
+
+
+/* ========================================= */
+        /* 📋 РЕЖИМ СПИСКУ (☰) ТА ІКОНКА НАЛАШТУВАНЬ */
+        /* ========================================= */
+        
+        /* Ховаємо опис за замовчуванням (щоб не ламати Хмарку і Сітку) */
+        .list-mode-desc {
+            display: none;
+        }
+
+        /* 🟢 Показуємо опис ТІЛЬКИ в режимі списку */
+        [data-layout="list"] #app-container .list-mode-desc {
+            display: block;
+            margin-top: 6px;
+            font-size: 11.5px;
+            color: var(--text-desc);
+            line-height: 1.4;
+            opacity: 0.9;
+        }
+
+        /* Анімація при наведенні на ✎ */
+        .note-icon-btn:hover {
+            opacity: 1 !important;
+            color: var(--accent) !important;
+            transform: scale(1.15);
+        }
+        
 
 
     </style>
@@ -3316,21 +3370,17 @@ if (category.toLowerCase() === 'practices') {
                         if(icon) { icon.style.opacity = '0.6'; icon.style.color = 'var(--text-desc)'; icon.style.transform = 'scale(1)'; }
                     });
 
-                    // 2. Якщо ми в хмарці і картка ВЖЕ активна, але її шкала схована -> просто показуємо шкалу
-                    if (currentLayout === 'cloud' && selectedItems[itemId] && activeCloudPopupId !== itemId) {
-                        e.stopPropagation();
-                        activeCloudPopupId = itemId;
-                        saveAndRender();
-                        return;
-                    }
-
-                    // 3. Стандартне перемикання (увімкнути/вимкнути картку)
+                    // 2. МАГІЯ: У хмарці клік тепер ТІЛЬКИ вмикає/вимикає картку! Меню само не вискакує.
                     if (selectedItems[itemId]) {
                         delete selectedItems[itemId];
                         if (activeCloudPopupId === itemId) activeCloudPopupId = null;
                     } else {
                         selectedItems[itemId] = { category: category, name: item.name, parent: item.parent || null, scale: null, mods: [] };
-                        activeCloudPopupId = itemId; // Одразу показуємо шкалу для нової картки
+                        
+                        // Якщо ми НЕ в хмарці (Сітка/Список) — показуємо шкалу одразу
+                        if (currentLayout !== 'cloud') {
+                            activeCloudPopupId = itemId; 
+                        }
                     }
                     saveAndRender();
                 };
@@ -3371,6 +3421,8 @@ if (category.toLowerCase() === 'practices') {
 
                 // 🟢 МАГІЯ: Розумний відступ справа, щоб іконки не наїжджали на лічильник
                 const hasInfoBtn = item.desc || item.info || hasLinks || lagHtml !== '';
+                const hasOnlyDesc = item.desc && !item.info && !hasLinks && lagHtml === ''; // 🟢 НОВЕ: Перевіряємо, чи є ТІЛЬКИ короткий опис
+                
                 let rightIconsCount = 0;
                 if (hasInfoBtn) rightIconsCount++;
                 if (isSelected) rightIconsCount++;
@@ -3380,20 +3432,22 @@ if (category.toLowerCase() === 'practices') {
                 const currentNote = isSelected && selectedItems[itemId].note ? selectedItems[itemId].note : ""; 
                 const nestedPrefix = item.parent ? `<span style="opacity:0.5; font-weight:600; margin-right:4px;">↳</span>` : '';
                 
-                // Формуємо вміст кнопки (🟢 НОВЕ: додано іконку ▼ для батьків)
+                // Формуємо вміст кнопки (🟢 НОВЕ: Додали класи info-popup-desc та only-desc-btn)
                 clickableArea.innerHTML = `
                     <div class="option-name" style="${padRight}">${nestedPrefix}${renderInlineMarkdown(item.name)}${statsHtml}</div>
 
                     <div style="position: absolute; top: 4px; right: 6px; display: flex; gap: 0px; z-index: 2; align-items: center;">
-                        ${hasInfoBtn ? `<span class="info-icon-btn" style="color:var(--text-desc); font-size:12.5px; opacity:0.6; font-weight:800; cursor:pointer; padding: 2px 6px; display:inline-block; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);">ⓘ</span>` : ''}
-                        ${isSelected ? `<span class="note-icon-btn" style="font-size:10.5px; opacity:0.9; cursor:pointer; padding: 2px 4px;">✏️</span>` : ''}
+                        ${hasInfoBtn ? `<span class="info-icon-btn ${hasOnlyDesc ? 'only-desc-btn' : ''}" style="color:var(--text-desc); font-size:12.5px; opacity:0.6; font-weight:800; cursor:pointer; padding: 2px 6px; display:inline-block; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);">ⓘ</span>` : ''}
+                        ${isSelected ? `<span class="note-icon-btn" style="font-size:14px; opacity:0.6; cursor:pointer; padding: 2px 4px; transition: all 0.2s;">✎</span>` : ''}
                         ${isParentNode ? `<span class="parent-chevron-btn" style="color:var(--text-desc); font-size:12px; opacity:0.8; cursor:pointer; padding: 2px 6px; transition: transform 0.3s; transform: rotate(${window.expandedParents.has(item.name) ? '180deg' : '0deg'});">▼</span>` : ''}
                     </div>
 
+                    ${item.desc ? `<div class="list-mode-desc">${renderInlineMarkdown(item.desc)}</div>` : ''}
+
                     ${hasInfoBtn ? `
                         <div class="option-info">
-                            ${item.desc ? `<div style="margin-bottom: ${item.info || hasLinks || lagHtml ? '8px' : '0'}; font-style: normal; line-height: 1.35;">${renderInlineMarkdown(item.desc)}</div>` : ''}
-                            ${item.info ? `<div style="margin-bottom: ${hasLinks || lagHtml ? '8px' : '0'}; border-top: ${item.desc ? '1px dashed var(--border)' : 'none'}; padding-top: ${item.desc ? '8px' : '0'};">${renderInlineMarkdown(item.info)}</div>` : ''}
+                            ${item.desc ? `<div class="info-popup-desc" style="margin-bottom: ${item.info || hasLinks || lagHtml ? '8px' : '0'}; font-style: normal; line-height: 1.35;">${renderInlineMarkdown(item.desc)}</div>` : ''}
+                            ${item.info ? `<div class="info-popup-ext" style="margin-bottom: ${hasLinks || lagHtml ? '8px' : '0'}; border-top: ${item.desc ? '1px dashed var(--border)' : 'none'}; padding-top: ${item.desc ? '8px' : '0'};">${renderInlineMarkdown(item.info)}</div>` : ''}
                             ${linksHtml}
                             ${lagHtml}
                         </div>
@@ -3461,20 +3515,20 @@ if (category.toLowerCase() === 'practices') {
                     };
                 }
 
-                // 🟢 ОЖИВЛЯЄМО КНОПКИ КОМЕНТАРІВ (✏️)
+                // 🟢 ОЖИВЛЯЄМО КНОПКУ НАЛАШТУВАНЬ (✎)
                 const noteIcon = clickableArea.querySelector('.note-icon-btn');
                 if (noteIcon) {
                     noteIcon.onclick = (e) => {
                         e.stopPropagation(); // Щоб картка не знімала виділення
                         
-                        // 1. Якщо ми в хмарці, а меню сховане — примусово відкриваємо його
-                        if (currentLayout === 'cloud' && activeCloudPopupId !== itemId) {
-                            activeCloudPopupId = itemId;
+                        // 1. У хмарці: клік на ✎ відкриває або закриває спливаюче вікно
+                        if (currentLayout === 'cloud') {
+                            activeCloudPopupId = (activeCloudPopupId === itemId) ? null : itemId;
                             saveAndRender();
                             return; 
                         }
 
-                        // 2. Стандартна логіка: ховаємо/показуємо поле і даємо йому фокус
+                        // 2. В інших режимах: ховаємо/показуємо поле коментаря і даємо йому фокус
                         const noteWrap = btn.querySelector('.card-note-wrap');
                         if (noteWrap) {
                             noteWrap.style.display = noteWrap.style.display === 'block' ? 'none' : 'block';
@@ -3525,7 +3579,7 @@ if (category.toLowerCase() === 'practices') {
                     cardNoteWrap.style.marginTop = '4px'; 
                     cardNoteWrap.style.width = '100%';
                     
-                    cardNoteWrap.innerHTML = `<input type="text" class="note-input-field ${currentNote ? 'saved' : ''}" placeholder="Коментар..." value="${currentNote}">`;
+                    cardNoteWrap.innerHTML = `<input type="text" class="note-input-field ${currentNote ? 'saved' : ''}" placeholder="..." value="${currentNote}">`;
                     
                     const cardNoteInput = cardNoteWrap.querySelector('input');
                     cardNoteInput.onclick = (e) => e.stopPropagation();
