@@ -1582,7 +1582,7 @@
                 bottom: auto !important;
                 transform: none !important;    /* Відміняємо жорстке центрування */
                 
-                width: 260px !important;       /* Робимо компактним, а не на весь екран */
+                width: 200px !important;       /* Робимо компактним, а не на весь екран */
                 max-width: calc(100vw - 32px) !important; /* Захист, щоб не вилізло за краї на дуже вузьких екранах */
                 
                 margin-top: 6px !important;    /* Акуратний відступ вниз від картки */
@@ -1590,67 +1590,86 @@
             }
         }
 
-        /* ========================================= */
+    /* ========================================= */
         /* 📱 ФІКС: ЕМОДЗІ-КАРТКИ НА МОБІЛЬНОМУ (ХМАРКА) */
         /* ========================================= */
         @media (max-width: 768px) {
-            
             /* 1. Робимо картки ширшими (максимум 3-4 в ряд) */
             [data-layout="cloud"] #app-container .grid-unified .option-btn:not(.parent-card) {
-                min-width: 85px !important; /* Гарантована ширина */
-                flex: 1 1 calc(33% - 8px) !important; /* Намагаємось ставити по 3-4 в ряд */
+                min-width: 85px !important; 
+                flex: 1 1 calc(33% - 8px) !important; 
             }
 
             /* 2. Залізобетонно центруємо емодзі, ЗАБОРОНЯЄМО йому стрибати при появі ✎ */
             [data-layout="cloud"] #app-container .grid-unified .option-btn .option-name {
-                padding-right: 0 !important; /* Вбиваємо динамічний відступ, який генерує JS */
+                padding-right: 0 !important; 
                 text-align: center !important;
                 width: 100% !important;
             }
 
             /* 3. Щоб іконки ⓘ та ✎ не зливалися з фоном/емодзі на маленьких картках */
             [data-layout="cloud"] #app-container .grid-unified .option-btn > div:nth-child(2) {
-                background: var(--card-bg); /* Робимо мікро-підкладку під іконками */
+                background: var(--card-bg); 
                 border-radius: 4px;
                 padding-left: 2px;
             }
-
-            /* 4. ФІКС ШКАЛИ: Робимо її нормальною ширини і вирівнюємо чітко по центру під карткою */
-            [data-layout="cloud"] #app-container .grid-unified .scale-container {
-                min-width: 160px !important; /* Щоб цифри 1-5 не злипались, як на "12345" */
-                left: 50% !important;
-                transform: translateX(-50%) !important; /* Відцентровуємо відносно вузької картки */
-            }
         }
 
-
-
         /* ========================================= */
-        /* 🛠 ФІКС: ШИРОКЕ ВІКОНЦЕ ШКАЛИ ДЛЯ ЕМОДЗІ  */
+        /* 🛡️ БЕЗПЕЧНА ШКАЛА (ЩОБ НЕ ЛАМАВСЯ ЕКРАН)  */
         /* ========================================= */
         
-        /* 1. Робимо саме спливаюче вікно ширшим (мінімум 200px), центруємо його */
+        /* 1. Блокуємо випадковий горизонтальний зсув всієї сторінки */
+        body, html {
+            overflow-x: hidden !important; 
+        }
+
+        /* 2. Десктоп: віконце акуратно по центру картки */
         [data-layout="cloud"] #app-container .grid-unified .option-btn .scale-container {
-            min-width: 100px !important; 
+            min-width: 180px !important; 
             width: max-content !important; 
             left: 50% !important;
             transform: translateX(-50%) !important;
-            padding: 8px 10px !important; /* Додаємо простору по краях */
+            padding: 8px 10px !important; 
             box-sizing: border-box !important;
         }
 
-        /* 2. Даємо цифрам (1-5) дихати всередині: розсуваємо їх і додаємо відступ (gap) */
         [data-layout="cloud"] #app-container .grid-unified .option-btn .scale-row {
             display: flex !important;
             justify-content: center !important;
-            gap: 2px !important; /* Гарантована відстань між кружечками з цифрами */
+            gap: 6px !important; 
             width: 100% !important;
         }
         
-        /* 3. Трохи відбиваємо поле коментаря вниз від шкали, щоб усе виглядало охайно */
         [data-layout="cloud"] #app-container .grid-unified .option-btn .card-note-wrap {
-            margin-top: 1px !important;
+            margin-top: 8px !important;
             width: 100% !important;
+        }
+
+        /* 3. МОБІЛЬНИЙ ТЕЛЕФОН: Шкала вистрибує як "шторка" ЗНИЗУ екрану */
+        @media (max-width: 768px) {
+            [data-layout="cloud"] #app-container .grid-unified .option-btn .scale-container {
+                position: fixed !important; /* Відриваємо від картки */
+                top: auto !important;
+                bottom: 24px !important;    /* Притискаємо до низу екрану */
+                left: 50% !important;
+                transform: translateX(-50%) !important;
+                
+                width: calc(100vw - 32px) !important; /* На всю ширину екрану */
+                max-width: 360px !important;
+                
+                background: var(--card-bg) !important;
+                border: 1px solid var(--border) !important;
+                border-radius: 16px !important;
+                padding: 16px !important; 
+                box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important; /* Глибока тінь */
+                z-index: 9999 !important; /* Завжди поверх усього */
+            }
+            
+            /* Фікс авто-зуму клавіатури на iPhone */
+            .note-input-field { 
+                font-size: 16px !important; 
+            }
         }
 
 
