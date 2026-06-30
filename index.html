@@ -772,10 +772,6 @@
         .add-custom-btn { background: var(--bg-color); border: 1px solid var(--border); border-radius: 10px; width: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-main); font-size: 16px;}
 
 
-/* Колір тексту для рекомендованих практик */
-        .option-btn.recommended .option-name { color: #d47724; font-weight: 800; }
-        [data-theme="dark"] .option-btn.recommended .option-name { color: #e59f49; }
-
 
 
 
@@ -1016,16 +1012,42 @@
 [data-theme="dark"] .option-btn.starred .option-name { color: #8fa994; }
 [data-theme="dark"] .option-btn.starred.active { background-color: var(--accent-light); border-color: var(--accent); } */
 
-/* === ДОДАНО: Окремий колір для Зірочок (Оригінальний Помаранчевий) === */
-.option-btn.starred { background-color: #fff9f0; border-color: #e5c9a8; box-shadow: 0 2px 8px rgba(229, 201, 168, 0.2); }
-.option-btn.starred .option-name { color: #d47724; font-weight: 800; }
-.option-btn.starred.active { background-color: var(--accent-light); border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
-
-[data-theme="dark"] .option-btn.starred { background-color: rgba(229, 201, 168, 0.08); border-color: rgba(229, 201, 168, 0.3); box-shadow: none; }
-[data-theme="dark"] .option-btn.starred .option-name { color: #e59f49; }
-[data-theme="dark"] .option-btn.starred.active { background-color: var(--accent-light); border-color: var(--accent); } 
 
 
+/* ========================================= */
+        /* 🎨 ЕЛЕГАНТНА СИСТЕМА ПІДСВІЧУВАННЯ ПРАКТИК */
+        /* ========================================= */
+
+        /* 1. ТІЛЬКИ СМАРТ-ФІЛЬТР (✨): Спокійний, ледь помітний теплий відтінок */
+        .option-btn.recommended { background-color: #fdfbf7; border-color: #e3dcd3; box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
+        .option-btn.recommended .option-name { color: #a87b51; font-weight: 700; }
+        .option-btn.recommended.active { background-color: var(--accent-light); border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+        
+        /* 2. ТІЛЬКИ ЗІРОЧКИ (⭑): Твій улюблений оригінальний помаранчевий */
+        .option-btn.starred { background-color: #fff9f0; border-color: #e5c9a8; box-shadow: 0 2px 8px rgba(229, 201, 168, 0.2); }
+        .option-btn.starred .option-name { color: #d47724; font-weight: 800; }
+        .option-btn.starred.active { background-color: var(--accent-light); border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+        
+        /* 3. ІДЕАЛЬНИЙ ЗБІГ (⭑ + ✨): Золота смужка зліва та глибший теплий фон */
+        .option-btn.super-match { 
+            border-bottom: 2px solid #d47724 !important; 
+            background-color: #fff6e5;
+            border-color: #d8b88e;
+            box-shadow: 0 3px 12px rgba(212, 119, 36, 0.12);
+        }
+        
+        /* Темна тема */
+        [data-theme="dark"] .option-btn.recommended { background-color: rgba(229, 201, 168, 0.04); border-color: rgba(229, 201, 168, 0.15); box-shadow: none; }
+        [data-theme="dark"] .option-btn.recommended .option-name { color: #b8926c; }
+        
+        [data-theme="dark"] .option-btn.starred { background-color: rgba(229, 201, 168, 0.08); border-color: rgba(229, 201, 168, 0.3); box-shadow: none; }
+        [data-theme="dark"] .option-btn.starred .option-name { color: #e59f49; }
+        
+        [data-theme="dark"] .option-btn.super-match {
+            border-bottom: 2px solid #e59f49 !important;
+            background-color: rgba(229, 159, 73, 0.12);
+            border-color: rgba(229, 159, 73, 0.35);
+        }
 
 
 /* ========================================= */
@@ -1394,9 +1416,9 @@
             flex: 1 1 100% !important; width: 100% !important;
         }
 
-        /* --- 🟢 ІЗОЛЬОВАНА СІТКА ЕМОДЗІ --- */
-        [data-layout] .grid-unified.icon-only-grid { display: grid !important; grid-template-columns: repeat(6, minmax(0, 1fr)) !important; }
-        @media (max-width: 600px) { [data-layout] .grid-unified.icon-only-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; } }
+        /* --- 🟢 ІЗОЛЬОВАНА СІТКА ЕМОДЗІ repeat(# контролює кількість колонок) --- */
+        [data-layout] .grid-unified.icon-only-grid { display: grid !important; grid-template-columns: repeat(5, minmax(0, 1fr)) !important; }
+        @media (max-width: 600px) { [data-layout] .grid-unified.icon-only-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; } }
         [data-layout] .grid-unified.icon-only-grid .option-btn { width: 100% !important; grid-column: span 1 !important; flex: none !important; min-height: 46px !important; }
 
         /* --- 🟢 ФІКС МІНІ-ЗАГОЛОВКІВ --- */
@@ -1796,8 +1818,9 @@
             background: transparent !important;
             border: none !important;
             box-shadow: none !important;
-            margin: 0 0 24px 0 !important; /* Чіткий простір між розділами */
+            margin: 0 0 12px 0 !important; /* 🟢 ФІКС 1: Зменшили відступ для компактності (було 24px) */
             padding: 0 !important;
+            overflow: visible !important; /* 🟢 ФІКС 2: Скасовує обрізання літер на невидимих кутах */
         }
 
         #app-container.search-compact-mode .category-content {
@@ -1807,11 +1830,12 @@
 
         /* 2. Міні-заголовки: відсуваємо їх від кнопок, щоб не лізли на голову */
         #app-container.search-compact-mode .category-header {
-            padding: 0 0 8px 4px !important; /* Відступ ЗНИЗУ, щоб кнопки "дихали" */
+            padding: 0 0 6px 4px !important; /* Відступ ЗНИЗУ, щоб кнопки "дихали" */
             margin: 0 !important;
             border: none !important;
             background: transparent !important;
             min-height: auto !important;
+            pointer-events: none !important; /* 🟢 ФІКС 3: Блокуємо випадковий клік по заголовку в режимі пошуку */
         }
         
         #app-container.search-compact-mode .category-header-left span:first-child {
@@ -1864,7 +1888,7 @@
 
 
         /* ========================================= */
-        /* 🟢 МАГІЯ ТИМЧАСОВИХ КАРТОК (ІДЕАЛЬНИЙ ЦЕНТР) */
+        /* 🟢 МАГІЯ ТИМЧАСОВИХ КАРТОК (БРОНЕБІЙНИЙ ФІКС) */
         /* ========================================= */
         
         /* Дизайн самої тимчасової картки (пунктир) */
@@ -1877,7 +1901,7 @@
             background-color: var(--accent-light) !important;
         }
 
-        /* 🟢 Бронебійний селектор для центрування плюсика */
+        /* 1. СТАНДАРТНІ КАТЕГОРІЇ */
         #app-container .grid-unified .add-card-btn {
             border: 1px dashed var(--border) !important;
             background: transparent !important;
@@ -1885,28 +1909,75 @@
             box-shadow: none !important;
             cursor: pointer;
             
-            /* Внутрішнє центрування хрестика */
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
             
-            /* Ідеальні пропорції міні-кнопки */
+            /* 🎯 ЖОРСТКО ФІКСУЄМО РОЗМІР (вбиваємо спадкові min-width) */
             flex: 0 0 32px !important; 
             width: 32px !important;
+            min-width: 32px !important; 
+            max-width: 32px !important;
+            
             height: 26px !important; 
             min-height: 26px !important;
+            max-height: 26px !important;
+            
             padding: 0 !important;
             border-radius: 8px !important; 
             
-            /* 🎯 АБСОЛЮТНЕ ЦЕНТРУВАННЯ В РЯДУ ВІДНОСНО СУСІДІВ */
+            /* 🎯 ФІКС ПОЗИЦІЇ: центруємо по висоті ряду, ставимо зліва */
             align-self: center !important; 
-            margin: auto 0 auto 4px !important; 
+            margin: 0 0 0 4px !important; 
+            
+           
+            /* 🎯 ПОВЕРТАЄМО ORDER: відправляємо кнопку в самий кінець! */
+            order: 999 !important; 
             
             opacity: 0.5;
             transition: all 0.2s ease !important;
-            order: 999; 
         }
         
+        /* Гарантуємо, що привид сітки завжди йде після кнопки + */
+        #app-container .grid-unified::after {
+            order: 1000 !important;
+        } 
+            
+            opacity: 0.5;
+            transition: all 0.2s ease !important;
+        }
+        
+        /* 2. ФАКТОРИ (icon-only-grid) */
+        #app-container .grid-unified.icon-only-grid .add-card-btn {
+            flex: 0 0 54px !important; 
+            width: 54px !important;
+            min-width: 54px !important;
+            max-width: 54px !important;
+            
+            height: 44px !important; 
+            min-height: 44px !important;
+            max-height: 44px !important;
+            
+            border-radius: 12px !important;
+            margin: 0 !important; 
+        }
+
+        /* 3. РЕЖИМ ХМАРИНКИ (Cloud mode) */
+        [data-layout="cloud"] #app-container .grid-unified .add-card-btn {
+            flex: 0 0 36px !important;
+            width: 36px !important;
+            min-width: 36px !important;
+            max-width: 36px !important;
+            
+            height: 30px !important;
+            min-height: 30px !important;
+            max-height: 30px !important;
+            
+            border-radius: 10px !important;
+            margin: 0 0 0 4px !important;
+        }
+
+        /* Анімації та іконка */
         #app-container .grid-unified .add-card-btn:hover, 
         #app-container .grid-unified .add-card-btn:active {
             opacity: 1;
@@ -1919,11 +1990,12 @@
         #app-container .grid-unified .add-card-btn .plus-icon {
             font-size: 20px !important; 
             font-weight: 400 !important;
-            line-height: 0 !important; /* Вбиває зміщення шрифту */
+            line-height: 0 !important; 
             display: block !important;
+            margin: 0 !important;
         }
 
-        /* Ховаємо кнопку + під час пошуку */
+        /* Ховаємо під час пошуку */
         #app-container.search-compact-mode .add-card-btn {
             display: none !important;
         }
@@ -2220,16 +2292,26 @@ function syncHistoryBackground() {
         saveAndRender();
     }
 
+
+
+    // ФІЛЬТР ЗІРКОВИХ ПРАКТИК: 3 зірки -> 2 зірки -> 1 зірка -> Вимкнено
+
     function toggleStarFilter(event) {
         if (event) event.stopPropagation();
-        starFilterLevel = (starFilterLevel + 1) % 4; 
+        
+        // Цикл: 3 зірки -> 2 зірки -> 1 зірка -> Вимкнено
+        if (starFilterLevel === 0) starFilterLevel = 3;
+        else if (starFilterLevel === 3) starFilterLevel = 2;
+        else if (starFilterLevel === 2) starFilterLevel = 1;
+        else starFilterLevel = 0; 
+        
         saveAndRender();
     }
 
     // --- ПОЧАТОК: Налаштування теми та вигляду ---
     let systemThemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
     let currentTheme = localStorage.getItem('theme') || (systemThemeQuery.matches ? 'dark' : 'light');
-    let currentLayout = localStorage.getItem('layout') || 'grid';
+    let currentLayout = localStorage.getItem('layout') || 'cloud';
 
     function applyTheme() {
         document.documentElement.setAttribute('data-theme', currentTheme);
@@ -3279,15 +3361,36 @@ let selectedInCat = Object.values(selectedItems).filter(i => i.category === cate
 
 
 
+// 4. Збираємо активні тригери (збережена "магія" описів)
+                let rawTriggers = [];
+                Object.values(selectedItems).forEach(i => {
+                    if (i && typeof i === 'object' && !Array.isArray(i) && i.name && typeof i.name === 'string' && i.name.length > 3 && i.category && i.category.toLowerCase() !== 'practices') {
+                        rawTriggers.push(i.name.toLowerCase());
+                    }
+                });
 
-                // 4. Збираємо активні тригери (з підтримкою МАКРО-ТРИГЕРІВ)
+                rawTriggers.forEach(t => {
+                    let currentSubSearch = "Інше";
+                    let hasMatch = blockData.items.some(p => {
+                        if (p.type === 'subheader') currentSubSearch = p.title;
+                        if (p.type !== 'item') return false;
+                        
+                        // Шукаємо всюди: в імені, описі, підзаголовку та тегах
+                        let textToSearch = (p.name + " " + p.desc + " " + currentSubSearch + " " + (p.triggers ? p.triggers.join(" ") : "")).toLowerCase();
+                        return textToSearch.includes(t);
+                    });
+                    if (hasMatch) activeTriggers.push(t);
+                });
+
+
+                /* 4. Збираємо активні тригери (з підтримкою МАКРО-ТРИГЕРІВ)
 let rawTriggers = [];
 Object.values(selectedItems).forEach(i => {
     if (i && typeof i === 'object' && !Array.isArray(i) && i.name && typeof i.name === 'string' && i.name.length > 3 && i.category && i.category.toLowerCase() !== 'practices') {
         rawTriggers.push(i.name.toLowerCase());
         rawTriggers.push(i.category.toLowerCase()); // 🎯 МАКРО-ТРИГЕР: Категорія (#) теж стає тригером!
     }
-});
+}); */
 
 rawTriggers.forEach(t => {
     let currentSubSearch = "Інше";
@@ -3344,7 +3447,29 @@ if (starFilterLevel > 0) {
                                 });
                             }
 
-                            // Оцінка за ТРИГЕРАМИ
+
+
+// Оцінка за ТРИГЕРАМИ (Гібридна: снайпер + інтуїція)
+                            if (!isMismatch && activeTriggers.length > 0) {
+                                let combinedText = (i.desc + " " + currentSub).toLowerCase();
+
+                                activeTriggers.forEach(t => {
+                                    let matchInTriggers = i.triggers && i.triggers.some(trig => trig.toLowerCase() === t);
+                                    
+                                    if (matchInTriggers) {
+                                        score += 50; // 🎯 100% влучання у твій ручний тег [tag]! Найвищий пріоритет.
+                                    } else if (i.name.toLowerCase().includes(t)) {
+                                        score += 20; // 🟡 Влучання прямо в назву практики.
+                                    } else if (combinedText.includes(t)) {
+                                        score += 5;  // 🪶 Слабке влучання (знайшло в описі або підзаголовку).
+                                    }
+                                });
+                            }
+
+
+
+
+                            /* Оцінка за ТРИГЕРАМ - старий варіант без макро-тригерів
 if (!isMismatch && activeTriggers.length > 0) {
     // 🎯 СУБ-КАТЕГОРІЯ (###) бере участь в оцінці та отримує бали
     let combinedText = (i.name + " " + i.desc + " " + currentSub + " " + (i.triggers ? i.triggers.join(" ") : "")).toLowerCase();
@@ -3352,7 +3477,7 @@ if (!isMismatch && activeTriggers.length > 0) {
     activeTriggers.forEach(t => {
         if (combinedText.includes(t)) score += 50;
     });
-}
+} */
 
                             if (score > 0 && !isMismatch) {
                                 scoredPractices.push({ name: i.name, score: score, sub: currentSub });
@@ -3379,7 +3504,15 @@ if (!isMismatch && activeTriggers.length > 0) {
                 } else {
                     recCount = blockData.items.filter(i => i.type === 'item').length;
                 }
-            }
+            } 
+
+
+
+
+
+
+
+
 
             const block = document.createElement('div');
 
@@ -3713,10 +3846,14 @@ if (category.toLowerCase() === 'practices') {
                         let showByTop = isSmartSortEnabled && isTop;
                         let showByStar = (starFilterLevel > 0) && isStarred;
 
-                        if (showByTop || showByStar) {
-                            smartClass = showByStar ? 'starred' : 'recommended';
+                        if (showByTop && showByStar) {
+                            smartClass = 'starred super-match'; // 🎯 Ідеальний збіг! (І зірка, і алгоритм)
+                        } else if (showByStar) {
+                            smartClass = 'starred'; // ⭑ Лише зірочка
+                        } else if (showByTop) {
+                            smartClass = 'recommended'; // ✨ Лише смарт-фільтр
                         } else {
-                            isSmartHidden = true; // 2. Робимо true ТІЛЬКИ для зайвих практик
+                            isSmartHidden = true; 
                         }
                     }
 
@@ -4101,11 +4238,12 @@ if (category.toLowerCase() === 'practices') {
                 const isEmpty = (visibleItemsCount + visibleScalesCount) === 0;
 
                 // Якщо група порожня АЛЕ в ній є виконана практика — ми її НЕ видаляємо!
-                if (isEmpty && !hasActiveChecked) {
-                    wrap.remove();
-                } else if (isFilteringActive) {
-                    wrap.classList.remove('collapsed'); // Розгортаємо автоматично при роботі фільтра
-                }
+            if (isEmpty && !hasActiveChecked) {
+                wrap.remove();
+            } else if (isFilteringActive) {
+                wrap.classList.remove('collapsed'); // Розгортаємо автоматично
+                wrap.dataset.forceOpen = "true"; // 🟢 МАГІЯ: Даємо сигнал не згортати назад!
+            }
             });
 
 
@@ -4212,8 +4350,8 @@ function saveAndRender() {
         });
         
         document.querySelectorAll('.subheader-wrap').forEach(wrap => {
-            // 🟢 ФІКС: Відновлюємо стан за унікальним ID
-            if (expandedSubIds.includes(wrap.id)) {
+            // 🟢 ФІКС: Відновлюємо стан, АЛЕ поважаємо автоматичне розгортання фільтром
+            if (expandedSubIds.includes(wrap.id) || wrap.dataset.forceOpen === "true") {
                 wrap.classList.remove('collapsed');
             } else {
                 wrap.classList.add('collapsed');
