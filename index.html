@@ -1063,54 +1063,77 @@
 
 
 
-        /* 🎨 КОЛЬОРОВЕ КОДУВАННЯ ГОЛОВНИХ КАТЕГОРІЙ */
-        
-        /* 1. Справи та події (FACTORS / TASKS) — нейтрально-сірий або графітовий акцент */
-        [id*="factors" i] .category-header, [id*="tasks" i] .category-header {
-            border-left: 4px solid  #363434 !important;
-        }
+        /* 🎨 КОЛЬОРОВЕ КОДУВАННЯ КАТЕГОРІЙ (ЗА 6-КРОКОВОЮ АРХІТЕКТУРОЮ) */
 
-        /* --- */
-        [id*="sub-parts" i] .category-header, [id*="tasks" i] .category-header {
-            border-left: 4px solid  #be21de !important;
-        }
-        
-        /* 2. Фізичний стан (BODY / INTAKE) — м'який синьо-блакитний відтінок (соматика, вода) */
-        [id*="somatic" i] .category-header, [id*="food" i] .category-header {
-            border-left: 4px solid #5a9cb8 !important;
-        }
-        [data-theme="dark"] [id*="body" i] .category-header, [data-theme="dark"] [id*="intake" i] .category-header {
-            border-left: 4px solid #7cb0c9 !important;
-        }
+/* 1. 📊 МЕТРИКИ ТА КЛІМАТ (metrics, climate, scales) — Сонячний / Пісочний (Базовий замір) */
+[id*="metrics" i] .category-header, 
+[id*="climate" i] .category-header, 
+[id*="scales" i] .category-header {
+    border-left: 4px solid #cde3e6 !important;
+}
+[data-theme="dark"] [id*="metrics" i] .category-header, 
+[data-theme="dark"] [id*="climate" i] .category-header, 
+[data-theme="dark"] [id*="scales" i] .category-header {
+    border-left: 4px solid #decea4 !important;
+}
 
-        /* 3. Психіка та емоції (MIND / EMOTIONS / TRIGGERS) — глибокий лавандово-пурпурний */
-        [id*="affects" i] .category-header, [id*="emotions" i] .category-header, [id*="urges" i] .category-header {
-            border-left: 4px solid #e54709 !important;
-        }
-        [data-theme="dark"] [id*="affects" i] .category-header, [data-theme="dark"] [id*="emotions" i] .category-header, [data-theme="dark"] [id*="urges" i] .category-header {
-            border-left: 4px solid #831904 !important;
-        }
+/* 2. 🔍 КОНТЕКСТ (factors, food) — Нейтрально-сірий / Графітовий (Об'єктивна реальність) */
+[id*="factors" i] .category-header, 
+[id*="food" i] .category-header {
+    border-left: 4px solid #f0c827 !important;
+}
+[data-theme="dark"] [id*="factors" i] .category-header, 
+[data-theme="dark"] [id*="food" i] .category-header {
+    border-left: 4px solid #d0d009 !important;
+}
 
-        /* --- */
-        [id*="thoughts" i] .category-header, [id*="ocd" i] .category-header, [id*="triggers" i] .category-header {
-            border-left: 4px solid #2c90f4 !important;
-        }
-        [data-theme="dark"] [id*="thoughts" i] .category-header, [data-theme="dark"] [id*="ocd" i] .category-header, [data-theme="dark"] [id*="triggers" i] .category-header {
-            border-left: 4px solid #261076 !important;
-        }
+/* 3. 🫀 ТІЛО ТА СЕРЦЕ (somatic, affects, emotions, needs, boundaries) 
+   Тіло залишаємо синім/водяним, а почуття — теплим теракотовим */
+[id*="somatic" i] .category-header {
+    border-left: 4px solid #5a9cb8 !important;
+}
+[data-theme="dark"] [id*="somatic" i] .category-header {
+    border-left: 4px solid #7cb0c9 !important;
+}
 
-        /* 4. Практики та відновлення (PRACTICES / SELF / COPINGS) — твій улюблений шавлієвий зелений */
-        [id*="practices" i] .category-header, [id*="self" i] .category-header, [id*="copings" i] .category-header {
-            border-left: 4px solid var(--accent) !important;
-        }
-        
-        /* 5. Шкали самооцінки (SCALSE / SHORTS) — теплий сонячний / пісочний колір */
-        [id*="scales" i] .category-header, [id*="scales" i] .category-header {
-            border-left: 4px solid #bda05a !important;
-        }
-        [data-theme="dark"] [id*="scalse" i] .category-header, [data-theme="dark"] [id*="scales" i] .category-header {
-            border-left: 4px solid #d1b97d !important;
-        }
+[id*="affects" i] .category-header, 
+[id*="emotions" i] .category-header,
+[id*="needs" i] .category-header,
+[id*="boundaries" i] .category-header {
+    border-left: 4px solid #e54709 !important; /* Насичений коралово-червоний */
+}
+[data-theme="dark"] [id*="affects" i] .category-header, 
+[data-theme="dark"] [id*="emotions" i] .category-header,
+[data-theme="dark"] [id*="needs" i] .category-header,
+[data-theme="dark"] [id*="boundaries" i] .category-header {
+    border-left: 4px solid #c45b43 !important; /* Приглушений теракотовий для темної теми */
+}
+
+/* 4. ⚡ ІСКРИ РОЗУМУ (thoughts, obsessions, urges) — Глибокий лавандовий / Індиго (Електрика мозку) */
+[id*="thoughts" i] .category-header, 
+[id*="obsessions" i] .category-header, 
+[id*="urges" i] .category-header {
+    border-left: 4px solid #8c76c3 !important;
+}
+[data-theme="dark"] [id*="thoughts" i] .category-header, 
+[data-theme="dark"] [id*="obsessions" i] .category-header, 
+[data-theme="dark"] [id*="urges" i] .category-header {
+    border-left: 4px solid #8e7cc3 !important;
+}
+
+/* 5. 🛡 РЕАКЦІЇ (actions) — Динамічний бурштиновий / Охра (Енергія дії) */
+[id*="actions" i] .category-header {
+    border-left: 4px solid #d92b9f !important;
+}
+[data-theme="dark"] [id*="actions" i] .category-header {
+    border-left: 4px solid #a62079 !important;
+}
+
+/* 6. ⚓ ВІДНОВЛЕННЯ (parts, practices) — Фірмова шавлія (Зцілення та інтеграція) */
+[id*="parts" i] .category-header, 
+[id*="practices" i] .category-header {
+    border-left: 4px solid #95085f !important;
+}
 
         /* Загальний стиль для ліній: робимо їх округлими та красивими */
         .category-header {

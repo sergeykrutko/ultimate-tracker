@@ -1,5 +1,4 @@
 > Welcome to **Ultimate Tracker**.
-
 > **📊 METRICS ↓**
 
 # VITL [delta]
