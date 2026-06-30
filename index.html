@@ -125,8 +125,8 @@
                 transform: translateY(-50%) !important; /* Ідеальне центрування */
                 z-index: 9999 !important; /* Завжди поверх усього */
                 
-                /* Магія: тінь генерує ефект затемнення всього екрана позаду вікна */
-                box-shadow: 0 20px 40px rgba(0,0,0,0.3), 0 0 0 100vw rgba(0,0,0,0.4) !important; 
+                /* Прибрали тотальне затемнення, залишили тільки красиву глибоку тінь під самою карткою */
+                box-shadow: 0 16px 40px rgba(0,0,0,0.25), 0 0 0 1px var(--border) !important; 
             }
         }
 
@@ -911,11 +911,19 @@
 
         /* 🟢 УЛЬТРАЩІЛЬНА СІТКА ДЛЯ ОДНИХ ІКОНОК (ЕМOДЗІ) */
         .grid-unified.icon-only-grid .option-name {
-            font-size: 24px !important; /* Робимо сам емодзі трохи більшим */
+            font-size: 26px !important; 
             text-align: center !important;
-            width: 130% !important;
-            margin: 4px 0 0 0 !important;
+            width: 100% !important;
+            margin: 0 !important; /* 🟢 ФІКС: Прибрали зайвий відступ зверху */
+            padding-right: 0 !important; /* 🟢 ФІКС: Ігноруємо відступ під меню */
             line-height: 1 !important;
+        }
+
+        /* 🟢 МАГІЯ: На емодзі-картках меню (⋮) акуратно висить у правому верхньому куті! */
+        .grid-unified.icon-only-grid .option-clickable-area > div:nth-child(2) {
+            top: 4px !important;
+            right: 4px !important;
+            transform: none !important;
         }
         
        
@@ -1170,7 +1178,7 @@
         /* 📊 СТАТИСТИКА (Бейджі та Кнопка) */
         .stats-mode-btn { 
             background: transparent; border: 1px dashed var(--border); color: var(--text-desc); 
-            font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 8px; cursor: pointer; transition: 0.2s;
+            font-size: 8px; font-weight: 800; padding: 4px 8px; border-radius: 8px; cursor: pointer; transition: 0.2s;
         }
         .stats-mode-btn.active-toggle { color: var(--accent); border-color: var(--accent); background: var(--accent-light);}
         
@@ -1179,10 +1187,10 @@
             font-weight: 800;
             color: var(--text-desc);
             background: var(--bg-color);
-            border: 1px solid var(--border);
+            border: 0.5px solid var(--border);
             border-radius: 6px;
-            padding: 1px 4px;
-            margin-left: 6px;
+            padding: 2px 4px;
+            margin-left: 7px;
             opacity: 0.7;
             vertical-align: middle;
             display: inline-block;
@@ -1202,9 +1210,10 @@
         /* Для емодзі-карток бейдж красиво висить у лівому верхньому кутку */
         .grid-unified.icon-only-grid .stats-badge {
             position: absolute;
-            top: 4px;
-            left: 4px;
+            top: 5px;
+            left: 5px;
             margin: 0;
+            font-size: 7px;
         }
 
 
@@ -1654,6 +1663,166 @@
         }
 
 
+
+
+        /* ========================================= */
+        /* 🛠 ФІКС: РОЗУМНА І КОМПАКТНА ШИРИНА ВІКНА */
+        /* ========================================= */
+        
+        #app-container .grid-unified .option-info,
+        #app-container .grid-unified .option-info.open {
+            width: max-content !important; /* Облягає контент (цифри/текст) */
+            min-width: 160px !important;   /* Мінімально можлива ширина (щоб влізли кнопки 1-5) */
+            max-width: 210px !important;   /* Максимальна ширина для довгого тексту */
+            white-space: normal !important;
+        }
+
+        /* На телефоні діють ті ж самі ідеальні пропорції */
+        @media (max-width: 768px) {
+            #app-container .grid-unified .option-info.open {
+                width: max-content !important; 
+                min-width: 160px !important; 
+                max-width: 210px !important; 
+            }
+        }
+
+
+
+        /* ========================================= */
+        /* 🧹 ФІКС: ПРИБИРАЄМО ЛІНІЮ ПРИ ЗАКРИТТІ ⓘ  */
+        /* ========================================= */
+        
+        #app-container .option-info:not(.open), 
+        #app-container .scale-info-block:not(.open) {
+            border-color: transparent !important;
+            box-shadow: none !important;
+            background: transparent !important;
+        }
+
+
+
+
+        /* ========================================= */
+        /* 🎯 ФІКС: ВЕРТИКАЛЬНЕ ЦЕНТРУВАННЯ БЕДЖІВ   */
+        /* ========================================= */
+        
+        /* Змушуємо кнопки та заголовки шкал ідеально вирівнювати свій вміст по центру */
+        .global-scale-title, 
+        .option-name {
+            display: inline-flex !important;
+            align-items: center !important;
+            flex-wrap: wrap !important;
+        }
+        
+        /* Зберігаємо центрування для сітки з одними емодзі */
+        .grid-unified.icon-only-grid .option-name {
+            display: flex !important;
+            justify-content: center !important;
+        }
+
+        /* Налаштування самого лічильника */
+        .stats-badge {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            margin-top: 0 !important;
+            transform: translateY(-1px) !important; /* Мікро-зсув для ідеального збігу з великими літерами */
+        }
+
+
+
+        /* ========================================= */
+        /* 🛑 ФІКС: БЛОКУВАННЯ СТРИБКА КАРТКИ        */
+        /* ========================================= */
+        
+        /* Якщо ми натискаємо на відкрите меню, повзунки шкали або кнопку ⋮, 
+           забороняємо головній картці реагувати анімацією "фізичного натискання" */
+        #app-container .option-btn:has(.option-info:active):active,
+        #app-container .option-btn:has(.unified-menu-btn:active):active,
+        #app-container .category-block:has(.scale-info-block:active):active,
+        #app-container .category-block:has(.unified-menu-btn:active):active,
+        #app-container .category-block:has(.slider-container:active):active {
+            transform: none !important;
+        }
+
+
+
+        /* ========================================= */
+        /* 🔍 ФІКС: УЛЬТРА-КОМПАКТНИЙ ПОШУК (ОНОВЛЕНО)*/
+        /* ========================================= */
+
+        /* 1. Блоки категорій: робимо стабільний, красивий відступ між групами (PRACTICES -> SOMATIC) */
+        #app-container.search-compact-mode .category-block {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            margin: 0 0 24px 0 !important; /* Чіткий простір між розділами */
+            padding: 0 !important;
+        }
+
+        #app-container.search-compact-mode .category-content {
+            padding: 0 !important;
+            border: none !important;
+        }
+
+        /* 2. Міні-заголовки: відсуваємо їх від кнопок, щоб не лізли на голову */
+        #app-container.search-compact-mode .category-header {
+            padding: 0 0 8px 4px !important; /* Відступ ЗНИЗУ, щоб кнопки "дихали" */
+            margin: 0 !important;
+            border: none !important;
+            background: transparent !important;
+            min-height: auto !important;
+        }
+        
+        #app-container.search-compact-mode .category-header-left span:first-child {
+            font-family: 'Manrope', -apple-system, sans-serif !important;
+            font-size: 11px !important;
+            font-weight: 800 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 1px !important;
+            color: var(--text-desc) !important;
+            opacity: 0.7 !important;
+            line-height: 1 !important;
+        }
+
+        /* Ховаємо все зайве з шапки */
+        #app-container.search-compact-mode .cat-analytic-wrap,
+        #app-container.search-compact-mode .category-badge,
+        #app-container.search-compact-mode .category-header-right,
+        #app-container.search-compact-mode .subheader-title {
+            display: none !important;
+        }
+
+        /* 3. ЗНИЩУЄМО ПОРОЖНЕЧІ: Вбиваємо відступи прихованих підзаголовків */
+        #app-container.search-compact-mode .subheader-wrap {
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+        }
+
+        /* 4. Ідеальна хмарка: змушуємо різні підгрупи виглядати як єдине ціле */
+        #app-container.search-compact-mode .grid-unified {
+            display: flex !important; 
+            flex-wrap: wrap !important;
+            gap: 6px !important; /* Горизонтальний і вертикальний відступ всередині */
+            padding: 0 !important;
+            margin: 0 0 6px 0 !important; /* Імітуємо такий самий відступ (gap) між різними підгрупами */
+        }
+        
+        #app-container.search-compact-mode .grid-unified:empty {
+            display: none !important;
+            margin: 0 !important;
+        }
+
+        /* 5. Кнопки: акуратні, не розтягуються */
+        #app-container.search-compact-mode .option-btn {
+            width: auto !important;
+            flex: 0 1 auto !important;
+            margin: 0 !important;
+        }
+
+
+
     </style>
 </head>
 <body>
@@ -1751,15 +1920,17 @@ let activeCloudPopupId = null;
 document.addEventListener('click', (e) => {
     let needsRender = false;
 
-    // 1. Закриваємо всі інфо-вікна (ⓘ)
-    if (!e.target.closest('.option-info') && !e.target.closest('.info-icon-btn')) {
-        const openInfos = document.querySelectorAll('.option-info.open');
+    // 1. Закриваємо всі спливаючі вікна (і на звичайних картках, і на шкалах)
+    if (!e.target.closest('.option-info') && !e.target.closest('.scale-info-block') && !e.target.closest('.unified-menu-btn') && !e.target.closest('.info-icon-btn')) {
+        const openInfos = document.querySelectorAll('.option-info.open, .scale-info-block.open');
         if (openInfos.length > 0) {
             openInfos.forEach(el => {
                 el.classList.remove('open');
-                const icon = el.parentElement.querySelector('.info-icon-btn');
-                if(icon) { icon.style.opacity = '0.6'; icon.style.color = 'var(--text-desc)'; icon.style.transform = 'scale(1)'; }
+                // Повертаємо кнопці ⋮ або ⓘ напівпрозорий сірий колір
+                const icon = el.parentElement.querySelector('.unified-menu-btn') || el.parentElement.querySelector('.info-icon-btn');
+                if (icon) { icon.style.opacity = '0.6'; icon.style.color = 'var(--text-desc)'; icon.style.transform = 'scale(1)'; }
             });
+            window.activeUnifiedMenuId = null; // Забуваємо, що меню було відкрите
         }
     }
 
@@ -1769,12 +1940,12 @@ document.addEventListener('click', (e) => {
         needsRender = true;
     }
 
-    // 3. 🟢 НОВЕ: Закриваємо порожні поля коментарів, якщо клікнули повз
+    // 3. Закриваємо порожні поля коментарів
     if (!e.target.closest('.card-note-wrap') && !e.target.closest('.note-icon-btn')) {
         document.querySelectorAll('.card-note-wrap').forEach(wrap => {
             const input = wrap.querySelector('input');
             if (input && !input.value.trim() && wrap.style.display === 'block') {
-                wrap.style.display = 'none'; // Ховаємо, бо нічого не ввели
+                wrap.style.display = 'none'; 
             }
         });
     }
@@ -2285,227 +2456,173 @@ function renderInlineMarkdown(text) {
         const widget = document.createElement('div');
         widget.className = 'category-block global-scale-widget delta-widget' + (isGlobal ? '' : ' inline-scale-widget');
 
-        let desc = "";
-        let infoText = "";
+        let desc = ""; let infoText = "";
         if (rawDesc) {
-            const infoRegex = /\{\{([\s\S]*?)\}\}/g;
-            let infoMatch;
-            let tempDesc = rawDesc;
-            while ((infoMatch = infoRegex.exec(tempDesc)) !== null) {
-                infoText += (infoText ? " " : "") + infoMatch[1].trim();
-            }
+            const infoRegex = /\{\{([\s\S]*?)\}\}/g; let infoMatch; let tempDesc = rawDesc;
+            while ((infoMatch = infoRegex.exec(tempDesc)) !== null) infoText += (infoText ? " " : "") + infoMatch[1].trim();
             desc = tempDesc.replace(infoRegex, '').trim();
         }
 
-        widget.dataset.searchText = scaleItems.map(i => i.label.toLowerCase()).join(' ') + ' ' + title.toLowerCase() + ' ' + (desc ? desc.toLowerCase() : '') + ' ' + (infoText ? infoText.toLowerCase() : '');
+        widget.dataset.searchText = scaleItems.map(i => i.label ? i.label.toLowerCase() : '').join(' ') + ' ' + title.toLowerCase() + ' ' + (desc ? desc.toLowerCase() : '') + ' ' + (infoText ? infoText.toLowerCase() : '');
 
         const stateId = `scaleCat_${title}`;
         const isSelected = selectedItems[stateId] !== undefined;
         const currentIndex = isSelected ? selectedItems[stateId].index : Math.floor(scaleItems.length / 2);
+        let currentNote = isSelected ? (selectedItems[stateId].note || "") : "";
 
         if (isSelected) widget.classList.add('active');
-
-        let initialText = '';
-        let currentNote = ''; 
-        if (isSelected) {
-            const it = scaleItems[currentIndex];
-            initialText = it.label ? it.label.replace(/^[-—–:]\s*/, '') : '';
-            currentNote = selectedItems[stateId].note || ""; 
-        }
 
         const header = document.createElement('div');
         header.className = 'global-scale-header';
         header.style.position = 'relative';
         
         const titleContainer = document.createElement('div');
-        titleContainer.style.display = 'flex';
-        titleContainer.style.flexDirection = 'column';
-        titleContainer.style.flex = '1';
+        titleContainer.style.display = 'flex'; titleContainer.style.flexDirection = 'column'; titleContainer.style.flex = '1';
         
         const titleRow = document.createElement('div');
-        titleRow.style.display = 'flex';
-        titleRow.style.alignItems = 'center';
-        titleRow.style.gap = '6px';
+        titleRow.style.display = 'flex'; titleRow.style.alignItems = 'center'; titleRow.style.gap = '6px';
         
-        const titleSpan = document.createElement('span');
-        titleSpan.className = 'global-scale-title';
-        
-        // 🟢 СТАТИСТИКА ТА КОРЕЛЯЦІЇ
-        let statsHtml = '';
-        let linksHtml = '';
-        let lagHtml = '';
-        let hasLinks = false;
-        
+        // СТАТИСТИКА
+        let statsHtml = ''; let linksHtml = ''; let lagHtml = '';
         if (trackerStats[title]) {
             let count = statsMode === 'month' ? trackerStats[title].month : trackerStats[title].all;
-            if (count > 0) {
-                let badgeClass = count >= 10 ? 'stats-badge high-volume' : 'stats-badge';
-                statsHtml = `<span class="${badgeClass}" style="margin-left:8px;">${count}</span>`;
-            }
-
+            if (count > 0) statsHtml = `<span class="${count >= 10 ? 'stats-badge high-volume' : 'stats-badge'}" style="margin-left:8px;">${count}</span>`;
             let links = trackerStats[title].links;
-            if (links && links.length > 0) {
-                hasLinks = true;
-                let linksList = links.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('');
-                linksHtml = `<div class="synapses-wrap ${infoText ? '' : 'no-border'}" style="margin-bottom: 8px;"><div class="synapses-title">🔗 Синхронізується з:</div>${linksList}</div>`;
-            }
-
-            // 🟢 ВІДКЛАДЕНІ НАСЛІДКИ
+            if (links && links.length > 0) linksHtml = `<div class="synapses-wrap ${infoText ? '' : 'no-border'}"><div class="synapses-title">🔗 Синхронізується з:</div>${links.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('')}</div>`;
             let lags = trackerStats[title].lags;
-            if (lags && lags.length > 0) {
-                hasLinks = true;
-                let lagsList = lags.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('');
-                lagHtml = `<div class="synapses-wrap ${!infoText && !linksHtml ? 'no-border' : ''}" style="margin-bottom: 8px;"><div class="synapses-title" style="color:#d48a49;">⏳ Передувало (до 24 год):</div>${lagsList}</div>`;
-            }
+            if (lags && lags.length > 0) lagHtml = `<div class="synapses-wrap ${!infoText && !linksHtml ? 'no-border' : ''}"><div class="synapses-title" style="color:#d48a49;">⏳ Передувало (до 24 год):</div>${lags.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('')}</div>`;
         }
+
+        const titleSpan = document.createElement('span');
+        titleSpan.className = 'global-scale-title';
         titleSpan.innerHTML = title + statsHtml;
         titleRow.appendChild(titleSpan);
-        
-        if (infoText || hasLinks) {
-            const infoBtn = document.createElement('div');
-            infoBtn.innerHTML = 'ⓘ';
-            infoBtn.style.color = 'var(--text-desc)'; 
-            infoBtn.style.fontSize = '17px'; 
-            infoBtn.style.opacity = '0.6';
-            infoBtn.style.padding = '0 6px';
-            infoBtn.style.fontWeight = 'bold';
-            infoBtn.style.cursor = 'pointer';
-            infoBtn.style.display = 'inline-block';
-            infoBtn.style.transition = 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'; 
-            
-            infoBtn.onclick = (e) => {
-                e.stopPropagation();
-                const infoDiv = widget.querySelector('.scale-info-block');
-                if (infoDiv) {
-                    const isOpen = infoDiv.classList.toggle('open');
-                    infoBtn.style.opacity = isOpen ? '1' : '0.6';
-                    infoBtn.style.color = isOpen ? 'var(--accent)' : 'var(--text-desc)';
-                    infoBtn.style.transform = isOpen ? 'scale(1.15)' : 'scale(1)';
-
-                    if (isOpen) {
-                        infoDiv.style.left = '0';
-                        infoDiv.style.right = 'auto';
-                        requestAnimationFrame(() => {
-                            const rect = infoDiv.getBoundingClientRect();
-                            if (rect.right > window.innerWidth - 10) {
-                                infoDiv.style.left = 'auto';
-                                infoDiv.style.right = '0';
-                            }
-                        });
-                    }
-                }
-            };
-            titleRow.appendChild(infoBtn);
-        }
-        
         titleContainer.appendChild(titleRow);
 
         if (desc) {
             const descSpan = document.createElement('span');
-            descSpan.className = 'scale-desc';
-            descSpan.innerHTML = renderInlineMarkdown(desc);
+            descSpan.className = 'scale-desc'; descSpan.innerHTML = renderInlineMarkdown(desc);
             titleContainer.appendChild(descSpan);
         }
-        
+
+        // МЕНЮ (⋮) ТА ОЧИСТИТИ (✕)
+        const rightWrap = document.createElement('div');
+        rightWrap.style.cssText = 'display:flex; align-items:center; gap:4px; position:absolute; right:0; top:50%; transform:translateY(-50%); z-index:10;';
+
         const clearBtn = document.createElement('button');
-        clearBtn.className = 'clear-btn';
-        clearBtn.style.visibility = isSelected ? 'visible' : 'hidden';
-        clearBtn.style.fontSize = '14px';
-        clearBtn.innerText = '✕';
+        clearBtn.className = 'clear-btn'; clearBtn.style.visibility = isSelected ? 'visible' : 'hidden'; clearBtn.style.fontSize = '14px'; clearBtn.innerText = '✕';
         clearBtn.onclick = (e) => clearScaleCat(title, e);
 
-        header.appendChild(titleContainer);
+        const menuBtn = document.createElement('div');
+        menuBtn.innerHTML = '⋮';
+        menuBtn.className = 'unified-menu-btn';
+        menuBtn.style.cssText = 'color:var(--text-desc); font-size:16px; font-weight:900; opacity:0.6; padding:4px 8px; cursor:pointer; transition:all 0.2s; line-height: 1; user-select:none; display:flex; align-items:center; justify-content:center;';
 
+        rightWrap.appendChild(clearBtn);
+        rightWrap.appendChild(menuBtn);
+
+        // ЦЕНТРАЛЬНЕ ЗНАЧЕННЯ
         const valSpan = document.createElement('span');
-        valSpan.id = `float-val-${stateId}`;
-        valSpan.style.color = 'var(--accent)';
-        valSpan.style.fontWeight = '800';
-        valSpan.style.fontSize = '13px';
-        valSpan.style.position = 'absolute';
-        valSpan.style.left = '50%';
-        valSpan.style.top = '50%';
-        valSpan.style.transform = 'translate(-50%, -50%)';
-        valSpan.style.whiteSpace = 'nowrap';
-        valSpan.style.pointerEvents = 'none';
-
-        valSpan.innerText = initialText;
+        valSpan.id = `float-val-scaleCat_${title}`;
+        valSpan.style.cssText = 'color:var(--accent); font-weight:800; font-size:13px; position:absolute; left:50%; top:50%; transform:translate(-50%, -50%); white-space:nowrap; pointer-events:none;';
+        valSpan.innerText = isSelected ? (scaleItems[currentIndex].label ? scaleItems[currentIndex].label.replace(/^[-—–:]\s*/, '') : '') : '';
         if (!isSelected) valSpan.style.display = 'none';
-        
+
+        header.appendChild(titleContainer);
         header.appendChild(valSpan);
-
-        const noteBtn = document.createElement('span');
-        noteBtn.innerHTML = '✏️';
-        noteBtn.style.cursor = 'pointer';
-        noteBtn.style.fontSize = '12px';
-        noteBtn.style.position = 'absolute';
-        noteBtn.style.right = '28px'; 
-        noteBtn.style.top = '50%';
-        noteBtn.style.transform = 'translateY(-50%)';
-        noteBtn.style.opacity = '0.8';
-        if (!isSelected) noteBtn.style.display = 'none';
-
-        header.appendChild(noteBtn);
-        header.appendChild(clearBtn);
+        header.appendChild(rightWrap);
         widget.appendChild(header);
 
-        // 🟢 МАГІЯ ІНФО-БЛОКУ
-        if (infoText || hasLinks) {
-            const infoDiv = document.createElement('div');
-            infoDiv.className = 'scale-info-block';
-            infoDiv.innerHTML = (infoText ? renderInlineMarkdown(infoText) : '') + linksHtml + lagHtml;
-            widget.appendChild(infoDiv); 
+        // ЄДИНЕ ВІКНО НАЛАШТУВАНЬ ДЛЯ ШКАЛ (POPOVER)
+        const popupDiv = document.createElement('div');
+        popupDiv.className = 'scale-info-block';
+        popupDiv.style.cssText = 'min-width: 180px; max-width: 260px; padding: 12px; max-height: none !important; transition: opacity 0.15s ease, transform 0.15s ease !important; z-index: 101 !important; left: auto !important; right: 0 !important; top: calc(100% + 4px) !important;';
+        popupDiv.onclick = (e) => e.stopPropagation();
+
+        let hasTopContent = false;
+        if (desc || infoText) {
+            const infoSection = document.createElement('div'); infoSection.style.marginBottom = '8px';
+            infoSection.innerHTML = `
+                ${desc ? `<div class="info-popup-desc" style="margin-bottom: ${infoText ? '4px' : '0'}; font-style: normal; line-height: 1.3; color: var(--text-main); font-weight: 500; font-size: 11.5px;">${renderInlineMarkdown(desc)}</div>` : ''}
+                ${infoText ? `<div class="info-popup-ext" style="font-style: normal; font-size: 11px; color: var(--text-desc); line-height: 1.3;">${renderInlineMarkdown(infoText)}</div>` : ''}
+            `;
+            popupDiv.appendChild(infoSection); hasTopContent = true;
+        }
+        if (linksHtml || lagHtml) {
+            const synSection = document.createElement('div'); synSection.style.marginBottom = '8px';
+            if (hasTopContent) { synSection.style.borderTop = '1px dashed var(--border)'; synSection.style.paddingTop = '8px'; }
+            synSection.innerHTML = `${linksHtml}${lagHtml}`;
+            popupDiv.appendChild(synSection); hasTopContent = true;
         }
 
-        const noteWrap = document.createElement('div');
-        noteWrap.className = 'scale-note-block';
-        noteWrap.style.display = (isSelected && currentNote) ? 'block' : 'none'; 
-        noteWrap.style.margin = '0 0 12px 0';
-        noteWrap.innerHTML = `<input type="text" placeholder="comment..." value="${currentNote}" style="width: 100%; background: var(--bg-color); border: 1px dashed var(--accent); border-radius: 6px; padding: 4px 8px; font-size: 12px; color: var(--text-main); outline: none;">`;
+        // ПОЛЕ КОМЕНТАРЯ У ВІКНІ
+        const unifiedNoteWrap = document.createElement('div');
+        unifiedNoteWrap.style.cssText = 'display:block; width:100%;';
+        if (hasTopContent) { unifiedNoteWrap.style.borderTop = '1px dashed var(--border)'; unifiedNoteWrap.style.paddingTop = '8px'; }
+        const isSaved = currentNote.trim() !== '';
+        unifiedNoteWrap.innerHTML = `<input type="text" placeholder="✍️ Додати коментар..." value="${currentNote}" style="width: 100%; box-sizing: border-box; background: transparent; border: none; border-bottom: 1px solid ${isSaved ? 'var(--accent)' : 'transparent'}; font-size: 11.5px; color: var(--text-main); outline: none; padding: 2px 4px; transition: all 0.2s; opacity: ${isSaved ? '1' : '0.5'};">`;
         
-        const noteInput = noteWrap.querySelector('input');
+        const noteInput = unifiedNoteWrap.querySelector('input');
         noteInput.onclick = (e) => e.stopPropagation();
+        noteInput.onfocus = () => { noteInput.style.opacity = '1'; noteInput.style.borderBottom = '1px solid var(--accent)'; };
+        noteInput.onblur = (e) => {
+            const val = e.target.value.trim();
+            noteInput.style.opacity = val ? '1' : '0.5'; noteInput.style.borderBottom = val ? '1px solid var(--accent)' : '1px solid transparent';
+            if (selectedItems[stateId]) { selectedItems[stateId].note = val; saveData(); setTimeout(() => { updateReport(); saveAndRender(); }, 100); }
+        };
         noteInput.oninput = (e) => {
-            if (selectedItems[stateId]) {
-                selectedItems[stateId].note = e.target.value;
-                saveData(); 
-                updateReport(); 
+            if (!selectedItems[stateId]) {
+                const maxIdx = scaleItems.length - 1;
+                selectedItems[stateId] = { category: title, index: Math.floor(maxIdx/2), text: scaleItems[Math.floor(maxIdx/2)].number > 0 ? '+'+scaleItems[Math.floor(maxIdx/2)].number : scaleItems[Math.floor(maxIdx/2)].number, note: "" };
+                widget.classList.add('active'); clearBtn.style.visibility = 'visible';
+            }
+            selectedItems[stateId].note = e.target.value; saveData(); updateReport();
+        };
+        
+        popupDiv.appendChild(unifiedNoteWrap);
+        header.appendChild(popupDiv); 
+
+        // ЛОГІКА ВІДКРИТТЯ
+        menuBtn.onclick = (e) => {
+            e.stopPropagation();
+            const isOpen = popupDiv.classList.contains('open');
+            document.querySelectorAll('.scale-info-block.open, .option-info.open').forEach(el => { 
+                el.classList.remove('open'); 
+                const icon = el.parentElement.querySelector('.unified-menu-btn');
+                if(icon) { icon.style.opacity = '0.6'; icon.style.color = 'var(--text-desc)'; }
+            });
+            if (!isOpen) { 
+                popupDiv.classList.add('open'); 
+                menuBtn.style.opacity = '1'; 
+                menuBtn.style.color = 'var(--accent)'; 
+                window.activeUnifiedMenuId = stateId; 
+            } else { 
+                menuBtn.style.opacity = '0.6'; 
+                menuBtn.style.color = 'var(--text-desc)'; 
+                window.activeUnifiedMenuId = null;
             }
         };
-        widget.appendChild(noteWrap);
 
-        noteBtn.onclick = (e) => {
-            e.stopPropagation();
-            noteWrap.style.display = noteWrap.style.display === 'block' ? 'none' : 'block';
-            if (noteWrap.style.display === 'block') noteInput.focus();
-        };
+        if (window.activeUnifiedMenuId === stateId) {
+            popupDiv.classList.add('open');
+            menuBtn.style.opacity = '1';
+            menuBtn.style.color = 'var(--accent)';
+        }
 
-        const maxIdx = scaleItems.length - 1;
-        const centerIdx = Math.floor(maxIdx / 2);
-        const percent = (currentIndex / maxIdx) * 100;
-        const centerPercent = (centerIdx / maxIdx) * 100;
-
-        const fillStart = Math.min(percent, centerPercent);
-        const fillEnd = Math.max(percent, centerPercent);
+        const maxIdx = scaleItems.length - 1; const centerIdx = Math.floor(maxIdx / 2);
+        const percent = (currentIndex / maxIdx) * 100; const centerPercent = (centerIdx / maxIdx) * 100;
+        const fillStart = Math.min(percent, centerPercent); const fillEnd = Math.max(percent, centerPercent);
         const bgStyle = isSelected ? `background: linear-gradient(to right, var(--border) ${fillStart}%, var(--accent) ${fillStart}%, var(--accent) ${fillEnd}%, var(--border) ${fillEnd}%); border: 1px solid var(--accent);` : '';
 
         const sliderContainer = document.createElement('div');
         sliderContainer.className = 'slider-container';
-        sliderContainer.innerHTML = `
-            <input type="range" min="0" max="${maxIdx}" value="${currentIndex}" class="global-slider" 
-                   style="${bgStyle}"
-                   oninput="updateScaleSlider('${title}', this.value, this)" onchange="saveAndRender()">
-            <div class="global-slider-labels">
-                <span>${scaleItems[0].number > 0 ? '+'+scaleItems[0].number : scaleItems[0].number}</span>
-                <span>${scaleItems[centerIdx].number}</span>
-                <span>${scaleItems[maxIdx].number > 0 ? '+'+scaleItems[maxIdx].number : scaleItems[maxIdx].number}</span>
-            </div>
-        `;
+        sliderContainer.innerHTML = `<input type="range" min="0" max="${maxIdx}" value="${currentIndex}" class="global-slider" style="${bgStyle} margin-bottom: 0;" oninput="updateScaleSlider('${title}', this.value, this)" onchange="saveAndRender()"><div class="global-slider-labels"><span>${scaleItems[0].number > 0 ? '+'+scaleItems[0].number : scaleItems[0].number}</span><span>${scaleItems[centerIdx].number}</span><span>${scaleItems[maxIdx].number > 0 ? '+'+scaleItems[maxIdx].number : scaleItems[maxIdx].number}</span></div>`;
         widget.appendChild(sliderContainer);
         return widget;
     }
 
     // ==========================================
-    // ПОДВІЙНА ШКАЛА (IN / OUT)
+    // ПОДВІЙНА ШКАЛА (IN / OUT) З МІНІМАЛІЗМОМ
     // ==========================================
     function buildDeltaScaleDOM(title, scaleItems, isGlobal = false, rawDesc = "") {
         const widget = document.createElement('div');
@@ -2520,9 +2637,7 @@ function renderInlineMarkdown(text) {
 
         const stateId = `deltaCat_${title}`;
         const isSelected = selectedItems[stateId] !== undefined;
-        const maxIdx = scaleItems.length - 1;
-        const centerIdx = Math.floor(maxIdx / 2);
-        
+        const maxIdx = scaleItems.length - 1; const centerIdx = Math.floor(maxIdx / 2);
         let inIdx = isSelected ? selectedItems[stateId].inIdx : centerIdx;
         let outIdx = isSelected ? selectedItems[stateId].outIdx : centerIdx;
         let currentNote = isSelected ? (selectedItems[stateId].note || "") : "";
@@ -2539,76 +2654,21 @@ function renderInlineMarkdown(text) {
         const titleRow = document.createElement('div');
         titleRow.style.display = 'flex'; titleRow.style.alignItems = 'center'; titleRow.style.gap = '6px';
         
-        const titleSpan = document.createElement('span');
-        titleSpan.className = 'global-scale-title';
-        
-        // 🟢 СТАТИСТИКА ТА КОРЕЛЯЦІЇ
-        let statsHtml = '';
-        let linksHtml = '';
-        let lagHtml = '';
-        let hasLinks = false;
-        
+        // СТАТИСТИКА ТА КОРЕЛЯЦІЇ
+        let statsHtml = ''; let linksHtml = ''; let lagHtml = '';
         if (trackerStats[title]) {
             let count = statsMode === 'month' ? trackerStats[title].month : trackerStats[title].all;
-            if (count > 0) {
-                let badgeClass = count >= 10 ? 'stats-badge high-volume' : 'stats-badge';
-                statsHtml = `<span class="${badgeClass}" style="margin-left:8px;">${count}</span>`;
-            }
+            if (count > 0) statsHtml = `<span class="${count >= 10 ? 'stats-badge high-volume' : 'stats-badge'}" style="margin-left:8px;">${count}</span>`;
             let links = trackerStats[title].links;
-            if (links && links.length > 0) {
-                hasLinks = true;
-                let linksList = links.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('');
-                linksHtml = `<div class="synapses-wrap ${infoText ? '' : 'no-border'}" style="margin-bottom: 8px;"><div class="synapses-title">🔗 Синхронізується з:</div>${linksList}</div>`;
-            }
-
-            // 🟢 ВІДКЛАДЕНІ НАСЛІДКИ
+            if (links && links.length > 0) linksHtml = `<div class="synapses-wrap ${infoText ? '' : 'no-border'}"><div class="synapses-title">🔗 Синхронізується з:</div>${links.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('')}</div>`;
             let lags = trackerStats[title].lags;
-            if (lags && lags.length > 0) {
-                hasLinks = true;
-                let lagsList = lags.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('');
-                lagHtml = `<div class="synapses-wrap ${!infoText && !linksHtml ? 'no-border' : ''}" style="margin-bottom: 8px;"><div class="synapses-title" style="color:#d48a49;">⏳ Передувало (до 24 год):</div>${lagsList}</div>`;
-            }
+            if (lags && lags.length > 0) lagHtml = `<div class="synapses-wrap ${!infoText && !linksHtml ? 'no-border' : ''}"><div class="synapses-title" style="color:#d48a49;">⏳ Передувало (до 24 год):</div>${lags.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('')}</div>`;
         }
+
+        const titleSpan = document.createElement('span');
+        titleSpan.className = 'global-scale-title';
         titleSpan.innerHTML = title + statsHtml;
         titleRow.appendChild(titleSpan);
-
-        if (infoText || hasLinks) {
-            const infoBtn = document.createElement('div');
-            infoBtn.innerHTML = 'ⓘ';
-            infoBtn.style.color = 'var(--text-desc)'; 
-            infoBtn.style.fontSize = '17px'; 
-            infoBtn.style.opacity = '0.6';
-            infoBtn.style.padding = '0 6px';
-            infoBtn.style.fontWeight = 'bold';
-            infoBtn.style.cursor = 'pointer';
-            infoBtn.style.display = 'inline-block';
-            infoBtn.style.transition = 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'; 
-            
-            infoBtn.onclick = (e) => {
-                e.stopPropagation();
-                const infoDiv = widget.querySelector('.scale-info-block');
-                if (infoDiv) {
-                    const isOpen = infoDiv.classList.toggle('open');
-                    infoBtn.style.opacity = isOpen ? '1' : '0.6';
-                    infoBtn.style.color = isOpen ? 'var(--accent)' : 'var(--text-desc)';
-                    infoBtn.style.transform = isOpen ? 'scale(1.15)' : 'scale(1)';
-
-                    if (isOpen) {
-                        infoDiv.style.left = '0';
-                        infoDiv.style.right = 'auto';
-                        requestAnimationFrame(() => {
-                            const rect = infoDiv.getBoundingClientRect();
-                            if (rect.right > window.innerWidth - 10) {
-                                infoDiv.style.left = 'auto';
-                                infoDiv.style.right = '0';
-                            }
-                        });
-                    }
-                }
-            };
-            titleRow.appendChild(infoBtn);
-        }
-
         titleContainer.appendChild(titleRow);
 
         if (desc) {
@@ -2617,72 +2677,124 @@ function renderInlineMarkdown(text) {
             titleContainer.appendChild(descSpan);
         }
 
+        // МЕНЮ (⋮) ТА ОЧИСТИТИ (✕)
+        const rightWrap = document.createElement('div');
+        rightWrap.style.cssText = 'display:flex; align-items:center; gap:4px; position:absolute; right:0; top:50%; transform:translateY(-50%); z-index:10;';
+
         const clearBtn = document.createElement('button');
-        clearBtn.className = 'clear-btn';
-        clearBtn.style.visibility = isSelected ? 'visible' : 'hidden';
-        clearBtn.style.fontSize = '14px'; clearBtn.innerText = '✕';
+        clearBtn.className = 'clear-btn'; clearBtn.style.visibility = isSelected ? 'visible' : 'hidden'; clearBtn.style.fontSize = '14px'; clearBtn.innerText = '✕';
         clearBtn.onclick = (e) => { e.stopPropagation(); delete selectedItems[stateId]; saveAndRender(); };
 
-        const noteBtn = document.createElement('span');
-        noteBtn.innerHTML = '✏️';
-        noteBtn.style.cursor = 'pointer'; noteBtn.style.fontSize = '12px'; noteBtn.style.position = 'absolute';
-        noteBtn.style.right = '28px'; noteBtn.style.top = '50%'; noteBtn.style.transform = 'translateY(-50%)';
-        noteBtn.style.opacity = '0.8'; if (!isSelected) noteBtn.style.display = 'none';
+        const menuBtn = document.createElement('div');
+        menuBtn.innerHTML = '⋮';
+        menuBtn.className = 'unified-menu-btn';
+        menuBtn.style.cssText = 'color:var(--text-desc); font-size:16px; font-weight:900; opacity:0.6; padding:4px 8px; cursor:pointer; transition:all 0.2s; line-height: 1; user-select:none; display:flex; align-items:center; justify-content:center;';
+
+        rightWrap.appendChild(clearBtn);
+        rightWrap.appendChild(menuBtn);
 
         const valSpan = document.createElement('span');
         valSpan.id = `float-val-${stateId}`;
-        valSpan.style.color = 'var(--accent)';
-        valSpan.style.fontWeight = '800';
-        valSpan.style.fontSize = '13px';
-        valSpan.style.position = 'absolute';
-        valSpan.style.left = '50%';
-        valSpan.style.top = '50%';
-        valSpan.style.transform = 'translate(-50%, -50%)';
-        valSpan.style.whiteSpace = 'nowrap';
-        valSpan.style.pointerEvents = 'none';
+        valSpan.style.cssText = 'color:var(--accent); font-weight:800; font-size:13px; position:absolute; left:50%; top:50%; transform:translate(-50%, -50%); white-space:nowrap; pointer-events:none;';
 
         if (isSelected) {
             let lastActive = selectedItems[stateId].lastActive || 'OUT';
             let activeIdx = lastActive === 'IN' ? selectedItems[stateId].inIdx : selectedItems[stateId].outIdx;
             const activeIt = scaleItems[activeIdx];
-            const activeLbl = activeIt.label ? activeIt.label.replace(/^[-—–:]\s*/, '') : activeIt.number;
-            valSpan.innerText = activeLbl;
+            valSpan.innerText = activeIt.label ? activeIt.label.replace(/^[-—–:]\s*/, '') : activeIt.number;
         } else {
             valSpan.style.display = 'none';
         }
 
         header.appendChild(titleContainer); 
         header.appendChild(valSpan);
-        header.appendChild(noteBtn); 
-        header.appendChild(clearBtn);
+        header.appendChild(rightWrap);
         widget.appendChild(header);
 
-        // 🟢 МАГІЯ ІНФО-БЛОКУ
-        if (infoText || hasLinks) {
-            const infoDiv = document.createElement('div');
-            infoDiv.className = 'scale-info-block';
-            infoDiv.innerHTML = (infoText ? renderInlineMarkdown(infoText) : '') + linksHtml + lagHtml;
-            widget.appendChild(infoDiv); 
+        // ЄДИНЕ ВІКНО НАЛАШТУВАНЬ (POPOVER)
+        const popupDiv = document.createElement('div');
+        popupDiv.className = 'scale-info-block';
+        popupDiv.style.cssText = 'min-width: 180px; max-width: 260px; padding: 12px; max-height: none !important; transition: opacity 0.15s ease, transform 0.15s ease !important; z-index: 101 !important; left: auto !important; right: 0 !important; top: calc(100% + 4px) !important;';
+        popupDiv.onclick = (e) => e.stopPropagation();
+
+        let hasTopContent = false;
+        if (desc || infoText) {
+            const infoSection = document.createElement('div'); infoSection.style.marginBottom = '8px';
+            infoSection.innerHTML = `
+                ${desc ? `<div class="info-popup-desc" style="margin-bottom: ${infoText ? '4px' : '0'}; font-style: normal; line-height: 1.3; color: var(--text-main); font-weight: 500; font-size: 11.5px;">${renderInlineMarkdown(desc)}</div>` : ''}
+                ${infoText ? `<div class="info-popup-ext" style="font-style: normal; font-size: 11px; color: var(--text-desc); line-height: 1.3;">${renderInlineMarkdown(infoText)}</div>` : ''}
+            `;
+            popupDiv.appendChild(infoSection); hasTopContent = true;
+        }
+        if (linksHtml || lagHtml) {
+            const synSection = document.createElement('div'); synSection.style.marginBottom = '8px';
+            if (hasTopContent) { synSection.style.borderTop = '1px dashed var(--border)'; synSection.style.paddingTop = '8px'; }
+            synSection.innerHTML = `${linksHtml}${lagHtml}`;
+            popupDiv.appendChild(synSection); hasTopContent = true;
         }
 
-        const noteWrap = document.createElement('div');
-        noteWrap.style.display = (isSelected && currentNote) ? 'block' : 'none';
-        noteWrap.style.margin = '0 0 12px 0';
-        noteWrap.innerHTML = `<input type="text" placeholder="Comment..." value="${currentNote}" style="width: 100%; background: var(--bg-color); border: 1px dashed var(--accent); border-radius: 6px; padding: 4px 8px; font-size: 12px; color: var(--text-main); outline: none;">`;
-        noteWrap.querySelector('input').onclick = (e) => e.stopPropagation();
-        noteWrap.querySelector('input').oninput = (e) => { if (selectedItems[stateId]) { selectedItems[stateId].note = e.target.value; saveData(); updateReport(); } };
-        widget.appendChild(noteWrap);
-        noteBtn.onclick = (e) => { e.stopPropagation(); noteWrap.style.display = noteWrap.style.display === 'block' ? 'none' : 'block'; if(noteWrap.style.display === 'block') noteWrap.querySelector('input').focus(); };
+        // ПОЛЕ КОМЕНТАРЯ У ВІКНІ
+        const unifiedNoteWrap = document.createElement('div');
+        unifiedNoteWrap.style.cssText = 'display:block; width:100%;';
+        if (hasTopContent) { unifiedNoteWrap.style.borderTop = '1px dashed var(--border)'; unifiedNoteWrap.style.paddingTop = '8px'; }
+        const isSaved = currentNote.trim() !== '';
+        unifiedNoteWrap.innerHTML = `<input type="text" placeholder="✍️ Додати коментар..." value="${currentNote}" style="width: 100%; box-sizing: border-box; background: transparent; border: none; border-bottom: 1px solid ${isSaved ? 'var(--accent)' : 'transparent'}; font-size: 11.5px; color: var(--text-main); outline: none; padding: 2px 4px; transition: all 0.2s; opacity: ${isSaved ? '1' : '0.5'};">`;
+        
+        const noteInput = unifiedNoteWrap.querySelector('input');
+        noteInput.onclick = (e) => e.stopPropagation();
+        noteInput.onfocus = () => { noteInput.style.opacity = '1'; noteInput.style.borderBottom = '1px solid var(--accent)'; };
+        noteInput.onblur = (e) => {
+            const val = e.target.value.trim();
+            noteInput.style.opacity = val ? '1' : '0.5'; noteInput.style.borderBottom = val ? '1px solid var(--accent)' : '1px solid transparent';
+            if (selectedItems[stateId]) { selectedItems[stateId].note = val; saveData(); setTimeout(() => { updateReport(); saveAndRender(); }, 100); }
+        };
+        noteInput.oninput = (e) => {
+            if (!selectedItems[stateId]) {
+                selectedItems[stateId] = { category: title, inIdx: centerIdx, outIdx: centerIdx, inText: scaleItems[centerIdx].number > 0 ? '+'+scaleItems[centerIdx].number : scaleItems[centerIdx].number, outText: scaleItems[centerIdx].number > 0 ? '+'+scaleItems[centerIdx].number : scaleItems[centerIdx].number, note: "", outTouched: false };
+                widget.classList.add('active'); clearBtn.style.visibility = 'visible';
+            }
+            selectedItems[stateId].note = e.target.value; saveData(); updateReport();
+        };
+        
+        popupDiv.appendChild(unifiedNoteWrap);
+        header.appendChild(popupDiv);
+
+        // ЛОГІКА ВІДКРИТТЯ
+        menuBtn.onclick = (e) => {
+            e.stopPropagation();
+            const isOpen = popupDiv.classList.contains('open');
+            document.querySelectorAll('.scale-info-block.open, .option-info.open').forEach(el => { 
+                el.classList.remove('open'); 
+                const icon = el.parentElement.querySelector('.unified-menu-btn');
+                if(icon) { icon.style.opacity = '0.6'; icon.style.color = 'var(--text-desc)'; }
+            });
+            if (!isOpen) { 
+                popupDiv.classList.add('open'); 
+                menuBtn.style.opacity = '1'; 
+                menuBtn.style.color = 'var(--accent)'; 
+                window.activeUnifiedMenuId = stateId; 
+            } else { 
+                menuBtn.style.opacity = '0.6'; 
+                menuBtn.style.color = 'var(--text-desc)'; 
+                window.activeUnifiedMenuId = null;
+            }
+        };
+
+        if (window.activeUnifiedMenuId === stateId) {
+            popupDiv.classList.add('open');
+            menuBtn.style.opacity = '1';
+            menuBtn.style.color = 'var(--accent)';
+        }
 
         const slidersWrap = document.createElement('div');
-        slidersWrap.style.display = 'flex'; slidersWrap.style.flexDirection = 'column'; slidersWrap.style.gap = '10px'; slidersWrap.style.marginTop = '8px';
+        slidersWrap.style.cssText = 'display:flex; flex-direction:column; gap:2px; margin-top:8px;';
 
-        function createRow(type, currentVal) {
+        function createRow(type, currentVal, showLabels) {
             const row = document.createElement('div');
-            row.style.display = 'flex'; row.style.alignItems = 'center'; row.style.gap = '8px';
+            row.style.cssText = 'display:flex; align-items:center; gap:8px;';
             
             const label = document.createElement('span');
-            label.innerText = type; label.style.fontSize = '10px'; label.style.fontWeight = '800'; label.style.color = 'var(--text-desc)'; label.style.width = '24px';
+            label.innerText = type; label.style.cssText = 'font-size:10px; font-weight:800; color:var(--text-desc); width:24px;';
 
             const percent = (currentVal / maxIdx) * 100; const centerPercent = (centerIdx / maxIdx) * 100;
             const fillStart = Math.min(percent, centerPercent); const fillEnd = Math.max(percent, centerPercent);
@@ -2694,36 +2806,36 @@ function renderInlineMarkdown(text) {
                 if (type === 'OUT' && selectedItems[stateId].outTouched === true) isSliderActive = true; 
             }
 
-            let bgStyle = '';
-            if (isSliderActive) {
-                bgStyle = `background: linear-gradient(to right, var(--border) ${fillStart}%, ${color} ${fillStart}%, ${color} ${fillEnd}%, var(--border) ${fillEnd}%); border: 1px solid ${color};`;
-            } else {
-                bgStyle = `background: var(--border); border: 1px solid var(--border);`;
-            }
+            let bgStyle = isSliderActive ? `background: linear-gradient(to right, var(--border) ${fillStart}%, ${color} ${fillStart}%, ${color} ${fillEnd}%, var(--border) ${fillEnd}%); border: 1px solid ${color};` : `background: var(--border); border: 1px solid var(--border);`;
             
             const thumbClass = isSliderActive ? (type === 'IN' ? 'active-in' : 'active-out') : '';
 
             const sliderDiv = document.createElement('div');
-            sliderDiv.className = 'slider-container'; sliderDiv.style.flex = '1'; sliderDiv.style.margin = '0'; sliderDiv.style.paddingBottom = '14px';
-            sliderDiv.innerHTML = `
-                <input type="range" min="0" max="${maxIdx}" value="${currentVal}" class="global-slider ${thumbClass}" style="${bgStyle}" 
-                onpointerdown="if('${type}' === 'OUT') markOutTouched('${title}')"
-                oninput="updateDeltaSlider('${title}', '${type}', this.value, this)" 
-                onchange="saveAndRender()">
+            sliderDiv.className = 'slider-container'; sliderDiv.style.flex = '1'; sliderDiv.style.margin = '0'; 
+            
+            sliderDiv.style.paddingBottom = showLabels ? '14px' : '4px';
+
+            let labelsHtml = showLabels ? `
                 <div class="global-slider-labels">
                     <span>${scaleItems[0].number > 0 ? '+'+scaleItems[0].number : scaleItems[0].number}</span>
                     <span>${scaleItems[centerIdx].number}</span>
                     <span>${scaleItems[maxIdx].number > 0 ? '+'+scaleItems[maxIdx].number : scaleItems[maxIdx].number}</span>
-                </div>
+                </div>` : '';
+
+            sliderDiv.innerHTML = `
+                <input type="range" min="0" max="${maxIdx}" value="${currentVal}" class="global-slider ${thumbClass}" style="${bgStyle} margin-bottom: 0;" 
+                onpointerdown="if('${type}' === 'OUT') markOutTouched('${title}')"
+                oninput="updateDeltaSlider('${title}', '${type}', this.value, this)" 
+                onchange="saveAndRender()">
+                ${labelsHtml}
             `;
 
-            row.appendChild(label); 
-            row.appendChild(sliderDiv); 
+            row.appendChild(label); row.appendChild(sliderDiv); 
             return row;
         }
 
-        slidersWrap.appendChild(createRow('IN', inIdx));
-        slidersWrap.appendChild(createRow('OUT', outIdx));
+        slidersWrap.appendChild(createRow('IN', inIdx, false));
+        slidersWrap.appendChild(createRow('OUT', outIdx, true));
         widget.appendChild(slidersWrap);
         
         return widget;
@@ -3500,207 +3612,217 @@ if (category.toLowerCase() === 'practices') {
                     }
                 }
 
-                // 🟢 МАГІЯ: Розумний відступ справа, щоб іконки не наїжджали на лічильник
-                const hasInfoBtn = item.desc || item.info || hasLinks || lagHtml !== '';
-                const hasOnlyDesc = item.desc && !item.info && !hasLinks && lagHtml === ''; // 🟢 НОВЕ: Перевіряємо, чи є ТІЛЬКИ короткий опис
+                // 🟢 МАГІЯ: ЄДИНЕ ВІКНО НАЛАШТУВАНЬ (Unified Popover)
+                if (!window.unifiedMenuListenerAdded) {
+                    document.addEventListener('click', (e) => {
+                        if (!e.target.closest('.option-info') && !e.target.closest('.unified-menu-btn')) {
+                            window.activeUnifiedMenuId = null;
+                        }
+                    });
+                    window.unifiedMenuListenerAdded = true;
+                }
+
+                const hasUnifiedMenu = true; 
                 
                 let rightIconsCount = 0;
-                if (hasInfoBtn) rightIconsCount++;
-                if (isSelected) rightIconsCount++;
+                if (hasUnifiedMenu) rightIconsCount++;
                 if (isParentNode) rightIconsCount++;
-                const padRight = rightIconsCount > 0 ? `padding-right: ${rightIconsCount * 22}px;` : '';
+                const padRight = rightIconsCount > 0 ? `padding-right: ${rightIconsCount * 16}px;` : '';
 
-                const currentNote = isSelected && selectedItems[itemId].note ? selectedItems[itemId].note : ""; 
+                const currentNote = selectedItems[itemId] && selectedItems[itemId].note ? selectedItems[itemId].note : ""; 
                 const nestedPrefix = item.parent ? `<span style="opacity:0.5; font-weight:600; margin-right:4px;">↳</span>` : '';
                 
-                // Формуємо вміст кнопки (🟢 НОВЕ: Додали класи info-popup-desc та only-desc-btn)
+                // 1. Формуємо вміст кнопки (ВЕРТИКАЛЬНІ КРАПКИ ⋮)
                 clickableArea.innerHTML = `
                     <div class="option-name" style="${padRight}">${nestedPrefix}${renderInlineMarkdown(item.name)}${statsHtml}</div>
 
-                    <div style="position: absolute; top: 4px; right: 6px; display: flex; gap: 0px; z-index: 2; align-items: center;">
-                        ${hasInfoBtn ? `<span class="info-icon-btn ${hasOnlyDesc ? 'only-desc-btn' : ''}" style="color:var(--text-desc); font-size:12.5px; opacity:0.6; font-weight:800; cursor:pointer; padding: 2px 6px; display:inline-block; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);">ⓘ</span>` : ''}
-                        ${isSelected ? `<span class="note-icon-btn" style="font-size:14px; opacity:0.6; cursor:pointer; padding: 2px 4px; transition: all 0.2s;">✎</span>` : ''}
-                        ${isParentNode ? `<span class="parent-chevron-btn" style="color:var(--text-desc); font-size:12px; opacity:0.8; cursor:pointer; padding: 2px 6px; transition: transform 0.3s; transform: rotate(${window.expandedParents.has(item.name) ? '180deg' : '0deg'});">▼</span>` : ''}
+                    <div style="position: absolute !important; top: 50% !important; right: 6px !important; transform: translateY(-50%) !important; display: flex; gap: 2px; z-index: 2; align-items: center;">
+                        ${hasUnifiedMenu ? `<span class="unified-menu-btn" style="color:var(--text-desc); font-size:16px; font-weight:900; opacity:0.6; cursor:pointer; padding: 4px 6px; transition: all 0.2s; line-height:1; user-select:none;">⋮</span>` : ''}
+                        ${isParentNode ? `<span class="parent-chevron-btn" style="color:var(--text-desc); font-size:12px; opacity:0.8; cursor:pointer; padding: 2px 4px; transition: transform 0.3s; transform: rotate(${window.expandedParents.has(item.name) ? '180deg' : '0deg'});">▼</span>` : ''}
                     </div>
 
                     ${item.desc ? `<div class="list-mode-desc">${renderInlineMarkdown(item.desc)}</div>` : ''}
-
-                    ${hasInfoBtn ? `
-                        <div class="option-info">
-                            ${item.desc ? `<div class="info-popup-desc" style="margin-bottom: ${item.info || hasLinks || lagHtml ? '8px' : '0'}; font-style: normal; line-height: 1.35;">${renderInlineMarkdown(item.desc)}</div>` : ''}
-                            ${item.info ? `<div class="info-popup-ext" style="margin-bottom: ${hasLinks || lagHtml ? '8px' : '0'}; border-top: ${item.desc ? '1px dashed var(--border)' : 'none'}; padding-top: ${item.desc ? '8px' : '0'};">${renderInlineMarkdown(item.info)}</div>` : ''}
-                            ${linksHtml}
-                            ${lagHtml}
-                        </div>
-                    ` : ''}
-                    
-                    ${tagsHtml}
                 `;
                 btn.appendChild(clickableArea);
 
-                // 🟢 ОЖИВЛЯЄМО КНОПКУ ЗГОРТАННЯ/РОЗГОРТАННЯ ДІТЕЙ (▼)
+                // 2. ОЖИВЛЯЄМО КНОПКУ ЗГОРТАННЯ/РОЗГОРТАННЯ ДІТЕЙ (▼)
                 const chevronBtn = clickableArea.querySelector('.parent-chevron-btn');
                 if (chevronBtn) {
                     chevronBtn.onclick = (e) => {
-                        e.stopPropagation(); // Щоб сама картка не виділялась
-                        if (window.expandedParents.has(item.name)) {
-                            window.expandedParents.delete(item.name);
-                        } else {
-                            window.expandedParents.add(item.name);
-                        }
+                        e.stopPropagation(); 
+                        if (window.expandedParents.has(item.name)) window.expandedParents.delete(item.name);
+                        else window.expandedParents.add(item.name);
                         saveAndRender(); 
                     };
                 }
 
+                // 3. БУДУЄМО ЄДИНЕ ВІКНО НАЛАШТУВАНЬ
+                if (hasUnifiedMenu) {
+                    const popupDiv = document.createElement('div');
+                    popupDiv.className = 'option-info'; 
+                    // 🟢 ФІКС: Більш компактне вікно (max-width: 240px, менші відступи)
+                    popupDiv.style.cssText = 'min-width: 180px; max-width: 240px; padding: 10px; max-height: none !important; transition: opacity 0.15s ease, transform 0.15s ease !important; z-index: 101 !important;'; 
+                    popupDiv.onclick = (e) => e.stopPropagation();
 
-                // 🟢 ОЖИВЛЯЄМО КНОПКИ ІНФО (ⓘ) - З РОЗУМНИМ ПОЗИЦІОНУВАННЯМ
-                const infoIcon = clickableArea.querySelector('.info-icon-btn');
-                if (infoIcon) {
-                    infoIcon.onclick = (e) => {
-                        e.stopPropagation(); 
+                    // --- А. ОПИС (Без дублювання лічильника!) ---
+                    if (item.desc || item.info) {
+                        const infoSection = document.createElement('div');
+                        infoSection.style.marginBottom = '8px';
+                        infoSection.innerHTML = `
+                            ${item.desc ? `<div class="info-popup-desc" style="margin-bottom: ${item.info ? '4px' : '0'}; font-style: normal; line-height: 1.3; color: var(--text-main); font-weight: 500; font-size: 11.5px;">${renderInlineMarkdown(item.desc)}</div>` : ''}
+                            ${item.info ? `<div class="info-popup-ext" style="font-style: normal; font-size: 11px; color: var(--text-desc); line-height: 1.3;">${renderInlineMarkdown(item.info)}</div>` : ''}
+                        `;
+                        popupDiv.appendChild(infoSection);
+                    }
+
+                    // --- Б. ШКАЛА ТА МОДИФІКАТОРИ ---
+                    const scaleSection = document.createElement('div');
+                    scaleSection.style.marginBottom = '8px';
+                    
+                    if (item.mods && item.mods.length > 0) {
+                        const modsRow = document.createElement('div');
+                        modsRow.className = 'mods-row';
+                        modsRow.style.marginBottom = '6px';
+                        item.mods.forEach(modVal => {
+                            const modBtn = document.createElement('div');
+                            const isActive = isSelected && selectedItems[itemId].mods && selectedItems[itemId].mods.includes(modVal);
+                            modBtn.className = `mod-btn ${isActive ? 'selected' : ''}`;
+                            modBtn.innerText = modVal;
+                            modBtn.onclick = () => toggleMod(itemId, category, item.name, modVal, item.parent);
+                            modsRow.appendChild(modBtn);
+                        });
+                        scaleSection.appendChild(modsRow);
+                    }
+
+                    const scaleRow = document.createElement('div');
+                    scaleRow.className = 'scale-row';
+                    const tagsToUse = blockData.tags || [1, 2, 3, 4, 5];
+                    tagsToUse.forEach(tagVal => {
+                        const scaleBtn = document.createElement('div');
+                        scaleBtn.className = `scale-btn ${currentScale === String(tagVal) ? 'selected' : ''}`;
+                        if (isNaN(tagVal)) scaleBtn.classList.add('text-tag'); 
+                        scaleBtn.innerText = tagVal;
+                        scaleBtn.onclick = () => setScale(itemId, category, item.name, String(tagVal), item.parent);
+                        scaleRow.appendChild(scaleBtn);
+                    });
+                    scaleSection.appendChild(scaleRow);
+                    popupDiv.appendChild(scaleSection);
+
+                    // --- В. СТАТИСТИКА ТА КОРЕЛЯЦІЇ ---
+                    let statsContent = '';
+                    if (tagsHtml) statsContent += `<div style="margin-bottom: 6px;">${tagsHtml}</div>`;
+                    if (linksHtml || lagHtml) statsContent += `${linksHtml}${lagHtml}`;
+
+                    if (statsContent) {
+                        const synSection = document.createElement('div');
+                        synSection.style.marginBottom = '8px';
+                        synSection.style.borderTop = '1px dashed var(--border)';
+                        synSection.style.paddingTop = '8px';
+                        synSection.innerHTML = statsContent;
+                        popupDiv.appendChild(synSection);
+                    }
+
+                    // --- Г. ПОЛЕ ДЛЯ КОМЕНТАРЯ (ЕЛЕГАНТНЕ І НЕЗАЛЕЖНЕ) ---
+                    const unifiedNoteWrap = document.createElement('div');
+                    unifiedNoteWrap.style.display = 'block'; 
+                    unifiedNoteWrap.style.width = '100%';
+                    unifiedNoteWrap.style.borderTop = (statsContent || item.desc || item.mods || scaleSection.innerHTML !== '<div class="scale-row"></div>') ? '1px dashed var(--border)' : 'none';
+                    unifiedNoteWrap.style.paddingTop = (statsContent || item.desc || item.mods) ? '8px' : '0';
+                    unifiedNoteWrap.style.marginTop = '4px';
+                    
+                    const isSaved = currentNote.trim() !== '';
+                    // Робимо поле максимально чистим, воно не має класу card-note-wrap, тому старі скрипти його не ламають!
+                    unifiedNoteWrap.innerHTML = `<input type="text" placeholder="Коментар..." value="${currentNote}" style="width: 100%; box-sizing: border-box; background: transparent; border: none; border-bottom: 1px solid ${isSaved ? 'var(--accent)' : 'transparent'}; font-size: 11.5px; color: var(--text-main); outline: none; padding: 2px 4px; transition: all 0.2s; opacity: ${isSaved ? '1' : '0.5'};">`;
+                    
+                    const noteInput = unifiedNoteWrap.querySelector('input');
+                    noteInput.onclick = (e) => e.stopPropagation();
+                    
+                    noteInput.onfocus = () => {
+                        noteInput.style.opacity = '1';
+                        noteInput.style.borderBottom = '1px solid var(--accent)';
+                    };
+                    
+                    noteInput.onblur = (e) => {
+                        const val = e.target.value.trim();
+                        noteInput.style.opacity = val ? '1' : '0.5';
+                        noteInput.style.borderBottom = val ? '1px solid var(--accent)' : '1px solid transparent';
                         
-                        // 1. ФІКС НАКЛАДАННЯ: Якщо відкрита шкала хмарки — миттєво її ховаємо
-                        if (activeCloudPopupId) {
-                            document.querySelectorAll('.show-cloud-popup').forEach(el => el.classList.remove('show-cloud-popup'));
-                            activeCloudPopupId = null;
+                        if (selectedItems[itemId]) {
+                            selectedItems[itemId].note = val;
+                            saveData(); 
+                            setTimeout(() => { updateReport(); saveAndRender(); }, 100); 
                         }
+                    };
+                    
+                    noteInput.oninput = (e) => {
+                        if (!selectedItems[itemId]) {
+                            selectedItems[itemId] = { category: category, name: item.name, parent: item.parent || null, scale: null, mods: [] };
+                            btn.classList.add('active'); 
+                        }
+                        selectedItems[itemId].note = e.target.value;
+                        saveData(); 
+                        updateReport();
+                    };
+                    
+                    popupDiv.appendChild(unifiedNoteWrap);
+                    btn.appendChild(popupDiv);
 
-                        // 2. Закриваємо всі інші відкриті вікна ⓘ
-                        document.querySelectorAll('.option-info.open').forEach(el => {
-                            if (el !== clickableArea.querySelector('.option-info')) {
-                                el.classList.remove('open');
-                                const icon = el.parentElement.querySelector('.info-icon-btn');
-                                if(icon) { icon.style.opacity = '0.6'; icon.style.color = 'var(--text-desc)'; icon.style.transform = 'scale(1)'; }
+                    // 4. ОЖИВЛЯЄМО КНОПКУ ЄДИНОГО МЕНЮ
+                    const menuIcon = clickableArea.querySelector('.unified-menu-btn');
+                    
+                    function positionPopup() {
+                        popupDiv.style.setProperty('left', '0', 'important');
+                        popupDiv.style.setProperty('right', 'auto', 'important');
+                        
+                        requestAnimationFrame(() => {
+                            const rect = popupDiv.getBoundingClientRect();
+                            const containerRect = document.getElementById('app-container').getBoundingClientRect();
+                            
+                            if (rect.right > containerRect.right - 10 || rect.right > window.innerWidth - 10) {
+                                popupDiv.style.setProperty('left', 'auto', 'important');
+                                popupDiv.style.setProperty('right', '0', 'important');
                             }
                         });
+                    }
 
-                        // 3. Відкриваємо/закриваємо поточне вікно
-                        const infoDiv = clickableArea.querySelector('.option-info');
-                        const isOpen = infoDiv.classList.toggle('open'); 
-                        
-                        infoIcon.style.opacity = isOpen ? '1' : '0.6';
-                        infoIcon.style.color = isOpen ? 'var(--accent)' : 'var(--text-desc)';
-                        infoIcon.style.transform = isOpen ? 'scale(1.15)' : 'scale(1)';
+                    if (window.activeUnifiedMenuId === itemId) {
+                        popupDiv.classList.add('open');
+                        menuIcon.style.opacity = '1';
+                        menuIcon.style.color = 'var(--accent)';
+                        positionPopup();
+                    }
 
-                        if (isOpen) {
-                            infoDiv.style.setProperty('left', '0', 'important');
-                            infoDiv.style.setProperty('right', 'auto', 'important');
+                    if (menuIcon) {
+                        menuIcon.onclick = (e) => {
+                            e.stopPropagation(); 
                             
-                            requestAnimationFrame(() => {
-                                const rect = infoDiv.getBoundingClientRect();
-                                const containerRect = document.getElementById('app-container').getBoundingClientRect();
-                                
-                                // 🟢 МАГІЯ: Тепер перевіряємо, чи не вилізло за межі самого трекера (або екрана)
-                                if (rect.right > containerRect.right - 10 || rect.right > window.innerWidth - 10) {
-                                    infoDiv.style.setProperty('left', 'auto', 'important');
-                                    infoDiv.style.setProperty('right', '0', 'important');
-                                }
+                            const isOpen = popupDiv.classList.contains('open');
+                            
+                            document.querySelectorAll('.option-info.open').forEach(el => {
+                                el.classList.remove('open');
+                                const icon = el.parentElement.querySelector('.unified-menu-btn');
+                                if(icon) { icon.style.opacity = '0.6'; icon.style.color = 'var(--text-desc)'; }
                             });
-                        }
-                    };
-                }
 
-                // 🟢 ОЖИВЛЯЄМО КНОПКУ НАЛАШТУВАНЬ (✎)
-                const noteIcon = clickableArea.querySelector('.note-icon-btn');
-                if (noteIcon) {
-                    noteIcon.onclick = (e) => {
-                        e.stopPropagation(); // Щоб картка не знімала виділення
-                        
-                        // 1. У хмарці: клік на ✎ відкриває або закриває спливаюче вікно
-                        if (currentLayout === 'cloud') {
-                            activeCloudPopupId = (activeCloudPopupId === itemId) ? null : itemId;
-                            saveAndRender();
-                            return; 
-                        }
-
-                        // 2. В інших режимах: ховаємо/показуємо поле коментаря і даємо йому фокус
-                        const noteWrap = btn.querySelector('.card-note-wrap');
-                        if (noteWrap) {
-                            noteWrap.style.display = noteWrap.style.display === 'block' ? 'none' : 'block';
-                            if (noteWrap.style.display === 'block') noteWrap.querySelector('input').focus();
-                        }
-                    };
-                }
-
-                const scaleDiv = document.createElement('div');
-                scaleDiv.className = 'scale-container';
-                scaleDiv.onclick = (e) => e.stopPropagation();
-
-                // 1. Рядок з модифікаторами (Multi-select префікси)
-                if (item.mods && item.mods.length > 0) {
-                    const modsRow = document.createElement('div');
-                    modsRow.className = 'mods-row';
-                    item.mods.forEach(modVal => {
-                        const modBtn = document.createElement('div');
-                        const isActive = isSelected && selectedItems[itemId].mods && selectedItems[itemId].mods.includes(modVal);
-                        modBtn.className = `mod-btn ${isActive ? 'selected' : ''}`;
-                        modBtn.innerText = modVal;
-                        modBtn.onclick = () => toggleMod(itemId, category, item.name, modVal, item.parent);
-                        modsRow.appendChild(modBtn);
-                    });
-                    scaleDiv.appendChild(modsRow);
-                }
-
-                // 2. Рядок зі шкалою (Single-select 1-5)
-                const scaleRow = document.createElement('div');
-                scaleRow.className = 'scale-row';
-                const tagsToUse = blockData.tags || [1, 2, 3, 4, 5];
-                tagsToUse.forEach(tagVal => {
-                    const scaleBtn = document.createElement('div');
-                    scaleBtn.className = `scale-btn ${currentScale === String(tagVal) ? 'selected' : ''}`;
-                    if (isNaN(tagVal)) scaleBtn.classList.add('text-tag'); 
-                    scaleBtn.innerText = tagVal;
-                    scaleBtn.onclick = () => setScale(itemId, category, item.name, String(tagVal), item.parent);
-                    scaleRow.appendChild(scaleBtn);
-                });
-                scaleDiv.appendChild(scaleRow);
-
-                // 🟢 ФІКС: Поле коментаря завжди ВСЕРЕДИНІ scaleDiv
-                if (isSelected) {
-                    const cardNoteWrap = document.createElement('div');
-                    cardNoteWrap.className = 'card-note-wrap';
-                    
-                    cardNoteWrap.style.display = (currentLayout === 'cloud' || currentNote) ? 'block' : 'none';
-                    cardNoteWrap.style.marginTop = '4px'; 
-                    cardNoteWrap.style.width = '100%';
-                    
-                    cardNoteWrap.innerHTML = `<input type="text" class="note-input-field ${currentNote ? 'saved' : ''}" placeholder="..." value="${currentNote}">`;
-                    
-                    const cardNoteInput = cardNoteWrap.querySelector('input');
-                    cardNoteInput.onclick = (e) => e.stopPropagation();
-                    
-                    cardNoteInput.oninput = (e) => {
-                        if (selectedItems[itemId]) {
-                            selectedItems[itemId].note = e.target.value;
-                            if (e.target.value.trim() !== '') {
-                                e.target.classList.add('saved');
+                            if (isOpen) {
+                                window.activeUnifiedMenuId = null;
+                                popupDiv.classList.remove('open');
+                                menuIcon.style.opacity = '0.6';
+                                menuIcon.style.color = 'var(--text-desc)';
                             } else {
-                                e.target.classList.remove('saved');
+                                window.activeUnifiedMenuId = itemId;
+                                popupDiv.classList.add('open');
+                                menuIcon.style.opacity = '1';
+                                menuIcon.style.color = 'var(--accent)';
+                                positionPopup();
                             }
-                            saveData(); 
-                            updateReport();
-                        }
-                    };
-                    
-                    // 🟢 ФІКС ЗАКРИТТЯ: Даємо браузеру мілісекунду, щоб зареєструвати клік повз
-                    cardNoteInput.onblur = (e) => {
-                        if (selectedItems[itemId]) {
-                            selectedItems[itemId].note = e.target.value;
-                            saveData(); 
-                            
-                            setTimeout(() => {
-                                updateReport();
-                                saveAndRender(); 
-                            }, 100); 
-                        }
-                    };
-                    
-                    scaleDiv.appendChild(cardNoteWrap);
+                        };
+                    }
                 }
-
-                btn.appendChild(scaleDiv);
 
                 currentGrid.appendChild(btn);
+
+          
 
             });
 
@@ -4145,6 +4267,14 @@ function updateReport() {
         const query = searchInput.value.toLowerCase().trim();
         const isSearching = query.length > 0;
         
+        // 🟢 МАГІЯ ПОШУКУ: Вмикаємо/вимикаємо компактний режим для всього додатку
+        const appContainer = document.getElementById('app-container');
+        if (isSearching) {
+            appContainer.classList.add('search-compact-mode');
+        } else {
+            appContainer.classList.remove('search-compact-mode');
+        }
+
         // Показуємо або ховаємо хрестик очищення
         document.getElementById('clear-search-btn').style.display = isSearching ? 'block' : 'none';
 
