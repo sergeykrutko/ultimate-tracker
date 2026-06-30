@@ -113,23 +113,6 @@
         }
 
 
-        /* 📱 МОБІЛЬНА АДАПТАЦІЯ ДЛЯ ВІКНА ⓘ (Центрування + Затемнення фону) */
-        @media (max-width: 600px) {
-            .option-info.open, .scale-info-block.open {
-                position: fixed !important; /* Відв'язуємо від картки */
-                top: 50% !important; /* Рівно по центру висоти */
-                left: 16px !important; /* Безпечні відступи з боків */
-                right: 16px !important; 
-                width: auto !important;
-                max-width: none !important;
-                transform: translateY(-50%) !important; /* Ідеальне центрування */
-                z-index: 9999 !important; /* Завжди поверх усього */
-                
-                /* Прибрали тотальне затемнення, залишили тільки красиву глибоку тінь під самою карткою */
-                box-shadow: 0 16px 40px rgba(0,0,0,0.25), 0 0 0 1px var(--border) !important; 
-            }
-        }
-
         
 
 
@@ -1636,7 +1619,7 @@
                 bottom: auto !important;
                 transform: none !important;    /* Відміняємо жорстке центрування */
                 
-                width: 200px !important;       /* Робимо компактним, а не на весь екран */
+                width: 150px !important;       /* Робимо компактним, а не на весь екран */
                 max-width: calc(100vw - 32px) !important; /* Захист, щоб не вилізло за краї на дуже вузьких екранах */
                 
                 margin-top: 6px !important;    /* Акуратний відступ вниз від картки */
@@ -1695,7 +1678,7 @@
         #app-container .grid-unified .option-info,
         #app-container .grid-unified .scale-info-block {
             width: max-content !important; 
-            max-width: 280px !important;   /* Захист від надто довгих текстів */
+            max-width: 200px !important;   /* Захист від надто довгих текстів */
             min-width: 100px !important;   
         }
 
@@ -1718,7 +1701,7 @@
         #app-container .grid-unified .option-info.open {
             width: max-content !important; /* Облягає контент (цифри/текст) */
             min-width: 160px !important;   /* Мінімально можлива ширина (щоб влізли кнопки 1-5) */
-            max-width: 210px !important;   /* Максимальна ширина для довгого тексту */
+            max-width: 250px !important;   /* Максимальна ширина для довгого тексту */
             white-space: normal !important;
         }
 
@@ -1726,8 +1709,8 @@
         @media (max-width: 768px) {
             #app-container .grid-unified .option-info.open {
                 width: max-content !important; 
-                min-width: 160px !important; 
-                max-width: 210px !important; 
+                min-width: 100px !important; 
+                max-width: 170px !important; 
             }
         }
 
