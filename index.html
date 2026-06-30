@@ -402,13 +402,14 @@
 
        .scale-row { 
             display: flex; 
-            justify-content: center; 
-            gap: 3px; /* Прибираємо відступи між кнопками */
+            
+            gap: 4px; /* Прибираємо відступи між кнопками */
             border: 1px solid var(--border); /* Спільна рамка */
             border-radius: 8px; /* Спільні краї */
             overflow: hidden;
             width: 100%;
         }
+
         .mods-row { display: flex; justify-content: center; gap: 3px; flex-wrap: wrap; width: 100%; /* Займає всю ширину батьківського елемента */ }
 .mods-row .mod-btn { 
     flex: 1 1 calc(33.33% - 4px); 
@@ -523,13 +524,19 @@
 
         /* Маленькі квадратні кнопки з округлими краями */
        .scale-btn { 
-            width: 20px; height: 20px; 
+            flex: 1; /* 🟢 МАГІЯ: Змушує кнопки тягнутися і ділити 100% ширини порівну */
+            height: 24px; /* 🟢 Трохи збільшив висоту (було 20px), щоб зручніше потрапляти пальцем */
             background: var(--card-bg); 
-            border: none; /* Прибираємо індивідуальні рамки */
-            border-right: 1px solid var(--border); /* Лишаємо тільки розділювач */
-            border-radius: 0; /* Прибираємо індивідуальні кути */
-            color: var(--text-desc); font-size: 10px; font-weight: 800; 
-            display: flex; align-items: center; justify-content: center; 
+            border: none; 
+            border-right: 1px solid var(--border); 
+            border-radius: 0; 
+            color: var(--text-desc); 
+            font-size: 10px; /* Трохи збільшив шрифт для пропорційності */
+            font-weight: 800; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            cursor: pointer;
         }
         .scale-btn:last-child { border-right: none; } /* Прибираємо розділювач у останньої */
         .scale-btn.selected { background: var(--accent); color: white; transform: none; box-shadow: none; }
@@ -1714,7 +1721,7 @@
             #app-container .grid-unified .option-info.open {
                 width: max-content !important; 
                 min-width: 100px !important; 
-                max-width: 150px !important; 
+                max-width: 180px !important; 
             }
         }
 
@@ -4330,6 +4337,12 @@ function saveAndRender() {
         // 🟢 ФІКС: Використовуємо ID підкатегорій, а не innerText (який пустий, якщо блок прихований)
         const expandedSubIds = Array.from(document.querySelectorAll('.subheader-wrap:not(.collapsed)')).map(el => el.id);
 
+        // 👇 ДОДАЄМО ЦЕ (ПЕРЕД RENDER) 👇: Запам'ятовуємо внутрішній скрол відкритого меню
+        let popupScrollTop = 0;
+        const openPopup = document.querySelector('.option-info.open, .scale-info-block.open');
+        if (openPopup) popupScrollTop = openPopup.scrollTop;
+        // 👆 ---------------------- 👆
+
         renderApp();
         
         document.querySelectorAll('.category-block').forEach(block => {
@@ -4344,6 +4357,11 @@ function saveAndRender() {
                 wrap.classList.add('collapsed');
             }
         });
+
+        // 👇 ДОДАЄМО ЦЕ (ПІСЛЯ ВІДНОВЛЕННЯ) 👇: Повертаємо внутрішній скрол відкритого меню
+        const restoredPopup = document.querySelector('.option-info.open, .scale-info-block.open');
+        if (restoredPopup) restoredPopup.scrollTop = popupScrollTop;
+        // 👆 ------------------------------ 👆
 
         const query = document.getElementById('search-input').value;
         if(query) { filterItems(); }
