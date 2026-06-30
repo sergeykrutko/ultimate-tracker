@@ -2809,7 +2809,7 @@ function renderInlineMarkdown(text) {
         // ЄДИНЕ ВІКНО НАЛАШТУВАНЬ ДЛЯ ШКАЛ (POPOVER)
         const popupDiv = document.createElement('div');
         popupDiv.className = 'scale-info-block';
-        popupDiv.style.cssText = 'min-width: 180px; max-width: 260px; padding: 12px; max-height: none !important; transition: opacity 0.15s ease, transform 0.15s ease !important; z-index: 101 !important; left: auto !important; right: 0 !important; top: calc(100% + 4px) !important;';
+        popupDiv.style.cssText = 'min-width: 180px; max-width: 260px; padding: 12px; max-height: 30vh !important; overflow-y: auto !important; transition: opacity 0.15s ease, transform 0.15s ease !important; z-index: 101 !important; left: auto !important; right: 0 !important; top: calc(100% + 4px) !important;';
         popupDiv.onclick = (e) => e.stopPropagation();
 
         let hasTopContent = false;
@@ -2987,7 +2987,7 @@ function renderInlineMarkdown(text) {
         // ЄДИНЕ ВІКНО НАЛАШТУВАНЬ (POPOVER)
         const popupDiv = document.createElement('div');
         popupDiv.className = 'scale-info-block';
-        popupDiv.style.cssText = 'min-width: 180px; max-width: 260px; padding: 12px; max-height: none !important; transition: opacity 0.15s ease, transform 0.15s ease !important; z-index: 101 !important; left: auto !important; right: 0 !important; top: calc(100% + 4px) !important;';
+        popupDiv.style.cssText = 'min-width: 180px; max-width: 260px; padding: 12px; max-height: 30vh !important; overflow-y: auto !important; transition: opacity 0.15s ease, transform 0.15s ease !important; z-index: 101 !important; left: auto !important; right: 0 !important; top: calc(100% + 4px) !important;';
         popupDiv.onclick = (e) => e.stopPropagation();
 
         let hasTopContent = false;
@@ -4013,7 +4013,7 @@ if (category.toLowerCase() === 'practices') {
                     const popupDiv = document.createElement('div');
                     popupDiv.className = 'option-info'; 
                     // 🟢 ФІКС: Більш компактне вікно (max-width: 240px, менші відступи)
-                    popupDiv.style.cssText = 'min-width: 180px; max-width: 240px; padding: 10px; max-height: none !important; transition: opacity 0.15s ease, transform 0.15s ease !important; z-index: 101 !important;'; 
+                    popupDiv.style.cssText = 'min-width: 180px; max-width: 240px; padding: 10px; max-height: 30vh !important; overflow-y: auto !important; transition: opacity 0.15s ease, transform 0.15s ease !important; z-index: 101 !important;'; 
                     popupDiv.onclick = (e) => e.stopPropagation();
 
                     // --- А. ОПИС (Без дублювання лічильника!) ---
