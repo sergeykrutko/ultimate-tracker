@@ -402,14 +402,18 @@
 
        .scale-row { 
             display: flex; 
-            justify-content: flex-start; 
-            gap: 0; /* Прибираємо відступи між кнопками */
+            justify-content: center; 
+            gap: 3px; /* Прибираємо відступи між кнопками */
             border: 1px solid var(--border); /* Спільна рамка */
             border-radius: 8px; /* Спільні краї */
             overflow: hidden;
-            width: fit-content;
+            width: 100%;
         }
-        .mods-row { display: flex; gap: 4px; flex-wrap: wrap; }
+        .mods-row { display: flex; justify-content: center; gap: 3px; flex-wrap: wrap; width: 100%; /* Займає всю ширину батьківського елемента */ }
+.mods-row .mod-btn { 
+    flex: 1 1 calc(33.33% - 4px); 
+    text-align: center;
+}
         .mod-btn { background: var(--bg-color); border: 0.5px dashed var(--accent); color: var(--accent); border-radius: 8px; padding: 1px 4px; font-size: 11px; font-weight: 800; cursor: pointer; transition: all 0.15s ease; text-transform: uppercase; }
         .mod-btn.selected { background: var(--accent); color: white; border-style: solid; }
 
@@ -1710,7 +1714,7 @@
             #app-container .grid-unified .option-info.open {
                 width: max-content !important; 
                 min-width: 100px !important; 
-                max-width: 170px !important; 
+                max-width: 150px !important; 
             }
         }
 
@@ -2744,9 +2748,9 @@ function renderInlineMarkdown(text) {
             let count = statsMode === 'month' ? trackerStats[title].month : trackerStats[title].all;
             if (count > 0) statsHtml = `<span class="${count >= 10 ? 'stats-badge high-volume' : 'stats-badge'}" style="margin-left:8px;">${count}</span>`;
             let links = trackerStats[title].links;
-            if (links && links.length > 0) linksHtml = `<div class="synapses-wrap ${infoText ? '' : 'no-border'}"><div class="synapses-title">🔗 Синхронізується з:</div>${links.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('')}</div>`;
+            if (links && links.length > 0) linksHtml = `<div class="synapses-wrap ${infoText ? '' : 'no-border'}"><div class="synapses-title">🔗 Sync with:</div>${links.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('')}</div>`;
             let lags = trackerStats[title].lags;
-            if (lags && lags.length > 0) lagHtml = `<div class="synapses-wrap ${!infoText && !linksHtml ? 'no-border' : ''}"><div class="synapses-title" style="color:#d48a49;">⏳ Передувало (до 24 год):</div>${lags.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('')}</div>`;
+            if (lags && lags.length > 0) lagHtml = `<div class="synapses-wrap ${!infoText && !linksHtml ? 'no-border' : ''}"><div class="synapses-title" style="color:#d48a49;">⏳ Before 24h:</div>${lags.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('')}</div>`;
         }
 
         const titleSpan = document.createElement('span');
@@ -2816,7 +2820,7 @@ function renderInlineMarkdown(text) {
         unifiedNoteWrap.style.cssText = 'display:block; width:100%;';
         if (hasTopContent) { unifiedNoteWrap.style.borderTop = '1px dashed var(--border)'; unifiedNoteWrap.style.paddingTop = '8px'; }
         const isSaved = currentNote.trim() !== '';
-        unifiedNoteWrap.innerHTML = `<input type="text" placeholder="✍️ Додати коментар..." value="${currentNote}" style="width: 100%; box-sizing: border-box; background: transparent; border: none; border-bottom: 1px solid ${isSaved ? 'var(--accent)' : 'transparent'}; font-size: 11.5px; color: var(--text-main); outline: none; padding: 2px 4px; transition: all 0.2s; opacity: ${isSaved ? '1' : '0.5'};">`;
+        unifiedNoteWrap.innerHTML = `<input type="text" placeholder="Comment..." value="${currentNote}" style="width: 100%; box-sizing: border-box; background: transparent; border: none; border-bottom: 1px solid ${isSaved ? 'var(--accent)' : 'transparent'}; font-size: 11.5px; color: var(--text-main); outline: none; padding: 2px 4px; transition: all 0.2s; opacity: ${isSaved ? '1' : '0.5'};">`;
         
         const noteInput = unifiedNoteWrap.querySelector('input');
         noteInput.onclick = (e) => e.stopPropagation();
@@ -2916,9 +2920,9 @@ function renderInlineMarkdown(text) {
             let count = statsMode === 'month' ? trackerStats[title].month : trackerStats[title].all;
             if (count > 0) statsHtml = `<span class="${count >= 10 ? 'stats-badge high-volume' : 'stats-badge'}" style="margin-left:8px;">${count}</span>`;
             let links = trackerStats[title].links;
-            if (links && links.length > 0) linksHtml = `<div class="synapses-wrap ${infoText ? '' : 'no-border'}"><div class="synapses-title">🔗 Синхронізується з:</div>${links.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('')}</div>`;
+            if (links && links.length > 0) linksHtml = `<div class="synapses-wrap ${infoText ? '' : 'no-border'}"><div class="synapses-title">🔗 Sync with:</div>${links.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('')}</div>`;
             let lags = trackerStats[title].lags;
-            if (lags && lags.length > 0) lagHtml = `<div class="synapses-wrap ${!infoText && !linksHtml ? 'no-border' : ''}"><div class="synapses-title" style="color:#d48a49;">⏳ Передувало (до 24 год):</div>${lags.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('')}</div>`;
+            if (lags && lags.length > 0) lagHtml = `<div class="synapses-wrap ${!infoText && !linksHtml ? 'no-border' : ''}"><div class="synapses-title" style="color:#d48a49;">⏳ Before 24h:</div>${lags.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('')}</div>`;
         }
 
         const titleSpan = document.createElement('span');
@@ -2994,7 +2998,7 @@ function renderInlineMarkdown(text) {
         unifiedNoteWrap.style.cssText = 'display:block; width:100%;';
         if (hasTopContent) { unifiedNoteWrap.style.borderTop = '1px dashed var(--border)'; unifiedNoteWrap.style.paddingTop = '8px'; }
         const isSaved = currentNote.trim() !== '';
-        unifiedNoteWrap.innerHTML = `<input type="text" placeholder="✍️ Додати коментар..." value="${currentNote}" style="width: 100%; box-sizing: border-box; background: transparent; border: none; border-bottom: 1px solid ${isSaved ? 'var(--accent)' : 'transparent'}; font-size: 11.5px; color: var(--text-main); outline: none; padding: 2px 4px; transition: all 0.2s; opacity: ${isSaved ? '1' : '0.5'};">`;
+        unifiedNoteWrap.innerHTML = `<input type="text" placeholder="Comment..." value="${currentNote}" style="width: 100%; box-sizing: border-box; background: transparent; border: none; border-bottom: 1px solid ${isSaved ? 'var(--accent)' : 'transparent'}; font-size: 11.5px; color: var(--text-main); outline: none; padding: 2px 4px; transition: all 0.2s; opacity: ${isSaved ? '1' : '0.5'};">`;
         
         const noteInput = unifiedNoteWrap.querySelector('input');
         noteInput.onclick = (e) => e.stopPropagation();
@@ -3936,14 +3940,14 @@ if (category.toLowerCase() === 'practices') {
                     if (links && links.length > 0) {
                         hasLinks = true;
                         let linksList = links.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('');
-                        linksHtml = `<div class="synapses-wrap ${item.info ? '' : 'no-border'}"><div class="synapses-title">🔗 Синхронізується з:</div>${linksList}</div>`;
+                        linksHtml = `<div class="synapses-wrap ${item.info ? '' : 'no-border'}"><div class="synapses-title">🔗 Sync with:</div>${linksList}</div>`;
                     }
 
                     let lags = trackerStats[item.name].lags;
                     if (lags && lags.length > 0) {
                         hasLinks = true;
                         let lagsList = lags.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('');
-                        lagHtml = `<div class="synapses-wrap ${!item.info && !linksHtml ? 'no-border' : ''}"><div class="synapses-title" style="color:#d48a49;">⏳ Передувало (до 24 год):</div>${lagsList}</div>`;
+                        lagHtml = `<div class="synapses-wrap ${!item.info && !linksHtml ? 'no-border' : ''}"><div class="synapses-title" style="color:#d48a49;">⏳ Before 24h:</div>${lagsList}</div>`;
                     }
                 }
 
@@ -4067,7 +4071,7 @@ if (category.toLowerCase() === 'practices') {
                     
                     const isSaved = currentNote.trim() !== '';
                     // Робимо поле максимально чистим, воно не має класу card-note-wrap, тому старі скрипти його не ламають!
-                    unifiedNoteWrap.innerHTML = `<input type="text" placeholder="Коментар..." value="${currentNote}" style="width: 100%; box-sizing: border-box; background: transparent; border: none; border-bottom: 1px solid ${isSaved ? 'var(--accent)' : 'transparent'}; font-size: 11.5px; color: var(--text-main); outline: none; padding: 2px 4px; transition: all 0.2s; opacity: ${isSaved ? '1' : '0.5'};">`;
+                    unifiedNoteWrap.innerHTML = `<input type="text" placeholder="Comment..." value="${currentNote}" style="width: 100%; box-sizing: border-box; background: transparent; border: none; border-bottom: 1px solid ${isSaved ? 'var(--accent)' : 'transparent'}; font-size: 11.5px; color: var(--text-main); outline: none; padding: 2px 4px; transition: all 0.2s; opacity: ${isSaved ? '1' : '0.5'};">`;
                     
                     const noteInput = unifiedNoteWrap.querySelector('input');
                     noteInput.onclick = (e) => e.stopPropagation();
