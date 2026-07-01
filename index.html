@@ -403,12 +403,11 @@
 
        .scale-row { 
             display: flex; 
-            
-            gap: 4px; /* Прибираємо відступи між кнопками */
-            border: 1px solid var(--border); /* Спільна рамка */
-            border-radius: 8px; /* Спільні краї */
-            overflow: hidden;
             width: 100%;
+            gap: 0 !important; /* 🟢 Жорстко прибираємо діри між кнопками */
+            border: 1px solid var(--border); 
+            border-radius: 8px; 
+            overflow: hidden;
         }
 
         .mods-row { display: flex; justify-content: center; gap: 3px; flex-wrap: wrap; width: 100%; /* Займає всю ширину батьківського елемента */ }
@@ -525,22 +524,31 @@
 
         /* Маленькі квадратні кнопки з округлими краями */
        .scale-btn { 
-            flex: 1; /* 🟢 МАГІЯ: Змушує кнопки тягнутися і ділити 100% ширини порівну */
-            height: 24px; /* 🟢 Трохи збільшив висоту (було 20px), щоб зручніше потрапляти пальцем */
+            flex: 1; /* 🟢 Кнопки ділять ширину порівну */
+            height: 28px; /* Трохи вище для зручного кліку */
             background: var(--card-bg); 
             border: none; 
             border-right: 1px solid var(--border); 
             border-radius: 0; 
             color: var(--text-desc); 
-            font-size: 10px; /* Трохи збільшив шрифт для пропорційності */
+            font-size: 11px; 
             font-weight: 800; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
             cursor: pointer;
         }
-        .scale-btn:last-child { border-right: none; } /* Прибираємо розділювач у останньої */
-        .scale-btn.selected { background: var(--accent); color: white; transform: none; box-shadow: none; }
+        .scale-btn:last-child { border-right: none; } 
+
+        .scale-btn.selected { 
+            background: var(--accent); 
+            color: white; 
+            border-color: var(--accent);
+            /* 🟢 ПРИБРАЛИ transform: scale(1.1), щоб рамка була ідеально рівною! */
+            box-shadow: none; 
+        }
+
+        
         
         .scale-btn.selected { 
             background: var(--accent); 
@@ -902,7 +910,7 @@
 
         /* 🟢 УЛЬТРАЩІЛЬНА СІТКА ДЛЯ ОДНИХ ІКОНОК (ЕМOДЗІ) */
         .grid-unified.icon-only-grid .option-name {
-            font-size: 26px !important; 
+            font-size: 22px !important; 
             text-align: center !important;
             width: 100% !important;
             margin: 0 !important; /* 🟢 ФІКС: Прибрали зайвий відступ зверху */
@@ -1413,7 +1421,7 @@
 
         /* --- 🟢 ІЗОЛЬОВАНА СІТКА ЕМОДЗІ repeat(# контролює кількість колонок) --- */
         [data-layout] .grid-unified.icon-only-grid { display: grid !important; grid-template-columns: repeat(5, minmax(0, 1fr)) !important; }
-        @media (max-width: 600px) { [data-layout] .grid-unified.icon-only-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; } }
+        @media (max-width: 600px) { [data-layout] .grid-unified.icon-only-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; } }
         [data-layout] .grid-unified.icon-only-grid .option-btn { width: 100% !important; grid-column: span 1 !important; flex: none !important; min-height: 46px !important; }
 
         /* --- 🟢 ФІКС МІНІ-ЗАГОЛОВКІВ --- */
@@ -1937,10 +1945,6 @@
         #app-container .grid-unified::after {
             order: 1000 !important;
         } 
-            
-            opacity: 0.5;
-            transition: all 0.2s ease !important;
-        }
         
         /* 2. ФАКТОРИ (icon-only-grid) */
         #app-container .grid-unified.icon-only-grid .add-card-btn {
@@ -2025,7 +2029,7 @@
 <body>
 
 <div class="wrapper">
-    <div class="header-container" id="top-anchor" style="display: flex; gap: 12px; align-items: center;">
+   <div class="header-container" id="top-anchor" style="display: flex; gap: 12px; align-items: center;">
         <div class="search-wrapper" style="flex: 1;">
             <input type="text" class="search-bar" id="search-input" onkeyup="filterItems()" placeholder="Search...">
             <button id="clear-search-btn" class="search-clear-btn" onclick="clearSearch()">✕</button>
@@ -2036,9 +2040,6 @@
             <button class="icon-btn" id="theme-toggle" onclick="toggleTheme()" title="Тема">🌙</button>
             <button class="clear-btn" onclick="clearData()">New</button>
         </div>
-        
-        
-        
     </div>
     
     <div class="container" id="app-container">
@@ -2103,6 +2104,14 @@
 
     `;
     // =========================================================================
+
+
+
+
+
+    function haptic() {
+    if (navigator.vibrate) navigator.vibrate(10); // 10 мілісекунд — ідеальний легкий "тік"
+}
 
 
 
@@ -2204,6 +2213,7 @@ function syncStatsBackground() {
         }
     })
     .catch(err => console.error("Помилка статистики:", err));
+    processOfflineQueue(); // Перевіряємо, чи немає завислих звітів при відкритті
 }
 
 
@@ -2459,7 +2469,7 @@ function syncHistoryBackground() {
                 selectedItems[itemId] = { category: category, name: name, parent: null, scale: null, mods: [] };
                 isEdited = true;
                 
-                // 🟢 МАГІЯ 2 (ВІДНОВЛЕНА): Впорскуємо картку в оперативну пам'ять, щоб вона не зникала!
+                // 🟢 МАГІЯ 2: Впорскуємо картку в оперативну пам'ять
                 let block = parsedBlocks.find(b => b.title === category);
                 if (block) {
                     let insertIndex = block.items.length;
@@ -2476,7 +2486,12 @@ function syncHistoryBackground() {
                     block.items.splice(insertIndex, 0, { type: 'item', name: name, parent: null, desc: "", info: "", ranges: [], triggers: [], mods: [], isCustom: true, subCategory: subheader });
                 }
             }
-            saveAndRender();
+
+            // 🟢 МАГІЯ СМУЗІНГУ: Ми не викликаємо рендер миттєво!
+            // Чекаємо, поки клавіатура повністю сховається (особливо важливо для iOS)
+            setTimeout(() => {
+                saveAndRender();
+            }, 300); // 300 мс зазвичай вистачає для повної анімації клавіатури
         };
         
         // Зберігає при кліку повз АБО при натисканні Enter на клавіатурі
@@ -2837,8 +2852,27 @@ function renderInlineMarkdown(text) {
             if (count > 0) statsHtml = `<span class="${count >= 10 ? 'stats-badge high-volume' : 'stats-badge'}" style="margin-left:8px;">${count}</span>`;
             let links = trackerStats[title].links;
             if (links && links.length > 0) linksHtml = `<div class="synapses-wrap ${infoText ? '' : 'no-border'}"><div class="synapses-title">🔗 Sync with:</div>${links.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('')}</div>`;
+            
             let lags = trackerStats[title].lags;
-            if (lags && lags.length > 0) lagHtml = `<div class="synapses-wrap ${!infoText && !linksHtml ? 'no-border' : ''}"><div class="synapses-title" style="color:#d48a49;">⏳ Before 24h:</div>${lags.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('')}</div>`;
+            if (lags && lags.length > 0) {
+                let strongLags = lags.filter(l => l.percent >= 30);
+                let comboHtml = '';
+                if (strongLags.length >= 2) {
+                    let comboNames = strongLags.slice(0, 2).map(l => `<span style="background:var(--card-bg); padding:2px 4px; border-radius:4px; border:1px solid rgba(255,59,48,0.3);">${l.name}</span>`).join(' <span style="font-size:8px; opacity:0.6;">+</span> ');
+                    let avgPercent = Math.round((strongLags[0].percent + strongLags[1].percent) / 2);
+                    comboHtml = `
+                        <div style="background: rgba(255, 59, 48, 0.05); border-left: 3px solid #ff3b30; padding: 6px 8px; border-radius: 0 8px 8px 0; margin-bottom: 8px;">
+                            <div style="font-size: 9px; font-weight: 800; color: #ff3b30; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.5px;">🚨 Ймовірне комбо (~${avgPercent}%):</div>
+                            <div style="font-size: 11px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">${comboNames}</div>
+                        </div>
+                    `;
+                }
+                let lagsList = lags.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('');
+                lagHtml = `<div class="synapses-wrap ${!infoText && !linksHtml ? 'no-border' : ''}">
+                    ${comboHtml}
+                    <div class="synapses-title" style="color:#d48a49;">⏳ Before 24h:</div>${lagsList}
+                </div>`;
+            }
         }
 
         const titleSpan = document.createElement('span');
@@ -3009,8 +3043,27 @@ function renderInlineMarkdown(text) {
             if (count > 0) statsHtml = `<span class="${count >= 10 ? 'stats-badge high-volume' : 'stats-badge'}" style="margin-left:8px;">${count}</span>`;
             let links = trackerStats[title].links;
             if (links && links.length > 0) linksHtml = `<div class="synapses-wrap ${infoText ? '' : 'no-border'}"><div class="synapses-title">🔗 Sync with:</div>${links.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('')}</div>`;
+            
             let lags = trackerStats[title].lags;
-            if (lags && lags.length > 0) lagHtml = `<div class="synapses-wrap ${!infoText && !linksHtml ? 'no-border' : ''}"><div class="synapses-title" style="color:#d48a49;">⏳ Before 24h:</div>${lags.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('')}</div>`;
+            if (lags && lags.length > 0) {
+                let strongLags = lags.filter(l => l.percent >= 30);
+                let comboHtml = '';
+                if (strongLags.length >= 2) {
+                    let comboNames = strongLags.slice(0, 2).map(l => `<span style="background:var(--card-bg); padding:2px 4px; border-radius:4px; border:1px solid rgba(255,59,48,0.3);">${l.name}</span>`).join(' <span style="font-size:8px; opacity:0.6;">+</span> ');
+                    let avgPercent = Math.round((strongLags[0].percent + strongLags[1].percent) / 2);
+                    comboHtml = `
+                        <div style="background: rgba(255, 59, 48, 0.05); border-left: 3px solid #ff3b30; padding: 6px 8px; border-radius: 0 8px 8px 0; margin-bottom: 8px;">
+                            <div style="font-size: 9px; font-weight: 800; color: #ff3b30; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.5px;">🚨 Ймовірне комбо (~${avgPercent}%):</div>
+                            <div style="font-size: 11px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">${comboNames}</div>
+                        </div>
+                    `;
+                }
+                let lagsList = lags.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('');
+                lagHtml = `<div class="synapses-wrap ${!infoText && !linksHtml ? 'no-border' : ''}">
+                    ${comboHtml}
+                    <div class="synapses-title" style="color:#d48a49;">⏳ Before 24h:</div>${lagsList}
+                </div>`;
+            }
         }
 
         const titleSpan = document.createElement('span');
@@ -3722,16 +3775,57 @@ if (category.toLowerCase() === 'practices') {
             // 🟢 ДОДАЄМО КНОПКУ [+] ДЛЯ ГОЛОВНОЇ ГРУПИ
             let firstSubIndex = blockData.items.findIndex(x => x.type === 'subheader');
             let hasLooseItems = blockData.items.some((i, idx) => i.type === 'item' && (firstSubIndex === -1 || idx < firstSubIndex));
+            let hasLooseScales = blockData.items.some((i, idx) => (i.type === 'inline-scale' || i.type === 'inline-delta') && (firstSubIndex === -1 || idx < firstSubIndex));
             
-            if (!hasSubheaders || hasLooseItems) {
+            // 🟢 МАГІЯ: Не додаємо +, якщо це група ТІЛЬКИ зі шкалами
+            if (hasLooseItems || (!hasSubheaders && !hasLooseScales)) {
                 const mainAddBtn = document.createElement('div');
                 mainAddBtn.className = `option-btn add-card-btn ${isFilteringActive ? 'smart-hidden' : ''}`;
                 if (isFilteringActive) mainAddBtn.style.display = 'none'; // Ховаємо, якщо працює фільтр
                 mainAddBtn.title = "Створити власну картку";
                 mainAddBtn.innerHTML = `<span class="plus-icon">+</span>`;
-mainAddBtn.onclick = (e) => showInlineCustomInput(category, "Інше", mainAddBtn, e);
+                // Використовуємо твою нову функцію створення карток
+                mainAddBtn.onclick = (e) => showInlineCustomInput(category, "Інше", mainAddBtn, e);
                 currentGrid.appendChild(mainAddBtn);
             }
+
+
+
+            // 🟢 МАГІЯ: ХМАРКА ІДЕАЛЬНИХ ЗБІГІВ (Топ-5 практик)
+            if (category.toLowerCase() === 'practices' && isFilteringActive && topPractices.length > 0) {
+                const topMatchesWrap = document.createElement('div');
+                topMatchesWrap.style.cssText = 'padding: 10px 12px; background: #fff6e5; border-radius: 12px; border: 1px solid #d8b88e; margin-bottom: 8px; grid-column: 1 / -1; width: 100%; box-sizing: border-box; box-shadow: 0 4px 12px rgba(212, 119, 36, 0.08);';
+                topMatchesWrap.innerHTML = `<div style="font-size: 11px; font-weight: 800; color: #d47724; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">🎯 Ідеально для зараз</div>`;
+
+                const tagsCloud = document.createElement('div');
+                tagsCloud.style.cssText = 'display: flex; flex-wrap: wrap; gap: 6px;';
+
+                topPractices.slice(0, 5).forEach(pName => {
+                    const itemId = `${category}|${pName}`;
+                    const isSelected = !!selectedItems[itemId];
+                    
+                    let tag = document.createElement('div');
+                    tag.className = 'custom-tag';
+                    tag.style.cssText = isSelected
+                        ? 'background: var(--accent); font-size: 11px; padding: 6px 12px; border-radius: 16px; box-shadow: 0 2px 6px rgba(72,94,80,0.2); transition: all 0.2s;'
+                        : 'background: #d47724; font-size: 11px; padding: 6px 12px; border-radius: 16px; box-shadow: 0 2px 6px rgba(212,119,36,0.2); transition: all 0.2s; cursor: pointer;';
+                    tag.innerHTML = renderInlineMarkdown(pName);
+
+                    tag.onclick = (e) => {
+                        e.stopPropagation();
+                        if (selectedItems[itemId]) delete selectedItems[itemId];
+                        else selectedItems[itemId] = { category: category, name: pName, parent: null, scale: null, mods: [] };
+                        saveAndRender();
+                    };
+                    tagsCloud.appendChild(tag);
+                });
+
+                topMatchesWrap.appendChild(tagsCloud);
+                currentGrid.appendChild(topMatchesWrap);
+            }
+
+
+
 
             containerWrap.appendChild(currentGrid);
 
@@ -3817,13 +3911,17 @@ mainAddBtn.onclick = (e) => showInlineCustomInput(category, "Інше", mainAddB
                     currentGrid.className = 'grid-unified sub-content' + (isSubIconOnly ? ' icon-only-grid' : '');
 
                     // 🟢 ДОДАЄМО КНОПКУ [+] В КІНЕЦЬ ПІДГРУПИ
-                    const subAddBtn = document.createElement('div');
-                    subAddBtn.className = `option-btn add-card-btn ${isFilteringActive ? 'smart-hidden' : ''}`;
-                    if (isFilteringActive) subAddBtn.style.display = 'none'; // Ховаємо, якщо працює фільтр
-                    subAddBtn.title = `Створити картку в "${item.title}"`;
-                    subAddBtn.innerHTML = `<span class="plus-icon">+</span>`;
-                    subAddBtn.onclick = (e) => showInlineCustomInput(category, item.title, subAddBtn, e);
-                    currentGrid.appendChild(subAddBtn);
+                    // 🟢 МАГІЯ: Якщо в підгрупі ТІЛЬКИ шкали і немає звичайних карток — не додаємо кнопку [+]
+                    if (subItems.length > 0 || !subHasInlineScales) {
+                        const subAddBtn = document.createElement('div');
+                        subAddBtn.className = `option-btn add-card-btn ${isFilteringActive ? 'smart-hidden' : ''}`;
+                        if (isFilteringActive) subAddBtn.style.display = 'none'; // Ховаємо, якщо працює фільтр
+                        subAddBtn.title = `Створити картку в "${item.title}"`;
+                        subAddBtn.innerHTML = `<span class="plus-icon">+</span>`;
+                        // Використовуємо твою нову функцію створення карток
+                        subAddBtn.onclick = (e) => showInlineCustomInput(category, item.title, subAddBtn, e);
+                        currentGrid.appendChild(subAddBtn);
+                    }
 
                     // ЗАХИСТ ВІД СХОВУВАННЯ
                     if (activeSubCount > 0) {
@@ -4020,9 +4118,9 @@ mainAddBtn.onclick = (e) => showInlineCustomInput(category, "Інше", mainAddB
                 if (trackerStats[item.name]) {
                     let count = statsMode === 'month' ? trackerStats[item.name].month : trackerStats[item.name].all;
                     if (count > 0) {
-                    let badgeClass = count >= 10 ? 'stats-badge high-volume' : 'stats-badge';
-                    statsHtml = `<span class="${badgeClass}">${count}</span>`;
-                }
+                        let badgeClass = count >= 10 ? 'stats-badge high-volume' : 'stats-badge';
+                        statsHtml = `<span class="${badgeClass}">${count}</span>`;
+                    }
                     
                     let links = trackerStats[item.name].links;
                     if (links && links.length > 0) {
@@ -4034,8 +4132,28 @@ mainAddBtn.onclick = (e) => showInlineCustomInput(category, "Інше", mainAddB
                     let lags = trackerStats[item.name].lags;
                     if (lags && lags.length > 0) {
                         hasLinks = true;
+                        
+                        // 🟢 МАГІЯ ТОКСИЧНИХ КОМБО: Динамічний пошук патернів "на льоту"
+                        let strongLags = lags.filter(l => l.percent >= 30); // Беремо тільки те, що трапляється часто
+                        let comboHtml = '';
+                        if (strongLags.length >= 2) {
+                            // Форматуємо як красиві теги: [Кава] + [Недосип]
+                            let comboNames = strongLags.slice(0, 2).map(l => `<span style="background:var(--card-bg); padding:2px 4px; border-radius:4px; border:1px solid rgba(255,59,48,0.3);">${l.name}</span>`).join(' <span style="font-size:8px; opacity:0.6;">+</span> ');
+                            let avgPercent = Math.round((strongLags[0].percent + strongLags[1].percent) / 2);
+                            
+                            comboHtml = `
+                                <div style="background: rgba(255, 59, 48, 0.05); border-left: 3px solid #ff3b30; padding: 6px 8px; border-radius: 0 8px 8px 0; margin-bottom: 8px;">
+                                    <div style="font-size: 9px; font-weight: 800; color: #ff3b30; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.5px;">🚨 Ймовірне комбо (~${avgPercent}%):</div>
+                                    <div style="font-size: 11px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">${comboNames}</div>
+                                </div>
+                            `;
+                        }
+
                         let lagsList = lags.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('');
-                        lagHtml = `<div class="synapses-wrap ${!item.info && !linksHtml ? 'no-border' : ''}"><div class="synapses-title" style="color:#d48a49;">⏳ Before 24h:</div>${lagsList}</div>`;
+                        lagHtml = `<div class="synapses-wrap ${!item.info && !linksHtml ? 'no-border' : ''}">
+                            ${comboHtml}
+                            <div class="synapses-title" style="color:#d48a49;">⏳ Before 24h:</div>${lagsList}
+                        </div>`;
                     }
                 }
 
@@ -4447,12 +4565,16 @@ function saveAndRender() {
         const query = document.getElementById('search-input').value;
         if(query) { filterItems(); }
         
-        // Тримаємо скрол на місці
-        window.scrollTo(0, currentScroll);
-
         // Знімаємо фіксацію висоти, коли браузер все відмалював
         requestAnimationFrame(() => {
             container.style.minHeight = 'auto';
+            
+            // 🟢 МАГІЯ: Якщо різниця в скролі невелика (ми просто клікали кнопки),
+            // миттєво повертаємо скрол. Якщо велика (ховалася клавіатура), нічого не робимо,
+            // дозволяючи браузеру (iOS) самому завершити анімацію зсуву сторінки!
+            if (Math.abs(window.scrollY - currentScroll) < 150) {
+                 window.scrollTo(0, currentScroll);
+            }
         });
     }
 
@@ -4894,25 +5016,36 @@ function updateReport() {
         });
     }
 
-   let lastScrollY = window.scrollY;
-    const header = document.querySelector('.header-container');
+   const header = document.querySelector('.header-container');
     const scrollBtn = document.getElementById('scroll-btn');
+    let lastScrollY = window.scrollY;
+
+    // 🟢 ФІКС для оновлення сторінки: одразу ховаємо шапку, якщо ми вже нижче 100px
+    if (window.scrollY > 100) {
+        header.classList.add('header-hidden');
+    }
 
     window.addEventListener('scroll', () => {
         const currentScrollY = window.scrollY;
         
-        // 1. Смарт-пошук (ховаємо шапку при скролі вниз, показуємо при скролі вгору)
+        // 1. Смарт-шапка (ховаємо при скролі вниз, показуємо при скролі вгору)
         if (currentScrollY < lastScrollY || currentScrollY < 50) {
             header.classList.remove('header-hidden');
         } else if (currentScrollY > lastScrollY && currentScrollY > 100) {
             header.classList.add('header-hidden');
-            // Якщо шапка ховається, блюримо поле пошуку, щоб клавіатура теж сховалась
-            const searchInput = document.getElementById('search-input');
-            if (searchInput) searchInput.blur();
         }
+        
+        // 2. Смарт-закриття клавіатури (ховаємо при найменшому скролі, незалежно від шапки)
+        if (Math.abs(currentScrollY - lastScrollY) > 15) {
+            const searchInput = document.getElementById('search-input');
+            if (searchInput && searchInput === document.activeElement) {
+                searchInput.blur(); // М'яко ховаємо клавіатуру
+            }
+        }
+        
         lastScrollY = currentScrollY;
         
-        // 2. Кнопка "Вгору"
+        // 3. Кнопка "Вгору"
         if (currentScrollY > 300) { scrollBtn.classList.add('visible'); } 
         else { scrollBtn.classList.remove('visible'); }
     });
@@ -5002,16 +5135,21 @@ function updateReport() {
             }, 2500); // 2.5 секунди, щоб ти встиг побачити зелену галочку успіху
         })
         .catch(err => {
-            btn.innerHTML = isMini ? "❌" : "❌ Помилка";
-            btn.style.backgroundColor = isMini ? "transparent" : "#ff3b30";
-            btn.style.color = isMini ? "#ff3b30" : "white";
+            // Зберігаємо в офлайн-чергу замість того, щоб втрачати!
+            saveToOfflineQueue({ report: reportText, rawData: rawData, sessionId: currentSessionId, logTime: getFullLogDateTimeForSheets() });
+            
+            btn.innerHTML = isMini ? "☁️" : "☁️ В черзі";
+            btn.style.backgroundColor = isMini ? "transparent" : "#d48a49";
+            btn.style.color = isMini ? "#d48a49" : "white";
+            
+            clearData(); // Очищуємо екран, дані вже в безпеці!
+            
             setTimeout(() => { 
                 btn.innerHTML = origText; 
                 btn.style.backgroundColor = ""; 
                 btn.style.color = ""; 
                 btn.disabled = false; 
             }, 2500);
-            console.error(err);
         });
     }
 
@@ -5124,7 +5262,59 @@ function updateReport() {
     window.addEventListener("focus", wakeUpTime);
     
 
-    
+    // 🟢 МАГІЯ: Активація пошуку при "відтягуванні" екрану вниз (Pull-to-search)
+    let touchStartY = 0;
+    document.addEventListener('touchstart', (e) => {
+        touchStartY = e.touches[0].clientY;
+    }, {passive: true});
+
+    document.addEventListener('touchend', (e) => {
+        if (window.scrollY <= 0) { // Працює ТІЛЬКИ якщо ми на самому верху
+            let touchEndY = e.changedTouches[0].clientY;
+            if (touchEndY - touchStartY > 60) { // Якщо впевнено потягнули вниз
+                const searchInput = document.getElementById('search-input');
+                if (searchInput) searchInput.focus(); // Викликаємо клавіатуру!
+            }
+        }
+    });
+
+
+
+    // 🟢 МАГІЯ ОФЛАЙН-ЧЕРГИ
+    function saveToOfflineQueue(payload) {
+        let queue = JSON.parse(localStorage.getItem('trackerOfflineQueue') || '[]');
+        queue.push(payload);
+        localStorage.setItem('trackerOfflineQueue', JSON.stringify(queue));
+        console.log("Збережено в офлайн-чергу! Записів:", queue.length);
+    }
+
+    function processOfflineQueue() {
+        if (!navigator.onLine) return; // Якщо досі немає мережі - чекаємо
+        
+        let queue = JSON.parse(localStorage.getItem('trackerOfflineQueue') || '[]');
+        if (queue.length === 0) return;
+
+        let payload = queue[0]; // Беремо найстаріший запис
+        
+        const formData = new FormData();
+        for (let key in payload) { formData.append(key, payload[key]); }
+
+        fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: formData })
+        .then(res => res.text())
+        .then(text => {
+            if (!text.startsWith("Error")) {
+                queue.shift(); // Видаляємо успішно відправлений запис
+                localStorage.setItem('trackerOfflineQueue', JSON.stringify(queue));
+                if (queue.length > 0) processOfflineQueue(); // Запускаємо наступний
+            }
+        }).catch(err => console.log("Фонова відправка відкладена..."));
+    }
+
+    // Слухаємо появу інтернету
+    window.addEventListener('online', processOfflineQueue);
+
+
+
 
     initApp(); 
 </script>

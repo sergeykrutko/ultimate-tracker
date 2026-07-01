@@ -1,7 +1,5 @@
 > Welcome to **Ultimate Tracker**.
 
-> **📊 METRICS ↓**
-
 # VITL [delta]
 
 {{vitality: libido energy}}
@@ -18,8 +16,6 @@
 - \-4 — ■□□□□□□□□□
 - \-5 — □□□□□□□□□□
 
-\- - - - -
-
 # FLOW [delta]
 
 {{resistance ≉ <-> ≈ flow}}
@@ -35,24 +31,6 @@
 - \-3 — ≠≠≠
 - \-4 — ≠≠≠≠
 - \-5 — ≠≠≠≠≠
-
-\- - - - -
-
-# AWRS [delta]
-
-- \+5 — 🌊 Presence
-- \+4 — 🌐 Panoramic
-- \+3 — ⚓ Triangulation
-- \+2 — 👁️ Disidentificatn
-- \+1 — 💡 Awakening
--  0 — 🤖 Autopilot
-- \-1 — 🪝 Hooked
-- \-2 — 🌪️ Fusion
-- \-3 — ⚡ Reactivity
-- \-4 — 🧩 Fragmentation
-- \-5 — 😶‍🌫️ Dissociation
-
-\- - - - -
 
 > 🔍 **CONTEXT** **↓**
 
@@ -386,7 +364,7 @@
 - GRIEF/PANIC
 - PLAY
 
-**Як ця енергія зараз рухається? :: ↗ Outward** - Енергія направлена на інших людей чи об'єкти || **↙ Inward** - Енергія обернута всередину: турбота про себе або ж аутоагресія || **⊡ Contained** - Я відчуваю цей заряд, витримую його, але не виплескую і не тікаю || **× Suppressed** - Я відчуваю імпульс, але забороняю йому проявитися через страх, сором або провину || **≈ Expressed** - Вільний потік енергії назовні (у дії, словах або грі)
+**Рух енергії: ↗ Outward** - Направлена на інших || **↙ Inward** - Обернута на себе || **⊡ Contained** - Утримую, не виплескую і не тікаю || **× Suppressed** - Подавляю через страх, сором або провину || **≈ Expressed** - Вільний потік назовні (у дії, словах або грі)
 
 # somatic
 
@@ -428,7 +406,7 @@
 - rectum-burn — Печіння в прямій кишці {{соматичний маркер запалення (проктиту) або агресивного жовчовідтоку; прямий тілесний сигнал про реакцію на харчовий тригер (часто гістамін або грубу клітковину) або наслідок сильного стресового спазму.}}
 - temperature
 
-### senses [mods: ⚡︎, ↯, 𖥔, ☼, ❄, ♥] 
+### senses [mods: ⚡︎, ↯, 𖥔, ☼, ❆, ♥] 
 
 #### tensions: ⚡︎, pain: ↯, pulsing: 𖥔, hot: ☼, cold: ❆, wellbeing: ♥
 
@@ -965,7 +943,9 @@
 
 
 
-# PRACTICES
+# PRACTICES [mods: ✓, ✘, ↯, ♥, ⭑]
+
+#### ✓ Success || ✘ Failed || ↯ Worse || ♥ Great || ⭑ Fav
 
 ### FORMAL PRACTICE & EMBODIMENT
 
@@ -988,6 +968,7 @@
     - head-massage
     - face-massage
     - belly-massage
+    - pelvis-massage
 - **Guided**
 
 ### PRE-FILTERS: Sates & Decision CheckUps
@@ -1170,3 +1151,17 @@
 
 
 > 🪷
+
+# AWRS [delta]
+
+- \+5 — 🌊 Presence
+- \+4 — 🌐 Panoramic
+- \+3 — ⚓ Triangulation
+- \+2 — 👁️ Disidentificatn
+- \+1 — 💡 Awakening
+-  0 — 🤖 Autopilot
+- \-1 — 🪝 Hooked
+- \-2 — 🌪️ Fusion
+- \-3 — ⚡ Reactivity
+- \-4 — 🧩 Fragmentation
+- \-5 — 😶‍🌫️ Dissociation
