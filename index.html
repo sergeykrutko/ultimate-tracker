@@ -1997,14 +1997,25 @@
 
 
 
-.custom-input-active {
+#app-container .grid-unified .custom-input-active {
+            order: 999 !important; 
+            grid-column: auto !important; 
             width: auto !important;
-            min-width: 130px !important;
-            flex: 1 1 auto !important; /* Дозволяємо тягнутися */
+            min-width: 80px !important; 
+            max-width: 100% !important; 
+            flex: 0 1 auto !important;
+            
+            /* 🟢 ГОЛОВНІ ФІКСИ ВИСОТИ ТА ФОРМИ: */
+            padding: 10px 12px !important; /* Точнісінько такі ж відступи, як у звичайних карток */
+            border-radius: 12px !important; /* Плавні кути, як у сусідів (було 8px) */
+            align-self: stretch !important; /* Змушує поле тягнутися на всю висоту поточного ряду */
+            
             border: 1px solid var(--accent) !important;
             background: var(--card-bg) !important;
-            opacity: 1 !important;
-            padding: 0 8px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            margin: 0 0 0 4px !important;
         }
 
 
@@ -2403,18 +2414,35 @@ function syncHistoryBackground() {
         // Якщо вже є інший відкритий інпут, ігноруємо
         if (btnEl.querySelector('input')) return;
         
+        // Зберігаємо початковий вигляд плюсика, щоб повернути його, якщо передумали
+        const originalHTML = btnEl.innerHTML;
+        const originalClasses = btnEl.className;
+        
+  
         // Перетворюємо кнопку на поле вводу
-        btnEl.innerHTML = `<input type="text" placeholder="Назва..." style="width:100%; height:100%; border:none; background:transparent; outline:none; font-size:12px; font-weight:700; color:var(--text-main); text-align:center;">`;
+        btnEl.innerHTML = `<input type="text" placeholder="Назва..." style="width: 6ch; min-width: 60px; max-width: 100%; height: 100%; border: none; background: transparent; outline: none; font-size: 12px; font-weight: 700; color: var(--text-main); text-align: center; transition: width 0.1s ease;">`;
         btnEl.classList.remove('add-card-btn');
         btnEl.classList.add('custom-input-active');
         
         const input = btnEl.querySelector('input');
+        
+        // 🟢 МАГІЯ 2: Поле динамічно змінює ширину від кількості літер! (ch - це ширина одного символу)
+        input.addEventListener('input', function() {
+            this.style.width = Math.max(this.value.length + 1, 6) + 'ch';
+        });
         input.focus(); // Миттєво піднімає клавіатуру!
         
+        let isSaved = false; // Захист від подвійного спрацьовування
+        
         const saveFunc = () => {
+            if (isSaved) return;
+            isSaved = true;
+            
             let name = input.value.trim();
             if (!name) {
-                saveAndRender(); // Якщо нічого не ввели — повертаємо звичайний плюсик
+                // Якщо нічого не ввели — повертаємо звичайний плюсик
+                btnEl.innerHTML = originalHTML;
+                btnEl.className = originalClasses;
                 return;
             }
             
@@ -2426,10 +2454,27 @@ function syncHistoryBackground() {
                 customCards[category][subheader].push(name);
                 localStorage.setItem('trackerCustomCards_v7', JSON.stringify(customCards));
                 
-                // 🟢 МАГІЯ: Миттєво активуємо картку для звіту!
+                // 🟢 МАГІЯ 1: Миттєво активуємо картку для звіту!
                 const itemId = `${category}|${name}`;
                 selectedItems[itemId] = { category: category, name: name, parent: null, scale: null, mods: [] };
                 isEdited = true;
+                
+                // 🟢 МАГІЯ 2 (ВІДНОВЛЕНА): Впорскуємо картку в оперативну пам'ять, щоб вона не зникала!
+                let block = parsedBlocks.find(b => b.title === category);
+                if (block) {
+                    let insertIndex = block.items.length;
+                    if (subheader !== "Інше") {
+                        let subIndex = block.items.findIndex(i => i.type === 'subheader' && i.title === subheader);
+                        if (subIndex > -1) {
+                            insertIndex = subIndex + 1;
+                            while(insertIndex < block.items.length && block.items[insertIndex].type !== 'subheader') insertIndex++;
+                        }
+                    } else {
+                        let firstSubIndex = block.items.findIndex(i => i.type === 'subheader');
+                        if (firstSubIndex > -1) insertIndex = firstSubIndex;
+                    }
+                    block.items.splice(insertIndex, 0, { type: 'item', name: name, parent: null, desc: "", info: "", ranges: [], triggers: [], mods: [], isCustom: true, subCategory: subheader });
+                }
             }
             saveAndRender();
         };
@@ -2437,7 +2482,10 @@ function syncHistoryBackground() {
         // Зберігає при кліку повз АБО при натисканні Enter на клавіатурі
         input.addEventListener('blur', saveFunc);
         input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') input.blur();
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                input.blur(); // Примусово викликаємо збереження і ховаємо клавіатуру
+            }
         });
     }
 
