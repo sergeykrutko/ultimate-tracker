@@ -2846,31 +2846,51 @@ function renderInlineMarkdown(text) {
         titleRow.style.display = 'flex'; titleRow.style.alignItems = 'center'; titleRow.style.gap = '6px';
         
         // СТАТИСТИКА
-        let statsHtml = ''; let linksHtml = ''; let lagHtml = '';
+        let statsHtml = ''; let linksHtml = ''; let lagHtml = ''; let nextHtml = ''; let effectHtml = '';
         if (trackerStats[title]) {
             let count = statsMode === 'month' ? trackerStats[title].month : trackerStats[title].all;
             if (count > 0) statsHtml = `<span class="${count >= 10 ? 'stats-badge high-volume' : 'stats-badge'}" style="margin-left:8px;">${count}</span>`;
+            
             let links = trackerStats[title].links;
             if (links && links.length > 0) linksHtml = `<div class="synapses-wrap ${infoText ? '' : 'no-border'}"><div class="synapses-title">🔗 Sync with:</div>${links.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('')}</div>`;
             
+            // 1. Блок ДО (lags)
             let lags = trackerStats[title].lags;
             if (lags && lags.length > 0) {
-                let strongLags = lags.filter(l => l.percent >= 30);
+                let listLags = [...lags].sort((a, b) => b.percent - a.percent);
+                let topLags = listLags.filter(l => l.percent >= 40).slice(0, 2);
                 let comboHtml = '';
-                if (strongLags.length >= 2) {
-                    let comboNames = strongLags.slice(0, 2).map(l => `<span style="background:var(--card-bg); padding:2px 4px; border-radius:4px; border:1px solid rgba(255,59,48,0.3);">${l.name}</span>`).join(' <span style="font-size:8px; opacity:0.6;">+</span> ');
-                    let avgPercent = Math.round((strongLags[0].percent + strongLags[1].percent) / 2);
+                if (topLags.length > 0) {
+                    let tagHtml = topLags.map(l => `<span style="font-weight: 700; color: var(--text-main); background: var(--card-bg); padding: 2px 6px; border-radius: 6px; border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,0.03);">${l.name}</span>`).join(' ');
                     comboHtml = `
-                        <div style="background: rgba(255, 59, 48, 0.05); border-left: 3px solid #ff3b30; padding: 6px 8px; border-radius: 0 8px 8px 0; margin-bottom: 8px;">
-                            <div style="font-size: 9px; font-weight: 800; color: #ff3b30; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.5px;">🚨 Ймовірне комбо (~${avgPercent}%):</div>
-                            <div style="font-size: 11px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">${comboNames}</div>
+                        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed var(--border);">
+                            <span style="font-size: 11px; color: var(--text-desc); font-style: italic;">Often with:</span>
+                            <div style="display: flex; gap: 4px; font-size: 11px;">${tagHtml}</div>
                         </div>
                     `;
                 }
-                let lagsList = lags.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('');
+                let lagsList = listLags.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('');
                 lagHtml = `<div class="synapses-wrap ${!infoText && !linksHtml ? 'no-border' : ''}">
                     ${comboHtml}
-                    <div class="synapses-title" style="color:#d48a49;">⏳ Before 24h:</div>${lagsList}
+                    <div class="synapses-title" style="color:#d48a49;">⏳ Day Before:</div>${lagsList}
+                </div>`;
+            }
+
+            // 2. Блок ПІСЛЯ (Реакції)
+            let nexts = trackerStats[title].nexts;
+            if (nexts && nexts.length > 0) {
+                let nextsList = nexts.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('');
+                nextHtml = `<div class="synapses-wrap ${!infoText && !linksHtml && !lagHtml ? 'no-border' : ''}">
+                    <div class="synapses-title" style="color:#2b8a3e;">🛡️ My Responses (After):</div>${nextsList}
+                </div>`;
+            }
+
+            // 3. Блок ПІСЛЯ (Наслідки)
+            let effects = trackerStats[title].effects;
+            if (effects && effects.length > 0) {
+                let effectsList = effects.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('');
+                effectHtml = `<div class="synapses-wrap ${!infoText && !linksHtml && !lagHtml && !nextHtml ? 'no-border' : ''}">
+                    <div class="synapses-title" style="color:#8c76c3;">🔮 Leading To...:</div>${effectsList}
                 </div>`;
             }
         }
@@ -2930,10 +2950,10 @@ function renderInlineMarkdown(text) {
             `;
             popupDiv.appendChild(infoSection); hasTopContent = true;
         }
-        if (linksHtml || lagHtml) {
+        if (linksHtml || lagHtml || nextHtml || effectHtml) {
             const synSection = document.createElement('div'); synSection.style.marginBottom = '8px';
             if (hasTopContent) { synSection.style.borderTop = '1px dashed var(--border)'; synSection.style.paddingTop = '8px'; }
-            synSection.innerHTML = `${linksHtml}${lagHtml}`;
+            synSection.innerHTML = `${linksHtml}${lagHtml}${nextHtml}${effectHtml}`;
             popupDiv.appendChild(synSection); hasTopContent = true;
         }
 
@@ -3036,32 +3056,52 @@ function renderInlineMarkdown(text) {
         const titleRow = document.createElement('div');
         titleRow.style.display = 'flex'; titleRow.style.alignItems = 'center'; titleRow.style.gap = '6px';
         
-        // СТАТИСТИКА ТА КОРЕЛЯЦІЇ
-        let statsHtml = ''; let linksHtml = ''; let lagHtml = '';
+        // СТАТИСТИКА
+        let statsHtml = ''; let linksHtml = ''; let lagHtml = ''; let nextHtml = ''; let effectHtml = '';
         if (trackerStats[title]) {
             let count = statsMode === 'month' ? trackerStats[title].month : trackerStats[title].all;
             if (count > 0) statsHtml = `<span class="${count >= 10 ? 'stats-badge high-volume' : 'stats-badge'}" style="margin-left:8px;">${count}</span>`;
+            
             let links = trackerStats[title].links;
             if (links && links.length > 0) linksHtml = `<div class="synapses-wrap ${infoText ? '' : 'no-border'}"><div class="synapses-title">🔗 Sync with:</div>${links.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('')}</div>`;
             
+            // 1. Блок ДО (lags)
             let lags = trackerStats[title].lags;
             if (lags && lags.length > 0) {
-                let strongLags = lags.filter(l => l.percent >= 30);
+                let listLags = [...lags].sort((a, b) => b.percent - a.percent);
+                let topLags = listLags.filter(l => l.percent >= 40).slice(0, 2);
                 let comboHtml = '';
-                if (strongLags.length >= 2) {
-                    let comboNames = strongLags.slice(0, 2).map(l => `<span style="background:var(--card-bg); padding:2px 4px; border-radius:4px; border:1px solid rgba(255,59,48,0.3);">${l.name}</span>`).join(' <span style="font-size:8px; opacity:0.6;">+</span> ');
-                    let avgPercent = Math.round((strongLags[0].percent + strongLags[1].percent) / 2);
+                if (topLags.length > 0) {
+                    let tagHtml = topLags.map(l => `<span style="font-weight: 700; color: var(--text-main); background: var(--card-bg); padding: 2px 6px; border-radius: 6px; border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,0.03);">${l.name}</span>`).join(' ');
                     comboHtml = `
-                        <div style="background: rgba(255, 59, 48, 0.05); border-left: 3px solid #ff3b30; padding: 6px 8px; border-radius: 0 8px 8px 0; margin-bottom: 8px;">
-                            <div style="font-size: 9px; font-weight: 800; color: #ff3b30; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.5px;">🚨 Ймовірне комбо (~${avgPercent}%):</div>
-                            <div style="font-size: 11px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">${comboNames}</div>
+                        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed var(--border);">
+                            <span style="font-size: 11px; color: var(--text-desc); font-style: italic;">Often with:</span>
+                            <div style="display: flex; gap: 4px; font-size: 11px;">${tagHtml}</div>
                         </div>
                     `;
                 }
-                let lagsList = lags.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('');
+                let lagsList = listLags.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('');
                 lagHtml = `<div class="synapses-wrap ${!infoText && !linksHtml ? 'no-border' : ''}">
                     ${comboHtml}
-                    <div class="synapses-title" style="color:#d48a49;">⏳ Before 24h:</div>${lagsList}
+                    <div class="synapses-title" style="color:#d48a49;">⏳ Day Before:</div>${lagsList}
+                </div>`;
+            }
+
+            // 2. Блок ПІСЛЯ (Реакції)
+            let nexts = trackerStats[title].nexts;
+            if (nexts && nexts.length > 0) {
+                let nextsList = nexts.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('');
+                nextHtml = `<div class="synapses-wrap ${!infoText && !linksHtml && !lagHtml ? 'no-border' : ''}">
+                    <div class="synapses-title" style="color:#2b8a3e;">🛡️ My Responses (After):</div>${nextsList}
+                </div>`;
+            }
+
+            // 3. Блок ПІСЛЯ (Наслідки)
+            let effects = trackerStats[title].effects;
+            if (effects && effects.length > 0) {
+                let effectsList = effects.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('');
+                effectHtml = `<div class="synapses-wrap ${!infoText && !linksHtml && !lagHtml && !nextHtml ? 'no-border' : ''}">
+                    <div class="synapses-title" style="color:#8c76c3;">🔮 Leading To...:</div>${effectsList}
                 </div>`;
             }
         }
@@ -3127,10 +3167,10 @@ function renderInlineMarkdown(text) {
             `;
             popupDiv.appendChild(infoSection); hasTopContent = true;
         }
-        if (linksHtml || lagHtml) {
+        if (linksHtml || lagHtml || nextHtml || effectHtml) {
             const synSection = document.createElement('div'); synSection.style.marginBottom = '8px';
             if (hasTopContent) { synSection.style.borderTop = '1px dashed var(--border)'; synSection.style.paddingTop = '8px'; }
-            synSection.innerHTML = `${linksHtml}${lagHtml}`;
+            synSection.innerHTML = `${linksHtml}${lagHtml}${nextHtml}${effectHtml}`;
             popupDiv.appendChild(synSection); hasTopContent = true;
         }
 
@@ -4113,6 +4153,8 @@ if (category.toLowerCase() === 'practices') {
                 let statsHtml = '';
                 let linksHtml = '';
                 let lagHtml = ''; 
+                let nextHtml = ''; 
+                let effectHtml = ''; 
                 let hasLinks = false;
 
                 if (trackerStats[item.name]) {
@@ -4129,30 +4171,48 @@ if (category.toLowerCase() === 'practices') {
                         linksHtml = `<div class="synapses-wrap ${item.info ? '' : 'no-border'}"><div class="synapses-title">🔗 Sync with:</div>${linksList}</div>`;
                     }
 
+                    // 1. Блок ДО (lags)
                     let lags = trackerStats[item.name].lags;
                     if (lags && lags.length > 0) {
                         hasLinks = true;
+                        let listLags = [...lags].sort((a, b) => b.percent - a.percent);
+                        let topLags = listLags.filter(l => l.percent >= 40).slice(0, 2);
                         
-                        // 🟢 МАГІЯ ТОКСИЧНИХ КОМБО: Динамічний пошук патернів "на льоту"
-                        let strongLags = lags.filter(l => l.percent >= 30); // Беремо тільки те, що трапляється часто
                         let comboHtml = '';
-                        if (strongLags.length >= 2) {
-                            // Форматуємо як красиві теги: [Кава] + [Недосип]
-                            let comboNames = strongLags.slice(0, 2).map(l => `<span style="background:var(--card-bg); padding:2px 4px; border-radius:4px; border:1px solid rgba(255,59,48,0.3);">${l.name}</span>`).join(' <span style="font-size:8px; opacity:0.6;">+</span> ');
-                            let avgPercent = Math.round((strongLags[0].percent + strongLags[1].percent) / 2);
-                            
+                        if (topLags.length > 0) {
+                            let tagHtml = topLags.map(l => `<span style="font-weight: 700; color: var(--text-main); background: var(--card-bg); padding: 2px 6px; border-radius: 6px; border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,0.03);">${l.name}</span>`).join(' ');
                             comboHtml = `
-                                <div style="background: rgba(255, 59, 48, 0.05); border-left: 3px solid #ff3b30; padding: 6px 8px; border-radius: 0 8px 8px 0; margin-bottom: 8px;">
-                                    <div style="font-size: 9px; font-weight: 800; color: #ff3b30; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.5px;">🚨 Ймовірне комбо (~${avgPercent}%):</div>
-                                    <div style="font-size: 11px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">${comboNames}</div>
+                                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed var(--border);">
+                                    <span style="font-size: 11px; color: var(--text-desc); font-style: italic;">Often with:</span>
+                                    <div style="display: flex; gap: 4px; font-size: 11px;">${tagHtml}</div>
                                 </div>
                             `;
                         }
 
-                        let lagsList = lags.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('');
+                        let lagsList = listLags.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('');
                         lagHtml = `<div class="synapses-wrap ${!item.info && !linksHtml ? 'no-border' : ''}">
                             ${comboHtml}
-                            <div class="synapses-title" style="color:#d48a49;">⏳ Before 24h:</div>${lagsList}
+                            <div class="synapses-title" style="color:#d48a49;">⏳ Day Before:</div>${lagsList}
+                        </div>`;
+                    }
+                    
+                    // 2. Блок ПІСЛЯ (Реакції / Копінги)
+                    let nexts = trackerStats[item.name].nexts;
+                    if (nexts && nexts.length > 0) {
+                        hasLinks = true;
+                        let nextsList = nexts.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('');
+                        nextHtml = `<div class="synapses-wrap ${!item.info && !linksHtml && !lagHtml ? 'no-border' : ''}">
+                            <div class="synapses-title" style="color:#2b8a3e;">🛡️ Responses (after):</div>${nextsList}
+                        </div>`;
+                    }
+
+                    // 3. Блок ПІСЛЯ (Ефект Доміно / Наслідки)
+                    let effects = trackerStats[item.name].effects;
+                    if (effects && effects.length > 0) {
+                        hasLinks = true;
+                        let effectsList = effects.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('');
+                        effectHtml = `<div class="synapses-wrap ${!item.info && !linksHtml && !lagHtml && !nextHtml ? 'no-border' : ''}">
+                            <div class="synapses-title" style="color:#8c76c3;">🔮 Leading To...:</div>${effectsList}
                         </div>`;
                     }
                 }
@@ -4256,8 +4316,8 @@ if (category.toLowerCase() === 'practices') {
                     // --- В. СТАТИСТИКА ТА КОРЕЛЯЦІЇ ---
                     let statsContent = '';
                     if (tagsHtml) statsContent += `<div style="margin-bottom: 6px;">${tagsHtml}</div>`;
-                    if (linksHtml || lagHtml) statsContent += `${linksHtml}${lagHtml}`;
-
+                    if (linksHtml || lagHtml || nextHtml || effectHtml) statsContent += `${linksHtml}${lagHtml}${nextHtml}${effectHtml}`; // 🟢 ТУТ додано nextHtml та effectHtml
+                    
                     if (statsContent) {
                         const synSection = document.createElement('div');
                         synSection.style.marginBottom = '8px';
