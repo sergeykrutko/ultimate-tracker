@@ -2881,7 +2881,7 @@ function renderInlineMarkdown(text) {
             if (nexts && nexts.length > 0) {
                 let nextsList = nexts.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('');
                 nextHtml = `<div class="synapses-wrap ${!infoText && !linksHtml && !lagHtml ? 'no-border' : ''}">
-                    <div class="synapses-title" style="color:#2b8a3e;">🛡️ My Responses (After):</div>${nextsList}
+                    <div class="synapses-title" style="color:#2b8a3e;">🛡️ My Responses:</div>${nextsList}
                 </div>`;
             }
 
@@ -2890,7 +2890,7 @@ function renderInlineMarkdown(text) {
             if (effects && effects.length > 0) {
                 let effectsList = effects.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('');
                 effectHtml = `<div class="synapses-wrap ${!infoText && !linksHtml && !lagHtml && !nextHtml ? 'no-border' : ''}">
-                    <div class="synapses-title" style="color:#8c76c3;">🔮 Leading To...:</div>${effectsList}
+                    <div class="synapses-title" style="color:#8c76c3;">🔮 Lead to:</div>${effectsList}
                 </div>`;
             }
         }
@@ -3092,7 +3092,7 @@ function renderInlineMarkdown(text) {
             if (nexts && nexts.length > 0) {
                 let nextsList = nexts.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('');
                 nextHtml = `<div class="synapses-wrap ${!infoText && !linksHtml && !lagHtml ? 'no-border' : ''}">
-                    <div class="synapses-title" style="color:#2b8a3e;">🛡️ My Responses (After):</div>${nextsList}
+                    <div class="synapses-title" style="color:#2b8a3e;">🛡️ My Responses:</div>${nextsList}
                 </div>`;
             }
 
@@ -3101,7 +3101,7 @@ function renderInlineMarkdown(text) {
             if (effects && effects.length > 0) {
                 let effectsList = effects.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('');
                 effectHtml = `<div class="synapses-wrap ${!infoText && !linksHtml && !lagHtml && !nextHtml ? 'no-border' : ''}">
-                    <div class="synapses-title" style="color:#8c76c3;">🔮 Leading To...:</div>${effectsList}
+                    <div class="synapses-title" style="color:#8c76c3;">🔮 Lead to:</div>${effectsList}
                 </div>`;
             }
         }
@@ -4202,7 +4202,7 @@ if (category.toLowerCase() === 'practices') {
                         hasLinks = true;
                         let nextsList = nexts.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('');
                         nextHtml = `<div class="synapses-wrap ${!item.info && !linksHtml && !lagHtml ? 'no-border' : ''}">
-                            <div class="synapses-title" style="color:#2b8a3e;">🛡️ Responses (after):</div>${nextsList}
+                            <div class="synapses-title" style="color:#2b8a3e;">🛡️ My Responses:</div>${nextsList}
                         </div>`;
                     }
 
@@ -4212,7 +4212,7 @@ if (category.toLowerCase() === 'practices') {
                         hasLinks = true;
                         let effectsList = effects.map(l => `<div class="synapse-item"><span>${l.name}</span> <span class="synapse-percent">${l.percent}%</span></div>`).join('');
                         effectHtml = `<div class="synapses-wrap ${!item.info && !linksHtml && !lagHtml && !nextHtml ? 'no-border' : ''}">
-                            <div class="synapses-title" style="color:#8c76c3;">🔮 Leading To...:</div>${effectsList}
+                            <div class="synapses-title" style="color:#8c76c3;">🔮 Lead to:</div>${effectsList}
                         </div>`;
                     }
                 }
