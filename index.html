@@ -124,8 +124,9 @@
         body { background-color: var(--bg-color); margin: 0; padding-bottom: 80px; color: var(--text-main); transition: background-color 0.3s, color 0.3s; }
         .wrapper { max-width: 650px; margin: 0 auto; }
         
-        .header-container { position: sticky; top: 0; z-index: 1000 !important; background: var(--bg-color); padding: 12px 14px 8px; border-bottom: 1px solid var(--border); transition: background-color 0.3s; }
-        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.header-container { position: sticky; top: 0; z-index: 1000 !important; background: var(--bg-color); padding: 12px 14px 8px; border-bottom: 1px solid var(--border); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s; }
+        .header-container.header-hidden { transform: translateY(-100%); }
+                .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         h1 { 
             margin: 0; 
             font-family: 'Playfair Display', serif; 
@@ -1996,7 +1997,15 @@
 
 
 
-
+.custom-input-active {
+            width: auto !important;
+            min-width: 130px !important;
+            flex: 1 1 auto !important; /* Дозволяємо тягнутися */
+            border: 1px solid var(--accent) !important;
+            background: var(--card-bg) !important;
+            opacity: 1 !important;
+            padding: 0 8px !important;
+        }
 
 
 
@@ -2126,7 +2135,14 @@ document.addEventListener('click', (e) => {
             }
         });
     }
-
+// 4. Закриваємо пошук при кліку на вільне поле
+    if (!e.target.closest('.search-wrapper') && !e.target.closest('.option-btn') && !e.target.closest('.category-header')) {
+        const searchInput = document.getElementById('search-input');
+        if (searchInput && searchInput.value.trim() !== '') {
+            searchInput.value = '';
+            filterItems();
+        }
+    }
     if (needsRender) saveAndRender();
 });
 
@@ -2381,31 +2397,48 @@ function syncHistoryBackground() {
         });
     }
 
-    function addCustomCard(category, subheader, event) {
+    function showInlineCustomInput(category, subheader, btnEl, event) {
         event.stopPropagation();
-        let name = prompt(`Введіть назву нової картки для підгрупи "${subheader}":`);
-        if (!name || !name.trim()) return;
-        name = name.trim();
-
-        let customCards = JSON.parse(localStorage.getItem('trackerCustomCards_v7')) || {};
-        if (!customCards[category]) customCards[category] = {};
-        if (!customCards[category][subheader]) customCards[category][subheader] = [];
-        if (customCards[category][subheader].includes(name)) { alert("Картка з такою назвою вже існує!"); return; }
-
-        customCards[category][subheader].push(name);
-        localStorage.setItem('trackerCustomCards_v7', JSON.stringify(customCards));
-
-        // Вставляємо прямо зараз без оновлення сторінки
-        let block = parsedBlocks.find(b => b.title === category);
-        if (block) {
-            let subIndex = block.items.findIndex(i => i.type === 'subheader' && i.title === subheader);
-            if (subIndex > -1) {
-                let insertIndex = subIndex + 1;
-                while(insertIndex < block.items.length && block.items[insertIndex].type !== 'subheader') insertIndex++;
-                block.items.splice(insertIndex, 0, { type: 'item', name: name, parent: null, desc: "", info: "", ranges: [], triggers: [], mods: [], isCustom: true, subCategory: subheader });
+        
+        // Якщо вже є інший відкритий інпут, ігноруємо
+        if (btnEl.querySelector('input')) return;
+        
+        // Перетворюємо кнопку на поле вводу
+        btnEl.innerHTML = `<input type="text" placeholder="Назва..." style="width:100%; height:100%; border:none; background:transparent; outline:none; font-size:12px; font-weight:700; color:var(--text-main); text-align:center;">`;
+        btnEl.classList.remove('add-card-btn');
+        btnEl.classList.add('custom-input-active');
+        
+        const input = btnEl.querySelector('input');
+        input.focus(); // Миттєво піднімає клавіатуру!
+        
+        const saveFunc = () => {
+            let name = input.value.trim();
+            if (!name) {
+                saveAndRender(); // Якщо нічого не ввели — повертаємо звичайний плюсик
+                return;
             }
-        }
-        saveAndRender();
+            
+            let customCards = JSON.parse(localStorage.getItem('trackerCustomCards_v7')) || {};
+            if (!customCards[category]) customCards[category] = {};
+            if (!customCards[category][subheader]) customCards[category][subheader] = [];
+            
+            if (!customCards[category][subheader].includes(name)) {
+                customCards[category][subheader].push(name);
+                localStorage.setItem('trackerCustomCards_v7', JSON.stringify(customCards));
+                
+                // 🟢 МАГІЯ: Миттєво активуємо картку для звіту!
+                const itemId = `${category}|${name}`;
+                selectedItems[itemId] = { category: category, name: name, parent: null, scale: null, mods: [] };
+                isEdited = true;
+            }
+            saveAndRender();
+        };
+        
+        // Зберігає при кліку повз АБО при натисканні Enter на клавіатурі
+        input.addEventListener('blur', saveFunc);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') input.blur();
+        });
     }
 
     function deleteCustomCard(category, subCategory, name, event) {
@@ -3648,7 +3681,7 @@ if (category.toLowerCase() === 'practices') {
                 if (isFilteringActive) mainAddBtn.style.display = 'none'; // Ховаємо, якщо працює фільтр
                 mainAddBtn.title = "Створити власну картку";
                 mainAddBtn.innerHTML = `<span class="plus-icon">+</span>`;
-                mainAddBtn.onclick = (e) => addCustomCard(category, "Інше", e);
+mainAddBtn.onclick = (e) => showInlineCustomInput(category, "Інше", mainAddBtn, e);
                 currentGrid.appendChild(mainAddBtn);
             }
 
@@ -3741,7 +3774,7 @@ if (category.toLowerCase() === 'practices') {
                     if (isFilteringActive) subAddBtn.style.display = 'none'; // Ховаємо, якщо працює фільтр
                     subAddBtn.title = `Створити картку в "${item.title}"`;
                     subAddBtn.innerHTML = `<span class="plus-icon">+</span>`;
-                    subAddBtn.onclick = (e) => addCustomCard(category, item.title, e);
+                    subAddBtn.onclick = (e) => showInlineCustomInput(category, item.title, subAddBtn, e);
                     currentGrid.appendChild(subAddBtn);
 
                     // ЗАХИСТ ВІД СХОВУВАННЯ
@@ -4813,11 +4846,29 @@ function updateReport() {
         });
     }
 
+   let lastScrollY = window.scrollY;
+    const header = document.querySelector('.header-container');
     const scrollBtn = document.getElementById('scroll-btn');
-    window.onscroll = function() {
-        if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) { scrollBtn.classList.add('visible'); } 
+
+    window.addEventListener('scroll', () => {
+        const currentScrollY = window.scrollY;
+        
+        // 1. Смарт-пошук (ховаємо шапку при скролі вниз, показуємо при скролі вгору)
+        if (currentScrollY < lastScrollY || currentScrollY < 50) {
+            header.classList.remove('header-hidden');
+        } else if (currentScrollY > lastScrollY && currentScrollY > 100) {
+            header.classList.add('header-hidden');
+            // Якщо шапка ховається, блюримо поле пошуку, щоб клавіатура теж сховалась
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) searchInput.blur();
+        }
+        lastScrollY = currentScrollY;
+        
+        // 2. Кнопка "Вгору"
+        if (currentScrollY > 300) { scrollBtn.classList.add('visible'); } 
         else { scrollBtn.classList.remove('visible'); }
-    };
+    });
+
     function scrollToActive() {
         const expandedBlock = document.querySelector('.category-block.expanded');
         if (expandedBlock) {
@@ -4838,7 +4889,29 @@ function updateReport() {
         
         const reportEl = document.getElementById('report');
         const reportText = reportEl.dataset.copyText || "";
-        const rawData = JSON.stringify(selectedItems); 
+        // 🟢 МАГІЯ: Перед відправкою перевіряємо, чи це тимчасова картка, і непомітно додаємо мітку
+        let dataToSend = JSON.parse(JSON.stringify(selectedItems));
+        let customCards = JSON.parse(localStorage.getItem('trackerCustomCards_v7')) || {};
+        
+        for (let key in dataToSend) {
+            let item = dataToSend[key];
+            // Перевіряємо тільки звичайні картки (ігноруємо шкали)
+            if (!key.startsWith('scaleCat_') && !key.startsWith('deltaCat_') && !key.startsWith('custom_')) {
+                let isCustom = false;
+                if (customCards[item.category]) {
+                    for (let sub in customCards[item.category]) {
+                        if (customCards[item.category][sub].includes(item.name)) {
+                            isCustom = true; break;
+                        }
+                    }
+                }
+                // Якщо це твоя створена картка і ти не залишив коментар — ставимо ярлик!
+                if (isCustom && (!item.note || item.note.trim() === "")) {
+                    item.note = "add-note📝";
+                }
+            }
+        }
+        const rawData = JSON.stringify(dataToSend);
         
         if (!reportText) {
             alert("Звіт порожній. Спочатку обери стани!");
@@ -4900,7 +4973,29 @@ function updateReport() {
         const btn = event.currentTarget;
         const reportEl = document.getElementById('report');
         const textToCopy = reportEl.dataset.copyText || "";
-        const rawData = JSON.stringify(selectedItems); 
+        // 🟢 МАГІЯ: Перед відправкою перевіряємо, чи це тимчасова картка, і непомітно додаємо мітку
+        let dataToSend = JSON.parse(JSON.stringify(selectedItems));
+        let customCards = JSON.parse(localStorage.getItem('trackerCustomCards_v7')) || {};
+        
+        for (let key in dataToSend) {
+            let item = dataToSend[key];
+            // Перевіряємо тільки звичайні картки (ігноруємо шкали)
+            if (!key.startsWith('scaleCat_') && !key.startsWith('deltaCat_') && !key.startsWith('custom_')) {
+                let isCustom = false;
+                if (customCards[item.category]) {
+                    for (let sub in customCards[item.category]) {
+                        if (customCards[item.category][sub].includes(item.name)) {
+                            isCustom = true; break;
+                        }
+                    }
+                }
+                // Якщо це твоя створена картка і ти не залишив коментар — ставимо ярлик!
+                if (isCustom && (!item.note || item.note.trim() === "")) {
+                    item.note = "add-note📝";
+                }
+            }
+        }
+        const rawData = JSON.stringify(dataToSend);
         
         if (!textToCopy) {
             alert("Звіт порожній. Спочатку обери стани!");
