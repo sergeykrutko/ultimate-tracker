@@ -5080,13 +5080,13 @@ function updateReport() {
 const scrollBtn = document.getElementById('scroll-btn');
 const searchInput = document.getElementById('search-input');
 let lastScrollY = window.scrollY;
-let isKeyboardOpening = false; // 🟢 ДОДАНО: Запобіжник для клавіатури
+let isKeyboardOpening = false; // Запобіжник
 
-// 🟢 ДОДАНО: Блокуємо автозакриття, коли клавіатура тільки відкривається
 searchInput.addEventListener('focus', () => {
     isKeyboardOpening = true;
-    header.classList.remove('header-hidden'); // Завжди показуємо шапку при пошуку
-    setTimeout(() => { isKeyboardOpening = false; }, 800); // Чекаємо завершення анімації iOS
+    header.classList.remove('header-hidden');
+    // Збільшуємо таймаут, щоб iOS точно завершив анімацію клавіатури і скролу
+    setTimeout(() => { isKeyboardOpening = false; }, 1200); 
 });
 
 if (window.scrollY > 100) {
@@ -5096,8 +5096,7 @@ if (window.scrollY > 100) {
 window.addEventListener('scroll', () => {
     const currentScrollY = window.scrollY;
     
-    // 1. Смарт-шапка (ховаємо при скролі вниз, показуємо при скролі вгору)
-    // 🟢 ФІКС: Шапка НЕ ховається, якщо ми зараз друкуємо в пошуку
+    // 1. Смарт-шапка
     if (currentScrollY < lastScrollY || currentScrollY < 50 || (searchInput === document.activeElement)) {
         header.classList.remove('header-hidden');
     } else if (currentScrollY > lastScrollY && currentScrollY > 100) {
@@ -5105,8 +5104,8 @@ window.addEventListener('scroll', () => {
     }
     
     // 2. Смарт-закриття клавіатури
-    // 🟢 ФІКС: Ігноруємо автоскрол iOS під час відкриття клавіатури
-    if (!isKeyboardOpening && Math.abs(currentScrollY - lastScrollY) > 15) {
+    // 🟢 ФІКС ПЛАВНОСТІ: Збільшили поріг зсуву до 20px і блокуємо, поки isKeyboardOpening === true
+    if (!isKeyboardOpening && Math.abs(currentScrollY - lastScrollY) > 20) {
         if (searchInput && searchInput === document.activeElement) {
             searchInput.blur();
         }
@@ -5331,7 +5330,7 @@ window.addEventListener('scroll', () => {
     window.addEventListener("focus", wakeUpTime);
     
 
-    // 🟢 МАГІЯ: Активація пошуку при "відтягуванні" екрану вниз (Pull-to-search)
+   // 🟢 МАГІЯ: Активація пошуку при "відтягуванні" екрану вниз (Pull-to-search)
 let touchStartX = 0;
 let touchStartY = 0;
 
@@ -5341,24 +5340,28 @@ document.addEventListener('touchstart', (e) => {
 }, {passive: true});
 
 document.addEventListener('touchend', (e) => {
-    // 🟢 ФІКС: Даємо допуск 10px, бо в WebApp iOS scrollY рідко ідеально дорівнює 0
-    if (window.scrollY <= 10) { 
+    // Даємо допуск 15px для WebApp гумки
+    if (window.scrollY <= 15) { 
         let touchEndX = e.changedTouches[0].clientX;
         let touchEndY = e.changedTouches[0].clientY;
 
         let diffY = touchEndY - touchStartY;
         let diffX = Math.abs(touchEndX - touchStartX);
 
-        // 🟢 ФІКС: Перевіряємо, чи це дійсно свайп вниз (diffY > 60), 
-        // і чи він вертикальний, а не діагональний (diffY > diffX)
-        if (diffY > 60 && diffY > diffX) { 
+        // Перевіряємо, чи це впевнений вертикальний свайп вниз
+        if (diffY > 65 && diffY > diffX * 1.5) { 
             const searchInput = document.getElementById('search-input');
-            if (searchInput) {
-                // Мікрозатримка допомагає iOS правильно передати фокус у WebApp режимі
-                setTimeout(() => {
-                    window.scrollTo(0, 0); // Жорстко повертаємо сторінку наверх
-                    searchInput.focus(); 
-                }, 50);
+            if (searchInput && searchInput !== document.activeElement) {
+                // 🟢 ФІКС КЛАВІАТУРИ: iOS вимагає фокусу БЕЗ setTimeout!
+                // Відміняємо дефолтну поведінку, щоб гумка iOS не конфліктувала
+                e.preventDefault(); 
+                
+                // Якщо шапка була прихована (що навряд на скролі 0, але для певності)
+                const header = document.querySelector('.header-container');
+                if (header) header.classList.remove('header-hidden');
+                
+                // Жорсткий синхронний фокус
+                searchInput.focus();
             }
         }
     }
