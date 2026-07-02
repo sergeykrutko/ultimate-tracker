@@ -5076,7 +5076,7 @@ function updateReport() {
         });
     }
 
-   const header = document.querySelector('.header-container');
+const header = document.querySelector('.header-container');
 const scrollBtn = document.getElementById('scroll-btn');
 const searchInput = document.getElementById('search-input');
 let lastScrollY = window.scrollY;
@@ -5085,7 +5085,21 @@ let isKeyboardOpening = false; // Запобіжник
 searchInput.addEventListener('focus', () => {
     isKeyboardOpening = true;
     header.classList.remove('header-hidden');
-    // Збільшуємо таймаут, щоб iOS точно завершив анімацію клавіатури і скролу
+    
+    // 🟢 ФІКС СТРИБКА (Анти-iOS):
+    // Перебиваємо системний автоскрол iOS кількома мікро-таймаутами, 
+    // жорстко прибиваючи сторінку до верху під час появи клавіатури.
+    if (window.scrollY > 10) {
+        // Якщо ми були десь внизу — плавно їдемо наверх
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+        // Якщо ми і так нагорі — не даємо системі "підстрибнути"
+        setTimeout(() => window.scrollTo(0, 0), 10);
+        setTimeout(() => window.scrollTo(0, 0), 50);
+        setTimeout(() => window.scrollTo(0, 0), 150);
+    }
+
+    // Даємо системі час заспокоїтись перед тим, як знову реагувати на скрол
     setTimeout(() => { isKeyboardOpening = false; }, 1200); 
 });
 
