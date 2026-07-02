@@ -5077,38 +5077,47 @@ function updateReport() {
     }
 
    const header = document.querySelector('.header-container');
-    const scrollBtn = document.getElementById('scroll-btn');
-    let lastScrollY = window.scrollY;
+const scrollBtn = document.getElementById('scroll-btn');
+const searchInput = document.getElementById('search-input');
+let lastScrollY = window.scrollY;
+let isKeyboardOpening = false; // 🟢 ДОДАНО: Запобіжник для клавіатури
 
-    // 🟢 ФІКС для оновлення сторінки: одразу ховаємо шапку, якщо ми вже нижче 100px
-    if (window.scrollY > 100) {
+// 🟢 ДОДАНО: Блокуємо автозакриття, коли клавіатура тільки відкривається
+searchInput.addEventListener('focus', () => {
+    isKeyboardOpening = true;
+    header.classList.remove('header-hidden'); // Завжди показуємо шапку при пошуку
+    setTimeout(() => { isKeyboardOpening = false; }, 800); // Чекаємо завершення анімації iOS
+});
+
+if (window.scrollY > 100) {
+    header.classList.add('header-hidden');
+}
+
+window.addEventListener('scroll', () => {
+    const currentScrollY = window.scrollY;
+    
+    // 1. Смарт-шапка (ховаємо при скролі вниз, показуємо при скролі вгору)
+    // 🟢 ФІКС: Шапка НЕ ховається, якщо ми зараз друкуємо в пошуку
+    if (currentScrollY < lastScrollY || currentScrollY < 50 || (searchInput === document.activeElement)) {
+        header.classList.remove('header-hidden');
+    } else if (currentScrollY > lastScrollY && currentScrollY > 100) {
         header.classList.add('header-hidden');
     }
-
-    window.addEventListener('scroll', () => {
-        const currentScrollY = window.scrollY;
-        
-        // 1. Смарт-шапка (ховаємо при скролі вниз, показуємо при скролі вгору)
-        if (currentScrollY < lastScrollY || currentScrollY < 50) {
-            header.classList.remove('header-hidden');
-        } else if (currentScrollY > lastScrollY && currentScrollY > 100) {
-            header.classList.add('header-hidden');
+    
+    // 2. Смарт-закриття клавіатури
+    // 🟢 ФІКС: Ігноруємо автоскрол iOS під час відкриття клавіатури
+    if (!isKeyboardOpening && Math.abs(currentScrollY - lastScrollY) > 15) {
+        if (searchInput && searchInput === document.activeElement) {
+            searchInput.blur();
         }
-        
-        // 2. Смарт-закриття клавіатури (ховаємо при найменшому скролі, незалежно від шапки)
-        if (Math.abs(currentScrollY - lastScrollY) > 15) {
-            const searchInput = document.getElementById('search-input');
-            if (searchInput && searchInput === document.activeElement) {
-                searchInput.blur(); // М'яко ховаємо клавіатуру
-            }
-        }
-        
-        lastScrollY = currentScrollY;
-        
-        // 3. Кнопка "Вгору"
-        if (currentScrollY > 300) { scrollBtn.classList.add('visible'); } 
-        else { scrollBtn.classList.remove('visible'); }
-    });
+    }
+    
+    lastScrollY = currentScrollY;
+    
+    // 3. Кнопка "Вгору"
+    if (currentScrollY > 300) { scrollBtn.classList.add('visible'); } 
+    else { scrollBtn.classList.remove('visible'); }
+});
 
     function scrollToActive() {
         const expandedBlock = document.querySelector('.category-block.expanded');
@@ -5323,20 +5332,37 @@ function updateReport() {
     
 
     // 🟢 МАГІЯ: Активація пошуку при "відтягуванні" екрану вниз (Pull-to-search)
-    let touchStartY = 0;
-    document.addEventListener('touchstart', (e) => {
-        touchStartY = e.touches[0].clientY;
-    }, {passive: true});
+let touchStartX = 0;
+let touchStartY = 0;
 
-    document.addEventListener('touchend', (e) => {
-        if (window.scrollY <= 0) { // Працює ТІЛЬКИ якщо ми на самому верху
-            let touchEndY = e.changedTouches[0].clientY;
-            if (touchEndY - touchStartY > 60) { // Якщо впевнено потягнули вниз
-                const searchInput = document.getElementById('search-input');
-                if (searchInput) searchInput.focus(); // Викликаємо клавіатуру!
+document.addEventListener('touchstart', (e) => {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+}, {passive: true});
+
+document.addEventListener('touchend', (e) => {
+    // 🟢 ФІКС: Даємо допуск 10px, бо в WebApp iOS scrollY рідко ідеально дорівнює 0
+    if (window.scrollY <= 10) { 
+        let touchEndX = e.changedTouches[0].clientX;
+        let touchEndY = e.changedTouches[0].clientY;
+
+        let diffY = touchEndY - touchStartY;
+        let diffX = Math.abs(touchEndX - touchStartX);
+
+        // 🟢 ФІКС: Перевіряємо, чи це дійсно свайп вниз (diffY > 60), 
+        // і чи він вертикальний, а не діагональний (diffY > diffX)
+        if (diffY > 60 && diffY > diffX) { 
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) {
+                // Мікрозатримка допомагає iOS правильно передати фокус у WebApp режимі
+                setTimeout(() => {
+                    window.scrollTo(0, 0); // Жорстко повертаємо сторінку наверх
+                    searchInput.focus(); 
+                }, 50);
             }
         }
-    });
+    }
+});
 
 
 
