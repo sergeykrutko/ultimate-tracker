@@ -5168,10 +5168,10 @@ const scrollBtn = document.getElementById('scroll-btn');
 const searchInput = document.getElementById('search-input');
 let lastScrollY = window.scrollY;
 let isKeyboardOpening = false; 
-let savedScrollPosition = null; // 🟢 ДОДАНО: Пам'ять для скролу
+let savedScrollPosition = null; // Пам'ять для скролу
 
 searchInput.addEventListener('focus', () => {
-    // 🟢 МАГІЯ: Якщо починаємо новий пошук, запам'ятовуємо, де ми були
+    // Якщо починаємо новий пошук, запам'ятовуємо, де ми були
     if (!searchInput.value && savedScrollPosition === null) {
         savedScrollPosition = window.scrollY;
     }
@@ -5181,6 +5181,21 @@ searchInput.addEventListener('focus', () => {
     header.classList.remove('header-hidden');
     
     setTimeout(() => { isKeyboardOpening = false; }, 1200); 
+});
+
+// 🟢 ТИ ВИПАДКОВО ВИДАЛИВ ЦЕЙ БЛОК. ВІН ПОВЕРТАЄ ФОКУС ПІСЛЯ ПОШУКУ!
+searchInput.addEventListener('blur', () => {
+    setTimeout(() => {
+        if (document.activeElement !== searchInput) {
+            searchInput.dataset.focused = 'false';
+            
+            if (!searchInput.value && savedScrollPosition !== null) {
+                // Плавне повернення туди, звідки почали
+                window.scrollTo({ top: savedScrollPosition, behavior: 'smooth' });
+                savedScrollPosition = null; // Очищаємо пам'ять
+            }
+        }
+    }, 150);
 });
 
 // 🟢 ДОДАЄМО СЛУХАЧА ДОТИКІВ (Щоб знати, чи скролить людина пальцем)
