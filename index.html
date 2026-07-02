@@ -167,11 +167,12 @@
             border: 1px solid var(--border); 
             border-radius: 12px; 
             padding: 10px 14px; 
-            font-size: 15px; 
+            font-size: 16px; /* 🟢 ФІКС: Суворо 16px, щоб iOS не робив зум! */
+            transform: translateZ(0); /* 🟢 ФІКС: Блокує графічні зсуви */
             outline: none; 
             font-weight: 500; 
             color: var(--text-main); 
-            box-shadow: inset 0 1px 2px rgba(0,0,0,0.02); /* Легкий ефект глибини всередину */
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
             transition: all 0.2s ease;
         }
         .search-bar:focus { 
@@ -2031,7 +2032,7 @@
 <div class="wrapper">
    <div class="header-container" id="top-anchor" style="display: flex; gap: 12px; align-items: center;">
         <div class="search-wrapper" style="flex: 1;">
-            <input type="text" class="search-bar" id="search-input" onkeyup="filterItems()" placeholder="Search...">
+            <input type="text" class="search-bar" id="search-input" placeholder="Search...">
             <button id="clear-search-btn" class="search-clear-btn" onclick="clearSearch()">✕</button>
         </div>
         <div class="header-actions">
@@ -5540,7 +5541,17 @@ document.addEventListener('touchend', (e) => {
     window.addEventListener('online', processOfflineQueue);
 
 
-
+// 🟢 МАГІЯ: Затримка пошуку, щоб клавіатура не злітала під час швидкого друку
+    let searchTimeout;
+    const searchInputField = document.getElementById('search-input');
+    if (searchInputField) {
+        searchInputField.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                filterItems();
+            }, 150); // Шукаємо тільки коли ти зробив паузу на 150мс
+        });
+    }
 
     initApp(); 
 </script>
