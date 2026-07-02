@@ -2035,6 +2035,8 @@
             <button id="clear-search-btn" class="search-clear-btn" onclick="clearSearch()">✕</button>
         </div>
         <div class="header-actions">
+            <!-- 🟢 НОВА КНОПКА MY STATE -->
+    <button class="icon-btn" id="my-state-toggle" onclick="toggleMyState()" title="My State">🎯</button>
             <button class="stats-mode-btn" id="stats-mode-btn" onclick="toggleStatsMode(event)" title="Статистика">30D</button>
             <button class="icon-btn" id="layout-toggle" onclick="toggleLayout()" title="Сітка/Список">⊞</button>
             <button class="icon-btn" id="theme-toggle" onclick="toggleTheme()" title="Тема">🌙</button>
@@ -2122,21 +2124,22 @@ let currentSessionId = Date.now().toString(36) + Math.random().toString(36).subs
 // 🟢 НОВЕ: Пам'ять для спливаючих шкал у хмарці
 let activeCloudPopupId = null;
 
-// 🟢 НОВЕ: Глобальний слухач кліків (закриває все, якщо клікнути повз)
+// 🟢 НОВЕ: Глобальний слухач кліків (смарт-пошук та закриття меню)
 document.addEventListener('click', (e) => {
     let needsRender = false;
+    
+    const openInfos = document.querySelectorAll('.option-info.open, .scale-info-block.open');
+    const hasOpenMenus = openInfos.length > 0;
 
-    // 1. Закриваємо всі спливаючі вікна (і на звичайних картках, і на шкалах)
+    // 1. Закриваємо всі спливаючі вікна (якщо клік не по меню)
     if (!e.target.closest('.option-info') && !e.target.closest('.scale-info-block') && !e.target.closest('.unified-menu-btn') && !e.target.closest('.info-icon-btn')) {
-        const openInfos = document.querySelectorAll('.option-info.open, .scale-info-block.open');
-        if (openInfos.length > 0) {
+        if (hasOpenMenus) {
             openInfos.forEach(el => {
                 el.classList.remove('open');
-                // Повертаємо кнопці ⋮ або ⓘ напівпрозорий сірий колір
                 const icon = el.parentElement.querySelector('.unified-menu-btn') || el.parentElement.querySelector('.info-icon-btn');
                 if (icon) { icon.style.opacity = '0.6'; icon.style.color = 'var(--text-desc)'; icon.style.transform = 'scale(1)'; }
             });
-            window.activeUnifiedMenuId = null; // Забуваємо, що меню було відкрите
+            window.activeUnifiedMenuId = null; 
         }
     }
 
@@ -2155,14 +2158,50 @@ document.addEventListener('click', (e) => {
             }
         });
     }
-// 4. Закриваємо пошук при кліку на вільне поле
-    if (!e.target.closest('.search-wrapper') && !e.target.closest('.option-btn') && !e.target.closest('.category-header')) {
-        const searchInput = document.getElementById('search-input');
-        if (searchInput && searchInput.value.trim() !== '') {
-            searchInput.value = '';
-            filterItems();
+
+    // 4. 🟢 НОВА РОЗУМНА ЛОГІКА ПОШУКУ
+    // Перевіряємо, чи клік був саме по порожньому фону
+    const isClickOnEmptySpace = !e.target.closest('.option-btn') && 
+                                !e.target.closest('.category-header') && 
+                                !e.target.closest('.search-wrapper') &&
+                                !e.target.closest('.header-actions') &&
+                                !e.target.closest('.report-fab') &&
+                                !e.target.closest('.report-panel') &&
+                                !e.target.closest('.scroll-top-btn');
+
+    if (isClickOnEmptySpace) {
+        if (!hasOpenMenus) {
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) {
+                const hasText = searchInput.value.trim() !== '';
+                const wasFocused = searchInput.dataset.focused === 'true' || document.activeElement === searchInput;
+
+                if (hasText) {
+                    // Сценарій 2: В пошуку Є текст -> Очищаємо, залишаємо фокус
+                    e.preventDefault(); 
+                    searchInput.value = '';
+                    filterItems();
+                    // 🟢 ФІКС: preventScroll блокує системний стрибок браузера нагору
+                    searchInput.focus({ preventScroll: true });
+                    searchInput.dataset.focused = 'true';
+                } else if (wasFocused) {
+                    // Сценарій 3: Тексту немає, пошук БУВ активним -> Закриваємо
+                    searchInput.blur();
+                    searchInput.dataset.focused = 'false';
+                } else {
+                    // Сценарій 1: Пошук порожній і НЕ активний -> Відкриваємо
+                    e.preventDefault();
+                    if (savedScrollPosition === null) {
+                        savedScrollPosition = window.scrollY;
+                    }
+                    // 🟢 ФІКС: preventScroll: true не дає екрану відскакувати нагору!
+                    searchInput.focus({ preventScroll: true });
+                    searchInput.dataset.focused = 'true';
+                }
+            }
         }
     }
+
     if (needsRender) saveAndRender();
 });
 
@@ -2343,6 +2382,23 @@ function syncHistoryBackground() {
     let systemThemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
     let currentTheme = localStorage.getItem('theme') || (systemThemeQuery.matches ? 'dark' : 'light');
     let currentLayout = localStorage.getItem('layout') || 'cloud';
+
+    // 🟢 ЛОГІКА РЕЖИМУ "MY STATE"
+let isMyStateMode = false;
+
+function toggleMyState() {
+    isMyStateMode = !isMyStateMode;
+    const btn = document.getElementById('my-state-toggle');
+    if (isMyStateMode) {
+        btn.classList.add('active-toggle');
+        window.scrollTo({ top: 0, behavior: 'smooth' }); // Зручно: одразу кидає наверх
+    } else {
+        btn.classList.remove('active-toggle');
+    }
+    filterItems(); // Використовуємо твій потужний двигун пошуку!
+}
+
+
 
     function applyTheme() {
         document.documentElement.setAttribute('data-theme', currentTheme);
@@ -4623,7 +4679,10 @@ function saveAndRender() {
         // 👆 ------------------------------ 👆
 
         const query = document.getElementById('search-input').value;
-        if(query) { filterItems(); }
+// 🟢 ФІКС: Зберігаємо режим фільтрації при кліках на картки
+if (query || (typeof isMyStateMode !== 'undefined' && isMyStateMode)) { 
+    filterItems(); 
+}
         
         // Знімаємо фіксацію висоти, коли браузер все відмалював
         requestAnimationFrame(() => {
@@ -4831,137 +4890,164 @@ function updateReport() {
 
 
    function filterItems() {
-        const searchInput = document.getElementById('search-input');
-        if (!searchInput) return;
-        
-        const query = searchInput.value.toLowerCase().trim();
-        const isSearching = query.length > 0;
-        
-        // 🟢 МАГІЯ ПОШУКУ: Вмикаємо/вимикаємо компактний режим
-        const appContainer = document.getElementById('app-container');
-        if (isSearching) {
-            appContainer.classList.add('search-compact-mode');
-        } else {
-            appContainer.classList.remove('search-compact-mode');
-        }
+    const searchInput = document.getElementById('search-input');
+    if (!searchInput) return;
 
-        // Показуємо або ховаємо хрестик очищення
-        document.getElementById('clear-search-btn').style.display = isSearching ? 'block' : 'none';
+    const query = searchInput.value.toLowerCase().trim();
+    // Розділяємо: чи є текст, і чи активний взагалі режим "компактності"
+    const isTextSearching = query.length > 0;
+    const isSearching = isTextSearching || (typeof isMyStateMode !== 'undefined' && isMyStateMode);
 
-        // Ховаємо текстові блоки та кастомні поля під час пошуку
-        document.querySelectorAll('.md-quote').forEach(quote => {
-            quote.style.display = isSearching ? 'none' : 'block';
-        });
-        document.querySelectorAll('.custom-items-wrap').forEach(w => {
-            w.style.display = isSearching ? 'none' : 'block';
-        });
+    // 🟢 МАГІЯ ПОШУКУ: Вмикаємо/вимикаємо компактний режим
+    const appContainer = document.getElementById('app-container');
+    if (isSearching) {
+        appContainer.classList.add('search-compact-mode');
+    } else {
+        appContainer.classList.remove('search-compact-mode');
+    }
 
-        document.querySelectorAll('.category-block').forEach(block => {
-            let hasVisibleInBlock = false;
+    // Показуємо хрестик ТІЛЬКИ якщо є текст
+    document.getElementById('clear-search-btn').style.display = isTextSearching ? 'block' : 'none';
 
-            // 1. Глобальні Шкали
-            if (block.classList.contains('global-scale-widget') && !block.classList.contains('inline-scale-widget')) {
-                if (isSearching) {
-                    const match = block.dataset.searchText && block.dataset.searchText.includes(query);
-                    block.style.display = match ? 'block' : 'none';
-                } else {
-                    block.style.display = 'block';
-                }
-                return; 
-            }
+    // Ховаємо текстові блоки та кастомні поля під час пошуку/MyState
+    document.querySelectorAll('.md-quote').forEach(quote => {
+        quote.style.display = isSearching ? 'none' : 'block';
+    });
+    document.querySelectorAll('.custom-items-wrap').forEach(w => {
+        w.style.display = isSearching ? 'none' : 'block';
+    });
 
-            // 2. Звичайні кнопки (.option-btn)
-            block.querySelectorAll('.option-btn').forEach(item => {
-                if (isSearching) {
-                    // 🟢 РОЗУМНИЙ ПОШУК: Збираємо тільки чистий текст
-                    let searchText = "";
-                    
-                    const nameEl = item.querySelector('.option-name');
-                    if (nameEl) {
-                        const clone = nameEl.cloneNode(true);
-                        const badge = clone.querySelector('.stats-badge');
-                        if (badge) badge.remove(); 
-                        searchText += clone.textContent.toLowerCase() + " ";
-                    }
-                    
-                    const descEl = item.querySelector('.info-popup-desc');
-                    if (descEl) searchText += descEl.textContent.toLowerCase() + " ";
-                    
-                    const extEl = item.querySelector('.info-popup-ext');
-                    if (extEl) searchText += extEl.textContent.toLowerCase() + " ";
-                    
-                    const tagsEl = item.querySelector('.practice-tags-wrap');
-                    if (tagsEl) searchText += tagsEl.textContent.toLowerCase() + " ";
+    document.querySelectorAll('.category-block').forEach(block => {
+        let hasVisibleInBlock = false;
 
-                    if (searchText.includes(query)) {
-                        item.style.display = 'flex';
-                        hasVisibleInBlock = true;
-                    } else {
-                        item.style.display = 'none';
-                    }
-                } else {
-                    if (item.classList.contains('smart-hidden')) {
-                        item.style.display = 'none';
-                    } else {
-                        item.style.display = 'flex';
-                        hasVisibleInBlock = true;
-                    }
-                }
-            });
+        // 1. Глобальні Шкали
+        if (block.classList.contains('global-scale-widget') && !block.classList.contains('inline-scale-widget')) {
+            let isActive = block.classList.contains('active');
+            let matchText = block.dataset.searchText && block.dataset.searchText.includes(query);
 
-            // 3. Вбудовані шкали (.inline-scale-widget)
-            block.querySelectorAll('.inline-scale-widget').forEach(scale => {
-                if (isSearching) {
-                    const match = scale.dataset.searchText && scale.dataset.searchText.includes(query);
-                    if (match) {
-                        scale.style.display = 'block';
-                        hasVisibleInBlock = true;
-                    } else {
-                        scale.style.display = 'none';
-                    }
-                } else {
-                    scale.style.display = 'block';
-                    hasVisibleInBlock = true;
-                }
-            });
-
-            // 4. Підзаголовки (###)
-            block.querySelectorAll('.subheader-wrap').forEach(wrap => {
-                if (isSearching) {
-                    const visibleBtns = Array.from(wrap.querySelectorAll('.option-btn')).some(btn => btn.style.display !== 'none');
-                    const visibleScales = Array.from(wrap.querySelectorAll('.inline-scale-widget')).some(s => s.style.display !== 'none');
-                    
-                    if (visibleBtns || visibleScales) {
-                        wrap.style.display = 'contents'; 
-                        wrap.classList.remove('collapsed'); // 🟢 КРИТИЧНИЙ ФІКС: Знімаємо згортання, щоб кнопки проявилися!
-                    } else {
-                        wrap.style.display = 'none';
-                    }
-                } else {
-                    wrap.style.display = 'block';
-                    wrap.classList.add('collapsed'); 
-                }
-            });
-
-           // 5. Коментарі (####) та Міні-заголовки
-            block.querySelectorAll('.category-comment, .mini-header').forEach(c => { 
-                c.style.display = isSearching ? 'none' : 'block'; 
-            });
-
-            // 6. Видимість Головного Блоку Категорії (#)
-            if (isSearching) {
-                if (hasVisibleInBlock) {
-                    block.style.display = 'block';
-                    block.classList.add('expanded');
-                } else {
-                    block.style.display = 'none'; 
-                }
+            if (typeof isMyStateMode !== 'undefined' && isMyStateMode && isTextSearching) {
+                block.style.display = (isActive && matchText) ? 'block' : 'none';
+            } else if (typeof isMyStateMode !== 'undefined' && isMyStateMode) {
+                block.style.display = isActive ? 'block' : 'none';
+            } else if (isTextSearching) {
+                block.style.display = matchText ? 'block' : 'none';
             } else {
                 block.style.display = 'block';
-                block.classList.remove('expanded');
+            }
+            return; 
+        }
+
+        // 2. Звичайні кнопки (.option-btn)
+        block.querySelectorAll('.option-btn').forEach(item => {
+            // Кнопку [+] залишаємо на розсуд CSS (у тебе вже є клас smart-hidden для неї)
+            if (item.classList.contains('add-card-btn')) return; 
+
+            let isActive = item.classList.contains('active');
+            let isSmartHidden = item.classList.contains('smart-hidden');
+            let matchText = false;
+
+            // 🟢 ТВІЙ ОРИГІНАЛЬНИЙ РОЗУМНИЙ ПОШУК (абсолютно без змін)
+            if (isTextSearching) {
+                let searchText = "";
+                const nameEl = item.querySelector('.option-name');
+                if (nameEl) {
+                    const clone = nameEl.cloneNode(true);
+                    const badge = clone.querySelector('.stats-badge');
+                    if (badge) badge.remove(); 
+                    searchText += clone.textContent.toLowerCase() + " ";
+                }
+                const descEl = item.querySelector('.info-popup-desc');
+                if (descEl) searchText += descEl.textContent.toLowerCase() + " ";
+                const extEl = item.querySelector('.info-popup-ext');
+                if (extEl) searchText += extEl.textContent.toLowerCase() + " ";
+                const tagsEl = item.querySelector('.practice-tags-wrap');
+                if (tagsEl) searchText += tagsEl.textContent.toLowerCase() + " ";
+
+                matchText = searchText.includes(query);
+            }
+
+            // Визначаємо, чи показувати картку залежно від режиму
+            let shouldShow = false;
+            if (typeof isMyStateMode !== 'undefined' && isMyStateMode && isTextSearching) {
+                shouldShow = isActive && matchText;
+            } else if (typeof isMyStateMode !== 'undefined' && isMyStateMode) {
+                shouldShow = isActive;
+            } else if (isTextSearching) {
+                shouldShow = matchText;
+            } else {
+                shouldShow = !isSmartHidden; // Твоя оригінальна логіка для звичайного режиму
+            }
+
+            if (shouldShow) {
+                item.style.display = 'flex';
+                hasVisibleInBlock = true;
+            } else {
+                item.style.display = 'none';
             }
         });
-    }
+
+        // 3. Вбудовані шкали (.inline-scale-widget)
+        block.querySelectorAll('.inline-scale-widget').forEach(scale => {
+            let isActive = scale.classList.contains('active');
+            let matchText = scale.dataset.searchText && scale.dataset.searchText.includes(query);
+
+            let shouldShow = false;
+            if (typeof isMyStateMode !== 'undefined' && isMyStateMode && isTextSearching) {
+                shouldShow = isActive && matchText;
+            } else if (typeof isMyStateMode !== 'undefined' && isMyStateMode) {
+                shouldShow = isActive;
+            } else if (isTextSearching) {
+                shouldShow = matchText;
+            } else {
+                shouldShow = true;
+            }
+
+            if (shouldShow) {
+                scale.style.display = 'block';
+                hasVisibleInBlock = true;
+            } else {
+                scale.style.display = 'none';
+            }
+        });
+
+        // 4. Підзаголовки (###)
+        block.querySelectorAll('.subheader-wrap').forEach(wrap => {
+            if (isSearching) {
+                // ТВІЙ ФІКС: Ігноруємо кнопку "+", щоб підзаголовок не висів порожнім
+                const visibleBtns = Array.from(wrap.querySelectorAll('.option-btn')).some(btn => btn.style.display !== 'none' && !btn.classList.contains('add-card-btn'));
+                const visibleScales = Array.from(wrap.querySelectorAll('.inline-scale-widget')).some(s => s.style.display !== 'none');
+                
+                if (visibleBtns || visibleScales) {
+                    wrap.style.display = 'contents'; 
+                    wrap.classList.remove('collapsed'); 
+                } else {
+                    wrap.style.display = 'none';
+                }
+            } else {
+                wrap.style.display = 'block';
+                wrap.classList.add('collapsed'); 
+            }
+        });
+
+        // 5. Коментарі (####) та Міні-заголовки
+        block.querySelectorAll('.category-comment, .mini-header').forEach(c => { 
+            c.style.display = isSearching ? 'none' : 'block'; 
+        });
+
+        // 6. Видимість Головного Блоку Категорії (#)
+        if (isSearching) {
+            if (hasVisibleInBlock) {
+                block.style.display = 'block';
+                block.classList.add('expanded');
+            } else {
+                block.style.display = 'none'; 
+            }
+        } else {
+            block.style.display = 'block';
+            block.classList.remove('expanded');
+        }
+    });
+}
 
     function clearSearch() {
         document.getElementById('search-input').value = '';
@@ -5080,27 +5166,64 @@ const header = document.querySelector('.header-container');
 const scrollBtn = document.getElementById('scroll-btn');
 const searchInput = document.getElementById('search-input');
 let lastScrollY = window.scrollY;
-let isKeyboardOpening = false; // Запобіжник
+let isKeyboardOpening = false; 
+let savedScrollPosition = null; // 🟢 ДОДАНО: Пам'ять для скролу
 
 searchInput.addEventListener('focus', () => {
+    // 🟢 МАГІЯ: Якщо починаємо новий пошук, запам'ятовуємо, де ми були
+    if (!searchInput.value && savedScrollPosition === null) {
+        savedScrollPosition = window.scrollY;
+    }
+
+    searchInput.dataset.focused = 'true';
     isKeyboardOpening = true;
     header.classList.remove('header-hidden');
     
-    // 🟢 ФІКС СТРИБКА (Анти-iOS):
-    // Перебиваємо системний автоскрол iOS кількома мікро-таймаутами, 
-    // жорстко прибиваючи сторінку до верху під час появи клавіатури.
-    if (window.scrollY > 10) {
-        // Якщо ми були десь внизу — плавно їдемо наверх
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-        // Якщо ми і так нагорі — не даємо системі "підстрибнути"
-        setTimeout(() => window.scrollTo(0, 0), 10);
-        setTimeout(() => window.scrollTo(0, 0), 50);
-        setTimeout(() => window.scrollTo(0, 0), 150);
-    }
-
-    // Даємо системі час заспокоїтись перед тим, як знову реагувати на скрол
     setTimeout(() => { isKeyboardOpening = false; }, 1200); 
+});
+
+searchInput.addEventListener('blur', () => {
+    setTimeout(() => {
+        if (document.activeElement !== searchInput) {
+            searchInput.dataset.focused = 'false';
+            
+            // 🟢 МАГІЯ ПОВЕРНЕННЯ: Якщо вийшли з пошуку і він порожній — повертаємось на старе місце
+            if (!searchInput.value && savedScrollPosition !== null) {
+                // Плавне повернення туди, звідки почали
+                window.scrollTo({ top: savedScrollPosition, behavior: 'smooth' });
+                savedScrollPosition = null; // Очищаємо пам'ять
+            }
+        }
+    }, 150);
+});
+
+
+if (window.scrollY > 100) {
+    header.classList.add('header-hidden');
+}
+
+window.addEventListener('scroll', () => {
+    const currentScrollY = window.scrollY;
+    
+    // 1. Смарт-шапка
+    if (currentScrollY < lastScrollY || currentScrollY < 50 || (searchInput === document.activeElement)) {
+        header.classList.remove('header-hidden');
+    } else if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        header.classList.add('header-hidden');
+    }
+    
+    // 2. Смарт-закриття клавіатури
+    if (!isKeyboardOpening && Math.abs(currentScrollY - lastScrollY) > 20) {
+        if (searchInput && searchInput === document.activeElement) {
+            searchInput.blur();
+        }
+    }
+    
+    lastScrollY = currentScrollY;
+    
+    // 3. Кнопка "Вгору"
+    if (currentScrollY > 300) { scrollBtn.classList.add('visible'); } 
+    else { scrollBtn.classList.remove('visible'); }
 });
 
 if (window.scrollY > 100) {
