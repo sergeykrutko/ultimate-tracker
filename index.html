@@ -5183,22 +5183,6 @@ searchInput.addEventListener('focus', () => {
     setTimeout(() => { isKeyboardOpening = false; }, 1200); 
 });
 
-searchInput.addEventListener('blur', () => {
-    setTimeout(() => {
-        if (document.activeElement !== searchInput) {
-            searchInput.dataset.focused = 'false';
-            
-            // 🟢 МАГІЯ ПОВЕРНЕННЯ: Якщо вийшли з пошуку і він порожній — повертаємось на старе місце
-            if (!searchInput.value && savedScrollPosition !== null) {
-                // Плавне повернення туди, звідки почали
-                window.scrollTo({ top: savedScrollPosition, behavior: 'smooth' });
-                savedScrollPosition = null; // Очищаємо пам'ять
-            }
-        }
-    }, 150);
-});
-
-
 // 🟢 ДОДАЄМО СЛУХАЧА ДОТИКІВ (Щоб знати, чи скролить людина пальцем)
 let isUserTouching = false;
 document.addEventListener('touchstart', () => { isUserTouching = true; }, {passive: true});
@@ -5232,7 +5216,6 @@ window.addEventListener('scroll', () => {
     if (currentScrollY > 300) { scrollBtn.classList.add('visible'); } 
     else { scrollBtn.classList.remove('visible'); }
 });
-
 
     function scrollToActive() {
         const expandedBlock = document.querySelector('.category-block.expanded');
