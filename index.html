@@ -5199,10 +5199,16 @@ searchInput.addEventListener('blur', () => {
 });
 
 
+// 🟢 ДОДАЄМО СЛУХАЧА ДОТИКІВ (Щоб знати, чи скролить людина пальцем)
+let isUserTouching = false;
+document.addEventListener('touchstart', () => { isUserTouching = true; }, {passive: true});
+document.addEventListener('touchend', () => { isUserTouching = false; }, {passive: true});
+
 if (window.scrollY > 100) {
     header.classList.add('header-hidden');
 }
 
+// 🟢 ОНОВЛЕНИЙ РОЗУМНИЙ СКРОЛ
 window.addEventListener('scroll', () => {
     const currentScrollY = window.scrollY;
     
@@ -5213,8 +5219,8 @@ window.addEventListener('scroll', () => {
         header.classList.add('header-hidden');
     }
     
-    // 2. Смарт-закриття клавіатури
-    if (!isKeyboardOpening && Math.abs(currentScrollY - lastScrollY) > 20) {
+    // 2. Смарт-закриття клавіатури (ТІЛЬКИ ЯКЩО ЛЮДИНА ФІЗИЧНО ТОРКАЄТЬСЯ ЕКРАНУ!)
+    if (isUserTouching && !isKeyboardOpening && Math.abs(currentScrollY - lastScrollY) > 20) {
         if (searchInput && searchInput === document.activeElement) {
             searchInput.blur();
         }
@@ -5227,34 +5233,6 @@ window.addEventListener('scroll', () => {
     else { scrollBtn.classList.remove('visible'); }
 });
 
-if (window.scrollY > 100) {
-    header.classList.add('header-hidden');
-}
-
-window.addEventListener('scroll', () => {
-    const currentScrollY = window.scrollY;
-    
-    // 1. Смарт-шапка
-    if (currentScrollY < lastScrollY || currentScrollY < 50 || (searchInput === document.activeElement)) {
-        header.classList.remove('header-hidden');
-    } else if (currentScrollY > lastScrollY && currentScrollY > 100) {
-        header.classList.add('header-hidden');
-    }
-    
-    // 2. Смарт-закриття клавіатури
-    // 🟢 ФІКС ПЛАВНОСТІ: Збільшили поріг зсуву до 20px і блокуємо, поки isKeyboardOpening === true
-    if (!isKeyboardOpening && Math.abs(currentScrollY - lastScrollY) > 20) {
-        if (searchInput && searchInput === document.activeElement) {
-            searchInput.blur();
-        }
-    }
-    
-    lastScrollY = currentScrollY;
-    
-    // 3. Кнопка "Вгору"
-    if (currentScrollY > 300) { scrollBtn.classList.add('visible'); } 
-    else { scrollBtn.classList.remove('visible'); }
-});
 
     function scrollToActive() {
         const expandedBlock = document.querySelector('.category-block.expanded');
