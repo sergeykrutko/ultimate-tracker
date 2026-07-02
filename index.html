@@ -2288,7 +2288,7 @@ function updateDateDisplay() {
         display.innerText = d.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit' });
     }
 }
-
+ 
 function changeDateOffset(delta) {
     logDateOffset += delta;
     if (logDateOffset > 0) logDateOffset = 0; // Забороняємо ставити дату в майбутнє
@@ -5163,6 +5163,10 @@ function updateReport() {
         });
     }
 
+
+
+
+
 const header = document.querySelector('.header-container');
 const scrollBtn = document.getElementById('scroll-btn');
 const searchInput = document.getElementById('search-input');
@@ -5231,6 +5235,11 @@ window.addEventListener('scroll', () => {
     if (currentScrollY > 300) { scrollBtn.classList.add('visible'); } 
     else { scrollBtn.classList.remove('visible'); }
 });
+
+
+
+
+
 
     function scrollToActive() {
         const expandedBlock = document.querySelector('.category-block.expanded');
