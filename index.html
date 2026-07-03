@@ -509,7 +509,8 @@
         }
 
         /* 2. Ховаємо дубль короткого опису всередині спливаючого віконця */
-        [data-layout="list"] #app-container .grid-unified .option-info .info-popup-desc {
+        [data-layout="list"] #app-container .grid-unified .option-info .info-popup-desc,
+        [data-layout="grid"] #app-container .grid-unified .option-info .info-popup-desc {
             display: none !important; 
         }
 
@@ -1371,10 +1372,10 @@
         [data-layout="grid"] .grid-unified:not(.icon-only-grid) {
             display: grid !important;
             grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
-            align-items: start !important;
+            align-items: stretch !important; /* 🟢 ФІКС: Змушує картки в ряду тягнутися до найвищої */
         }
         [data-layout="grid"] .grid-unified:not(.icon-only-grid) .option-btn {
-            grid-column: span 2 !important; width: 100% !important; height: 100% !important;
+            grid-column: span 2 !important; width: 100% !important; height: 100% !important; align-self: stretch !important; /* 🟢 ФІКС: Заповнює висоту */
         }
         [data-layout="grid"] .grid-unified:not(.icon-only-grid) .option-btn.parent-card { grid-column: 1 / -1 !important; }
         [data-layout="grid"] [id*="practices" i] .option-btn,
@@ -1607,13 +1608,14 @@
         /* 📋 РЕЖИМ СПИСКУ (☰) ТА ІКОНКА НАЛАШТУВАНЬ */
         /* ========================================= */
         
-        /* Ховаємо опис за замовчуванням (щоб не ламати Хмарку і Сітку) */
+        /* Ховаємо опис за замовчуванням (щоб не ламати Хмарку) */
         .list-mode-desc {
             display: none;
         }
 
-        /* 🟢 Показуємо опис ТІЛЬКИ в режимі списку */
-        [data-layout="list"] #app-container .list-mode-desc {
+        /* 🟢 Показуємо опис ТІЛЬКИ в режимі списку та сітки */
+        [data-layout="list"] #app-container .list-mode-desc,
+        [data-layout="grid"] #app-container .grid-unified:not(.icon-only-grid) .list-mode-desc {
             display: block;
             margin-top: 6px;
             font-size: 11.5px;
@@ -1779,20 +1781,25 @@
         }
 
         /* ========================================= */
-        /* 🎯 ФІКС: ВЕРТИКАЛЬНЕ ЦЕНТРУВАННЯ КАРТКИ   */
+        /* 🎯 ФІКС: ВИРІВНЮВАННЯ ВМІСТУ КАРТОК       */
         /* ========================================= */
         
-        /* 1. Змушуємо саму картку центрувати все, що всередині */
+        /* 1. За замовчуванням притискаємо вміст карток до ВЕРХУ (щоб назви були на одному рівні) */
         #app-container .option-btn {
-            justify-content: center !important;
+            justify-content: flex-start !important;
         }
         
-        /* 2. Змушуємо внутрішню клікабельну зону розтягнутися на всю висоту і відцентрувати текст */
         #app-container .option-clickable-area {
             display: flex !important;
             flex-direction: column !important;
-            justify-content: center !important;
+            justify-content: flex-start !important; 
             flex: 1 !important; 
+        }
+
+        /* 2. АЛЕ для сітки з одними іконками (емодзі) залишаємо ідеальне центрування по центру */
+        #app-container .grid-unified.icon-only-grid .option-btn,
+        #app-container .grid-unified.icon-only-grid .option-clickable-area {
+            justify-content: center !important;
         }
 
 
@@ -2164,6 +2171,7 @@ document.addEventListener('click', (e) => {
     // Перевіряємо, чи клік був саме по порожньому фону
     const isClickOnEmptySpace = !e.target.closest('.option-btn') && 
                                 !e.target.closest('.category-header') && 
+                                !e.target.closest('.global-scale-widget') && // 🟢 ФІКС: Дозволяє вільно натискати на шкали, не збиваючи пошук!
                                 !e.target.closest('.search-wrapper') &&
                                 !e.target.closest('.header-actions') &&
                                 !e.target.closest('.report-fab') &&
@@ -2177,25 +2185,24 @@ document.addEventListener('click', (e) => {
                 const hasText = searchInput.value.trim() !== '';
                 const wasFocused = searchInput.dataset.focused === 'true' || document.activeElement === searchInput;
 
-                if (hasText) {
-                    // Сценарій 2: В пошуку Є текст -> Очищаємо, залишаємо фокус
+                if (hasText || wasFocused) {
+                    // 🟢 Сценарій: Пошук БУВ активним або Є текст -> Очищаємо, закриваємо і миттєво повертаємось
                     e.preventDefault(); 
                     searchInput.value = '';
-                    filterItems();
-                    // 🟢 ФІКС: preventScroll блокує системний стрибок браузера нагору
-                    searchInput.focus({ preventScroll: true });
-                    searchInput.dataset.focused = 'true';
-                } else if (wasFocused) {
-                    // Сценарій 3: Тексту немає, пошук БУВ активним -> Закриваємо
                     searchInput.blur();
                     searchInput.dataset.focused = 'false';
+                    filterItems();
+                    
+                    if (savedScrollPosition !== null) {
+                        window.scrollTo({ top: savedScrollPosition, behavior: 'auto' }); // Миттєво повертає на позицію
+                        savedScrollPosition = null;
+                    }
                 } else {
-                    // Сценарій 1: Пошук порожній і НЕ активний -> Відкриваємо
+                    // Сценарій: Пошук порожній і НЕ активний -> Відкриваємо
                     e.preventDefault();
                     if (savedScrollPosition === null) {
                         savedScrollPosition = window.scrollY;
                     }
-                    // 🟢 ФІКС: preventScroll: true не дає екрану відскакувати нагору!
                     searchInput.focus({ preventScroll: true });
                     searchInput.dataset.focused = 'true';
                 }
@@ -2385,19 +2392,48 @@ function syncHistoryBackground() {
     let currentLayout = localStorage.getItem('layout') || 'cloud';
 
     // 🟢 ЛОГІКА РЕЖИМУ "MY STATE"
-let isMyStateMode = false;
+    let isMyStateMode = false;
+    let savedMyStateScroll = 0; // Пам'ять для скролу
 
-function toggleMyState() {
-    isMyStateMode = !isMyStateMode;
-    const btn = document.getElementById('my-state-toggle');
-    if (isMyStateMode) {
-        btn.classList.add('active-toggle');
-        window.scrollTo({ top: 0, behavior: 'smooth' }); // Зручно: одразу кидає наверх
-    } else {
-        btn.classList.remove('active-toggle');
+    function toggleMyState() {
+        const btn = document.getElementById('my-state-toggle');
+        const container = document.getElementById('app-container');
+        
+        if (!isMyStateMode) {
+            // ВМИКАЄМО ФІЛЬТР
+            savedMyStateScroll = window.scrollY; // Запам'ятовуємо позицію
+            isMyStateMode = true;
+            btn.classList.add('active-toggle');
+            
+            // Фіксуємо висоту екрану, щоб не було ривка
+            container.style.minHeight = container.offsetHeight + 'px';
+            
+            filterItems(); 
+            
+            // Плавно скролимо нагору
+            window.scrollTo({ top: 0, behavior: 'smooth' }); 
+            
+            // Відпускаємо висоту після анімації
+            setTimeout(() => { container.style.minHeight = 'auto'; }, 0);
+            
+        } else {
+            // ВИМИКАЄМО ФІЛЬТР
+            isMyStateMode = false;
+            btn.classList.remove('active-toggle');
+            
+            // Відкриваємо всі картки
+            filterItems(); 
+            
+            // 🟢 МАГІЯ: Подвійний requestAnimationFrame гарантує, що браузер 
+            // 100% перерахував нову висоту сторінки перед тим, як ми спробуємо проскролити.
+            // Без цього він "врізався" б у коротку сторінку і стрибав нагору.
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    window.scrollTo({ top: savedMyStateScroll, behavior: 'instant' }); 
+                });
+            });
+        }
     }
-    filterItems(); // Використовуємо твій потужний двигун пошуку!
-}
 
 
 
@@ -3284,15 +3320,75 @@ function renderInlineMarkdown(text) {
             menuBtn.style.color = 'var(--accent)';
         }
 
+        // 🟢 ФІКС: Зберігаємо стан (розгорнуто/згорнуто), щоб він не збивався при русі повзунка
+        window.expandedDeltas = window.expandedDeltas || new Set();
+        window.collapsedDeltas = window.collapsedDeltas || new Set();
+
+        let isDeltaExpanded = false;
+        if (window.expandedDeltas.has(stateId)) {
+            isDeltaExpanded = true;
+        } else if (window.collapsedDeltas.has(stateId)) {
+            isDeltaExpanded = false;
+        } else if (isSelected && selectedItems[stateId].outTouched) {
+            isDeltaExpanded = true; 
+        }
+
         const slidersWrap = document.createElement('div');
         slidersWrap.style.cssText = 'display:flex; flex-direction:column; gap:2px; margin-top:8px;';
 
-        function createRow(type, currentVal, showLabels) {
+        function createRow(type, currentVal, showLabels, isExpandedInitially) {
             const row = document.createElement('div');
-            row.style.cssText = 'display:flex; align-items:center; gap:8px;';
+            // 🟢 ФІКС ДИЗАЙНУ: align-items: flex-start замість center. Це гарантує, що при появі цифр знизу, верхня частина не буде стрибати!
+            row.style.cssText = 'display:flex; align-items:flex-start; gap:8px; width:100%;';
+            row.className = `delta-row-${type.toLowerCase()}`;
+            
+            const labelWrap = document.createElement('div');
+            // 🟢 ФІКС ДИЗАЙНУ: height: 20px жорстко центрує текст IN/OUT рівно навпроти кружечка повзунка
+            labelWrap.style.cssText = 'display:flex; align-items:center; gap:2px; width:28px; height:20px;';
             
             const label = document.createElement('span');
-            label.innerText = type; label.style.cssText = 'font-size:10px; font-weight:800; color:var(--text-desc); width:24px;';
+            label.innerText = type; 
+            label.style.cssText = 'font-size:10px; font-weight:800; color:var(--text-desc);';
+            labelWrap.appendChild(label);
+
+            if (type === 'IN') {
+                const chevron = document.createElement('span');
+                chevron.className = 'delta-chevron';
+                chevron.innerHTML = '▼';
+                chevron.style.cssText = `font-size:8px; color:var(--text-desc); transition:transform 0.2s; cursor:pointer; display:inline-block; transform: ${isExpandedInitially ? 'rotate(0deg)' : 'rotate(-90deg)'}; padding:2px;`;
+                labelWrap.appendChild(chevron);
+                
+                labelWrap.style.cursor = 'pointer';
+                labelWrap.onclick = (e) => {
+                    e.stopPropagation();
+                    
+                    window.expandedDeltas = window.expandedDeltas || new Set();
+                    window.collapsedDeltas = window.collapsedDeltas || new Set();
+
+                    const widgetEl = row.closest('.global-scale-widget');
+                    const outR = widgetEl.querySelector('.delta-row-out');
+                    const inL = widgetEl.querySelector('.in-row-labels');
+                    const inSlider = widgetEl.querySelector('.delta-row-in .slider-container');
+                    
+                    const isCurrentlyHidden = outR.style.display === 'none';
+                    
+                    if (isCurrentlyHidden) {
+                        window.expandedDeltas.add(stateId);
+                        window.collapsedDeltas.delete(stateId);
+                        outR.style.display = 'flex';
+                        chevron.style.transform = 'rotate(0deg)';
+                        if (inL) inL.style.display = 'none';
+                        if (inSlider) inSlider.style.paddingBottom = '4px';
+                    } else {
+                        window.expandedDeltas.delete(stateId);
+                        window.collapsedDeltas.add(stateId);
+                        outR.style.display = 'none';
+                        chevron.style.transform = 'rotate(-90deg)';
+                        if (inL) inL.style.display = 'block';
+                        if (inSlider) inSlider.style.paddingBottom = '14px';
+                    }
+                };
+            }
 
             const percent = (currentVal / maxIdx) * 100; const centerPercent = (centerIdx / maxIdx) * 100;
             const fillStart = Math.min(percent, centerPercent); const fillEnd = Math.max(percent, centerPercent);
@@ -3313,12 +3409,12 @@ function renderInlineMarkdown(text) {
             
             sliderDiv.style.paddingBottom = showLabels ? '14px' : '4px';
 
-            let labelsHtml = showLabels ? `
-                <div class="global-slider-labels">
+            let labelsHtml = `
+                <div class="global-slider-labels ${type === 'IN' ? 'in-row-labels' : ''}" style="display: ${showLabels ? 'block' : 'none'};">
                     <span>${scaleItems[0].number > 0 ? '+'+scaleItems[0].number : scaleItems[0].number}</span>
                     <span>${scaleItems[centerIdx].number}</span>
                     <span>${scaleItems[maxIdx].number > 0 ? '+'+scaleItems[maxIdx].number : scaleItems[maxIdx].number}</span>
-                </div>` : '';
+                </div>`;
 
             sliderDiv.innerHTML = `
                 <input type="range" min="0" max="${maxIdx}" value="${currentVal}" class="global-slider ${thumbClass}" style="${bgStyle} margin-bottom: 0;" 
@@ -3328,12 +3424,16 @@ function renderInlineMarkdown(text) {
                 ${labelsHtml}
             `;
 
-            row.appendChild(label); row.appendChild(sliderDiv); 
+            row.appendChild(labelWrap); row.appendChild(sliderDiv); 
             return row;
         }
 
-        slidersWrap.appendChild(createRow('IN', inIdx, false));
-        slidersWrap.appendChild(createRow('OUT', outIdx, true));
+        slidersWrap.appendChild(createRow('IN', inIdx, !isDeltaExpanded, isDeltaExpanded)); 
+        
+        const outRow = createRow('OUT', outIdx, true, false);
+        outRow.style.display = isDeltaExpanded ? 'flex' : 'none'; 
+        slidersWrap.appendChild(outRow);
+        
         widget.appendChild(slidersWrap);
         
         return widget;
@@ -3453,6 +3553,86 @@ function markOutTouched(category) {
         // 🟢 АНАЛІТИКА: Рахуємо загальну кількість кліків та кліки по категоріях
         let grandTotalClicks = 0;
         let catTotals = {};
+
+
+
+        // 🧠 МАКРО-СИСТЕМА: Аналіз тригерів та Субособистостей (IFS Parts)
+        let globalRawTriggers = [];
+        try {
+            Object.values(selectedItems).forEach(i => {
+                if (i && i.category && i.name) {
+                    let catStr = String(i.category).toLowerCase();
+                    if (!catStr.includes('practice') && !catStr.includes('практик')) {
+                        let n = String(i.name).toLowerCase().replace(/["']/g, '').trim();
+                        if (n) globalRawTriggers.push(n);
+                        
+                        let block = parsedBlocks.find(b => b.title === i.category);
+                        if (block && Array.isArray(block.items)) {
+                            let itemData = block.items.find(item => item.name === i.name);
+                            if (itemData && Array.isArray(itemData.triggers)) {
+                                itemData.triggers.forEach(t => {
+                                    let tStr = String(t).toLowerCase().replace(/[\*\"']/g, '').trim();
+                                    if (tStr) globalRawTriggers.push(tStr);
+                                });
+                            }
+                        }
+                    }
+                }
+            });
+        } catch (e) { console.error("Macro Prep Error", e); }
+
+        let activePartsMap = {}; 
+        let highlyActiveParts = []; 
+        let maxPartScore = 0; 
+        
+        try {
+            parsedBlocks.forEach(block => {
+                if (block.type === 'category' && block.title) {
+                    let catNameLower = String(block.title).toLowerCase();
+                    if (!catNameLower.includes('practice') && !catNameLower.includes('практик')) {
+                        if (Array.isArray(block.items)) {
+                            block.items.forEach(i => {
+                                if (i.type === 'item' && Array.isArray(i.triggers) && i.triggers.length > 0) {
+                                    let matchCount = 0;
+                                    i.triggers.forEach(t => {
+                                        let tLower = String(t).toLowerCase().replace(/[\*\"']/g, '').trim(); 
+                                        // Захист: Шукаємо тільки слова > 2 літер або реальні емодзі
+                                        if (tLower.length > 1 || tLower.match(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu)) {
+                                            if (globalRawTriggers.some(gt => gt === tLower || (gt.length > 2 && tLower.includes(gt)) || (tLower.length > 2 && gt.includes(tLower)))) {
+                                                matchCount++;
+                                            }
+                                        }
+                                    });
+                                    
+                                    if (matchCount > 0) {
+                                        let score = Math.min(100, matchCount * 30); 
+                                        activePartsMap[i.name] = score;
+                                        if (score > maxPartScore) maxPartScore = score;
+                                        
+                                        if (score >= 30) { 
+                                            highlyActiveParts.push({ category: block.title, name: i.name, score: score, sub: i.subCategory || "Інше" });
+                                            globalRawTriggers.push(String(i.name).toLowerCase().trim()); 
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    }
+                }
+            });
+            highlyActiveParts.sort((a, b) => b.score - a.score);
+        } catch (e) { console.error("Parts Analysis Error", e); }
+
+
+
+
+        
+
+
+
+
+
+
 
         parsedBlocks.forEach(blockData => {
             if (blockData.type !== 'category' && blockData.type !== 'scale-category' && blockData.type !== 'delta-category') return;
@@ -3586,13 +3766,8 @@ let selectedInCat = Object.values(selectedItems).filter(i => i.category === cate
 
 
 
-// 4. Збираємо активні тригери (збережена "магія" описів)
-                let rawTriggers = [];
-                Object.values(selectedItems).forEach(i => {
-                    if (i && typeof i === 'object' && !Array.isArray(i) && i.name && typeof i.name === 'string' && i.name.length > 3 && i.category && i.category.toLowerCase() !== 'practices') {
-                        rawTriggers.push(i.name.toLowerCase());
-                    }
-                });
+// 4. Використовуємо глобальні тригери (вони вже містять симптоми + автоматично активовані Частини!)
+                let rawTriggers = globalRawTriggers;
 
                 rawTriggers.forEach(t => {
                     let currentSubSearch = "Інше";
@@ -3674,19 +3849,26 @@ if (starFilterLevel > 0) {
 
 
 
-// Оцінка за ТРИГЕРАМИ (Гібридна: снайпер + інтуїція)
+// Оцінка за ТРИГЕРАМИ (з підтримкою зірочок пріоритету!)
                             if (!isMismatch && activeTriggers.length > 0) {
                                 let combinedText = (i.desc + " " + currentSub).toLowerCase();
 
                                 activeTriggers.forEach(t => {
-                                    let matchInTriggers = i.triggers && i.triggers.some(trig => trig.toLowerCase() === t);
+                                    // Шукаємо теги з зірочками і без
+                                    let doubleStarMatch = i.triggers && i.triggers.some(trig => trig.toLowerCase() === t + '**');
+                                    let singleStarMatch = i.triggers && i.triggers.some(trig => trig.toLowerCase() === t + '*');
+                                    let exactMatch = i.triggers && i.triggers.some(trig => trig.toLowerCase() === t);
                                     
-                                    if (matchInTriggers) {
-                                        score += 50; // 🎯 100% влучання у твій ручний тег [tag]! Найвищий пріоритет.
+                                    if (doubleStarMatch) {
+                                        score += 150; // 🚀 Абсолютний пріоритет (Снайперський антидот)
+                                    } else if (singleStarMatch) {
+                                        score += 80;  // ⭐ Високий пріоритет
+                                    } else if (exactMatch) {
+                                        score += 40;  // Звичайний збіг по тегу
                                     } else if (i.name.toLowerCase().includes(t)) {
-                                        score += 20; // 🟡 Влучання прямо в назву практики.
+                                        score += 20;  // Влучання в назву
                                     } else if (combinedText.includes(t)) {
-                                        score += 5;  // 🪶 Слабке влучання (знайшло в описі або підзаголовку).
+                                        score += 5;   // Влучання в опис
                                     }
                                 });
                             }
@@ -3922,6 +4104,47 @@ if (category.toLowerCase() === 'practices') {
             }
 
 
+            // 🎭 МАГІЯ: ХМАРКА АКТИВНИХ ЧАСТИН (АВТОМАТИЧНО ДЛЯ БУДЬ-ЯКОЇ КАТЕГОРІЇ)
+            let activePartsForThisCat = highlyActiveParts.filter(p => p.category === category);
+            if (activePartsForThisCat.length > 0) {
+                const partsCloudWrap = document.createElement('div');
+                partsCloudWrap.style.cssText = 'padding: 10px 12px; background: rgba(112, 90, 158, 0.05); border-radius: 12px; border: 1px solid rgba(112, 90, 158, 0.15); margin-bottom: 8px; grid-column: 1 / -1; width: 100%; box-sizing: border-box; box-shadow: 0 4px 12px rgba(112, 90, 158, 0.03);';
+                partsCloudWrap.innerHTML = `<div style="font-size: 11px; font-weight: 800; color: #705a9e; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">💡 Можливо, зараз активні:</div>`;
+
+                const pTagsCloud = document.createElement('div');
+                pTagsCloud.style.cssText = 'display: flex; flex-wrap: wrap; gap: 6px;';
+
+                activePartsForThisCat.slice(0, 4).forEach(part => {
+                    const itemId = `${category}|${part.name}`;
+                    const isSelected = !!selectedItems[itemId];
+                    
+                    let tag = document.createElement('div');
+                    tag.className = 'custom-tag';
+                    tag.style.cssText = isSelected
+                        ? 'background: var(--accent); font-size: 11px; padding: 6px 12px; border-radius: 16px; box-shadow: 0 2px 6px rgba(72,94,80,0.2); transition: all 0.2s;'
+                        : `background: ${part.score >= 60 ? '#705a9e' : 'rgba(112, 90, 158, 0.6)'}; font-size: 11px; padding: 6px 12px; border-radius: 16px; color: white; transition: all 0.2s; cursor: pointer; display: flex; align-items: center; gap: 6px;`;
+                    
+                    let intensityDots = '•'.repeat(Math.ceil(part.score / 30));
+                    tag.innerHTML = `${renderInlineMarkdown(String(part.name))} <span style="opacity: 0.7; font-size: 12px; letter-spacing: 1px;">${intensityDots}</span>`;
+
+                    tag.onclick = (e) => {
+                        e.stopPropagation();
+                        if (selectedItems[itemId]) delete selectedItems[itemId];
+                        else selectedItems[itemId] = { category: category, name: part.name, parent: null, scale: null, mods: [] };
+                        saveAndRender();
+                    };
+                    pTagsCloud.appendChild(tag);
+                });
+
+                partsCloudWrap.appendChild(pTagsCloud);
+                currentGrid.appendChild(partsCloudWrap);
+            }
+
+
+
+
+
+
 
 
             containerWrap.appendChild(currentGrid);
@@ -4099,17 +4322,47 @@ if (category.toLowerCase() === 'practices') {
                 const isSelected = !!selectedItems[itemId];
                 const currentScale = isSelected ? selectedItems[itemId].scale : null;
 
-               let smartClass = 'neutral';
+              let smartClass = 'neutral';
                 let tagsHtml = '';
-                let isSmartHidden = false; // 1. Оголошуємо змінну ТУТ (вона за замовчуванням false для всіх карток)
+                let isSmartHidden = false; 
+                let isDimmedCard = false; 
 
-                if (isFilteringActive) {
-                    if (category.toLowerCase() === 'practices') {
-                        let isTop = topPractices.includes(item.name);
+                let isPracticeCat = String(category).toLowerCase().includes('practice') || String(category).toLowerCase().includes('практик');
+
+                try {
+                    // 🎭 ЛОГІКА ДЛЯ ЧАСТИН 
+                    if (!isPracticeCat && Array.isArray(item.triggers) && item.triggers.length > 0) {
+                        let allTags = [];
+                        item.triggers.forEach(t => {
+                            let tLower = String(t).toLowerCase().replace(/[\*\"']/g, '').trim();
+                            let isHit = false;
+                            if (tLower.length > 1 || tLower.match(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu)) {
+                                isHit = globalRawTriggers.some(gt => gt === tLower || (gt.length > 2 && tLower.includes(gt)) || (tLower.length > 2 && gt.includes(tLower)));
+                            }
+                            if (isHit) {
+                                allTags.push(`<span class="p-tag active-trigger" style="background: rgba(112, 90, 158, 0.1) !important; color: #705a9e !important; border-color: rgba(112, 90, 158, 0.25) !important;">[${t}]</span>`);
+                            } else {
+                                allTags.push(`<span class="p-tag">[${t}]</span>`);
+                            }
+                        });
+                        if (allTags.length > 0) {
+                            tagsHtml = `<div class="practice-tags-wrap">${allTags.join('')}</div>`;
+                        }
+
+                        if (highlyActiveParts.length > 0) {
+                            let score = activePartsMap[item.name] || 0;
+                            if (maxPartScore >= 60 && score === 0 && !isSelected) isDimmedCard = true;
+                            if (score >= 30) smartClass = 'recommended'; 
+                        }
+                    }
+
+                    // ✨ ЛОГІКА ДЛЯ ПРАКТИК
+                    if (isFilteringActive && isPracticeCat) {
+                        let isTop = Array.isArray(topPractices) && topPractices.includes(item.name);
                         
                         let isStarred = false;
                         if (starFilterLevel > 0 && item.name) {
-                            const itemStarsCount = (item.name.match(/⭑/g) || []).length;
+                            const itemStarsCount = (String(item.name).match(/⭑/g) || []).length;
                             isStarred = itemStarsCount >= starFilterLevel;
                         }
 
@@ -4117,48 +4370,42 @@ if (category.toLowerCase() === 'practices') {
                         let showByStar = (starFilterLevel > 0) && isStarred;
 
                         if (showByTop && showByStar) {
-                            smartClass = 'starred super-match'; // 🎯 Ідеальний збіг! (І зірка, і алгоритм)
+                            smartClass = 'starred super-match'; 
                         } else if (showByStar) {
-                            smartClass = 'starred'; // ⭑ Лише зірочка
+                            smartClass = 'starred'; 
                         } else if (showByTop) {
-                            smartClass = 'recommended'; // ✨ Лише смарт-фільтр
+                            smartClass = 'recommended'; 
                         } else {
                             isSmartHidden = true; 
                         }
-                    }
 
-                    // 2. РЕНДЕР ТЕГІВ (Показуємо снайперські попадання)
-                    let allTags = [];
-                    if (item.triggers) {
-                        item.triggers.forEach(t => {
-                            let isHit = activeTriggers.includes(t.toLowerCase());
-                            if (isHit) {
-                                allTags.push(`<span class="p-tag active-trigger">[${t}]</span>`);
-                            }
-                        });
+                        let allTags = [];
+                        if (Array.isArray(item.triggers)) {
+                            item.triggers.forEach(t => {
+                                let tStr = String(t).toLowerCase().trim();
+                                if (typeof activeTriggers !== 'undefined' && Array.isArray(activeTriggers) && activeTriggers.includes(tStr)) {
+                                    allTags.push(`<span class="p-tag active-trigger">[${t}]</span>`);
+                                }
+                            });
+                        }
+                        if (allTags.length > 0) {
+                            tagsHtml = `<div class="practice-tags-wrap">${allTags.join('')}</div>`;
+                        }
                     }
-                    if (allTags.length > 0) {
-                        tagsHtml = `<div class="practice-tags-wrap">${allTags.join('')}</div>`;
-                    }
-                }
+                } catch(e) { console.error("SmartClass Error", e); }
 
                 // 🟢 МАГІЯ: Якщо картка ВЖЕ обрана, ми жорстко забороняємо фільтрам її ховати!
                 if (isSelected) {
                     isSmartHidden = false;
                 }
 
-                // 🟢 МАГІЯ: Перевіряємо, чи є ця картка "батьком" для будь-яких інших карток у групі
                 const isParentNode = blockData.items.some(i => i.type === 'item' && i.parent === item.name);
-
-                // 🟢 Ініціалізуємо глобальну пам'ять для розгорнутих батьків
                 window.expandedParents = window.expandedParents || new Set();
-
                 const isCloudPopup = (activeCloudPopupId === itemId);
-                const isExpanded = window.expandedParents.has(item.name); // 🟢 НОВЕ: Перевіряємо, чи розгорнута картка
+                const isExpanded = window.expandedParents.has(item.name); 
                 
                 const btn = document.createElement('div');
-                // 🟢 НОВЕ: Додаємо клас is-expanded, якщо батько розгорнутий
-                btn.className = `option-btn ${isSelected ? 'active' : ''} ${item.desc ? 'has-desc' : ''} ${smartClass} ${isParentNode ? 'parent-card' : ''} ${isCloudPopup ? 'show-cloud-popup' : ''} ${isExpanded ? 'is-expanded' : ''} ${item.isCustom ? 'custom-added-card' : ''}`;
+                btn.className = `option-btn ${isSelected ? 'active' : ''} ${item.desc ? 'has-desc' : ''} ${smartClass} ${isParentNode ? 'parent-card' : ''} ${isCloudPopup ? 'show-cloud-popup' : ''} ${isExpanded ? 'is-expanded' : ''} ${item.isCustom ? 'custom-added-card' : ''} ${isDimmedCard ? 'dimmed' : ''}`;
 
                 // ДОДАНО: Ховаємо кнопку, якщо вона не пройшла смарт-фільтр
                 if (isSmartHidden) {
@@ -4959,12 +5206,23 @@ function updateReport() {
                 }
                 const descEl = item.querySelector('.info-popup-desc');
                 if (descEl) searchText += descEl.textContent.toLowerCase() + " ";
-                const extEl = item.querySelector('.info-popup-ext');
-                if (extEl) searchText += extEl.textContent.toLowerCase() + " ";
-                const tagsEl = item.querySelector('.practice-tags-wrap');
-                if (tagsEl) searchText += tagsEl.textContent.toLowerCase() + " ";
+            const extEl = item.querySelector('.info-popup-ext');
+            if (extEl) searchText += extEl.textContent.toLowerCase() + " ";
+            const tagsEl = item.querySelector('.practice-tags-wrap');
+            if (tagsEl) searchText += tagsEl.textContent.toLowerCase() + " ";
 
-                matchText = searchText.includes(query);
+            // 🟢 ФІКС: Додаємо пошук по назві головної категорії (щоб пошук "parts" показував всю групу)
+            const catHeader = block.querySelector('.category-header-left span');
+            if (catHeader) searchText += catHeader.textContent.toLowerCase() + " ";
+
+            // 🟢 ФІКС: Додаємо пошук по назві підкатегорії (###)
+            const subHeader = item.closest('.subheader-wrap');
+            if (subHeader) {
+                const subTitle = subHeader.querySelector('.subheader-title span');
+                if (subTitle) searchText += subTitle.textContent.toLowerCase() + " ";
+            }
+
+            matchText = searchText.includes(query);
             }
 
             // Визначаємо, чи показувати картку залежно від режиму
@@ -5211,18 +5469,11 @@ if (window.scrollY > 100) {
     header.classList.add('header-hidden');
 }
 
-// 🟢 ОНОВЛЕНИЙ РОЗУМНИЙ СКРОЛ
+// 🟢 ОНОВЛЕНИЙ СТАБІЛЬНИЙ СКРОЛ (Шапка завжди зверху)
 window.addEventListener('scroll', () => {
     const currentScrollY = window.scrollY;
     
-    // 1. Смарт-шапка
-    if (currentScrollY < lastScrollY || currentScrollY < 50 || (searchInput === document.activeElement)) {
-        header.classList.remove('header-hidden');
-    } else if (currentScrollY > lastScrollY && currentScrollY > 100) {
-        header.classList.add('header-hidden');
-    }
-    
-    // 2. Смарт-закриття клавіатури (ТІЛЬКИ ЯКЩО ЛЮДИНА ФІЗИЧНО ТОРКАЄТЬСЯ ЕКРАНУ!)
+    // 1. Смарт-закриття клавіатури (ТІЛЬКИ ЯКЩО ЛЮДИНА ФІЗИЧНО ТОРКАЄТЬСЯ ЕКРАНУ!)
     if (isUserTouching && !isKeyboardOpening && Math.abs(currentScrollY - lastScrollY) > 20) {
         if (searchInput && searchInput === document.activeElement) {
             searchInput.blur();
@@ -5231,7 +5482,7 @@ window.addEventListener('scroll', () => {
     
     lastScrollY = currentScrollY;
     
-    // 3. Кнопка "Вгору"
+    // 2. Кнопка "Вгору"
     if (currentScrollY > 300) { scrollBtn.classList.add('visible'); } 
     else { scrollBtn.classList.remove('visible'); }
 });
@@ -5474,17 +5725,27 @@ document.addEventListener('touchend', (e) => {
         // Перевіряємо, чи це впевнений вертикальний свайп вниз
         if (diffY > 65 && diffY > diffX * 1.5) { 
             const searchInput = document.getElementById('search-input');
-            if (searchInput && searchInput !== document.activeElement) {
-                // 🟢 ФІКС КЛАВІАТУРИ: iOS вимагає фокусу БЕЗ setTimeout!
-                // Відміняємо дефолтну поведінку, щоб гумка iOS не конфліктувала
+            if (searchInput) {
                 e.preventDefault(); 
                 
-                // Якщо шапка була прихована (що навряд на скролі 0, але для певності)
+                // 🟢 Очищаємо текст, якщо він є, і перемальовуємо
+                if (searchInput.value.trim() !== '') {
+                    searchInput.value = '';
+                    filterItems();
+                }
+                
                 const header = document.querySelector('.header-container');
                 if (header) header.classList.remove('header-hidden');
                 
-                // Жорсткий синхронний фокус
-                searchInput.focus();
+                if (searchInput !== document.activeElement) {
+                    if (savedScrollPosition === null) {
+                        savedScrollPosition = window.scrollY;
+                    }
+                }
+                
+                // 🟢 Завжди тримаємо фокус для нового введення
+                searchInput.focus({ preventScroll: true });
+                searchInput.dataset.focused = 'true';
             }
         }
     }
