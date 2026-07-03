@@ -1163,12 +1163,19 @@
 }
 
         /* Загальний стиль для ліній: робимо їх округлими та красивими */
-        .category-header {
-            border-left: 4px solid transparent;
-            border-top-left-radius: 4px;
-            border-bottom-left-radius: 4px;
-            transition: border-color 0.2s ease;
-        }
+.category-header {
+    border-left: 4.5px solid transparent;
+    
+    /* 🛡️ ЖОРСТКЕ заокруглення верхніх кутів (лікує вилізання смужки) */
+    border-top-left-radius: 11px !important;
+    border-top-right-radius: 11px !important;
+    
+    /* Нижні кути залишаємо гострими, вони там не потрібні */
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
 
 
 
@@ -3564,7 +3571,17 @@ function markOutTouched(category) {
                     let catStr = String(i.category).toLowerCase();
                     if (!catStr.includes('practice') && !catStr.includes('практик')) {
                         let n = String(i.name).toLowerCase().replace(/["']/g, '').trim();
-                        if (n) globalRawTriggers.push(n);
+                        if (n) {
+                        // Якщо у картки є обрані модифікатори
+                        if (i.mods && i.mods.length > 0) {
+                            i.mods.forEach(mod => {
+                                globalRawTriggers.push(`${mod}.${n}`.toLowerCase());
+                            });
+                        } else {
+                            // Якщо модифікаторів немає - пушимо чисту назву
+                            globalRawTriggers.push(n);
+                        }
+                    }
                         
                         let block = parsedBlocks.find(b => b.title === i.category);
                         if (block && Array.isArray(block.items)) {
@@ -3598,9 +3615,27 @@ function markOutTouched(category) {
                                         let tLower = String(t).toLowerCase().replace(/[\*\"']/g, '').trim(); 
                                         // Захист: Шукаємо тільки слова > 2 літер або реальні емодзі
                                         if (tLower.length > 1 || tLower.match(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu)) {
+                                            
+                                            /* ШУКАЄ ВСЕ З MODS та без
                                             if (globalRawTriggers.some(gt => gt === tLower || (gt.length > 2 && tLower.includes(gt)) || (tLower.length > 2 && gt.includes(tLower)))) {
                                                 matchCount++;
-                                            }
+                                            } */
+
+/* ШУКАЄ ТІЛЬКИ З MODS */
+                                            if (globalRawTriggers.some(gt => {
+    if (gt === tLower) return true; // Точний збіг (напр. ✘.acceptance === ✘.acceptance)
+    
+    // 🛡️ ЖОРСТКИЙ БЛОК: Якщо хоч десь є крапка (модифікатор), часткові збіги ЗАБОРОНЕНІ
+    if (gt.includes('.') || tLower.includes('.')) return false; 
+    
+    // Якщо це звичайні слова без модифікаторів - дозволяємо гнучкий пошук
+    return (gt.length > 2 && tLower.includes(gt)) || (tLower.length > 2 && gt.includes(tLower));
+})) {
+    matchCount++;
+}
+
+
+
                                         }
                                     });
                                     
