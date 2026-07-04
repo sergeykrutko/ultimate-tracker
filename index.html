@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
@@ -2039,6 +2039,17 @@
 
 
 
+        /* 🟢 МАГІЯ: Inbox з відступом, ховаємо підзаголовок, але дозволяємо згортатися */
+        #app-container #cat-Inbox { margin-top: 32px !important; }
+        #app-container #cat-Inbox .subheader-title { display: none !important; }
+        #app-container #cat-Inbox .subheader-wrap { margin: 0 !important; padding: 0 !important; border: none !important; }
+        
+        /* 🛡️ Бронебійний захист карток (перебиває будь-яке приховування після згортання) */
+        #app-container #cat-Inbox .subheader-wrap.collapsed .sub-content { display: flex !important; }
+        [data-layout="grid"] #app-container #cat-Inbox .subheader-wrap.collapsed .sub-content,
+        [data-layout="list"] #app-container #cat-Inbox .subheader-wrap.collapsed .sub-content { display: grid !important; }
+
+
     </style>
 </head>
 <body>
@@ -2490,6 +2501,14 @@ function syncHistoryBackground() {
     // ==========================================
     function injectCustomCardsToParsedBlocks() {
         let customCards = JSON.parse(localStorage.getItem('trackerCustomCards_v7')) || {};
+
+        // 🟢 ДОДАЄМО: Якщо є швидкі нотатки, створюємо категорію внизу!
+        if (customCards["Inbox"] && !parsedBlocks.some(b => b.title === "Inbox")) {
+            parsedBlocks.push({ type: 'category', title: "Inbox", items: [], desc: "" }); // 👈 ТУТ PUSH
+        }
+        
+
+        
         parsedBlocks.forEach(block => {
             if (block.type !== 'category') return;
             if (customCards[block.title]) {
@@ -4005,7 +4024,9 @@ if (category.toLowerCase() === 'practices') {
 }
 
 
-
+if (category === 'Inbox') {
+    smartBtnHtml = `<button class="smart-toggle" onclick="clearInbox(event)" style="color: #ff3b30; border-color: rgba(255, 59, 48, 0.3); background: rgba(255, 59, 48, 0.05); padding: 4px 10px;">🗑 Clear</button>`;
+}
 
             // 🟢 МАГІЯ: Формуємо мікро-бар аналітики для цього заголовка
             let catScore = catTotals[category] || 0;
@@ -5076,6 +5097,12 @@ function updateReport() {
                         let suffix = i.scale ? (isNaN(i.scale) ? ` (${i.scale})` : `.${i.scale}`) : '';
                         let noteStr = (i.note && i.note.trim() !== "") ? ` *"${i.note.trim()}"*` : '';
                         
+                        // 🟢 МАГІЯ: Якщо це Inbox, загортаємо слово в зірочки для курсиву
+                        let finalItemName = i.name;
+                        if (category === "Inbox") {
+                            finalItemName = `*${i.name}*`;
+                        }
+
                         let coreName = `${prefix}${i.name}${suffix}${noteStr}`;
 
                         if (i.parent) {
@@ -5172,7 +5199,7 @@ function updateReport() {
 
 
 
-   function filterItems() {
+function filterItems() {
     const searchInput = document.getElementById('search-input');
     if (!searchInput) return;
 
@@ -5180,6 +5207,7 @@ function updateReport() {
     // Розділяємо: чи є текст, і чи активний взагалі режим "компактності"
     const isTextSearching = query.length > 0;
     const isSearching = isTextSearching || (typeof isMyStateMode !== 'undefined' && isMyStateMode);
+            let totalVisibleItems = 0;
 
     // 🟢 МАГІЯ ПОШУКУ: Вмикаємо/вимикаємо компактний режим
     const appContainer = document.getElementById('app-container');
@@ -5274,6 +5302,11 @@ function updateReport() {
 
             if (shouldShow) {
                 item.style.display = 'flex';
+                if (shouldShow) {
+                item.style.display = 'flex';
+                hasVisibleInBlock = true;
+                totalVisibleItems++; // 👈 ДОДАТИ ЦЕ
+            }
                 hasVisibleInBlock = true;
             } else {
                 item.style.display = 'none';
@@ -5298,6 +5331,11 @@ function updateReport() {
 
             if (shouldShow) {
                 scale.style.display = 'block';
+                if (shouldShow) {
+                scale.style.display = 'block';
+                hasVisibleInBlock = true;
+                totalVisibleItems++; // 👈 ДОДАТИ ЦЕ
+            }
                 hasVisibleInBlock = true;
             } else {
                 scale.style.display = 'none';
@@ -5341,12 +5379,130 @@ function updateReport() {
             block.classList.remove('expanded');
         }
     });
+
+    // 🟢 МАГІЯ: Якщо нічого не знайдено - пропонуємо створити!
+        let emptyStateEl = document.getElementById('search-empty-state');
+        if (isTextSearching && totalVisibleItems === 0) {
+            if (!emptyStateEl) {
+                emptyStateEl = document.createElement('div');
+                emptyStateEl.id = 'search-empty-state';
+                emptyStateEl.style.cssText = 'grid-column: 1 / -1; width: 100%; text-align: center; padding: 40px 10px; color: var(--text-desc);';
+                appContainer.appendChild(emptyStateEl);
+            }
+            // Формуємо елегантну мінімалістичну кнопку
+            emptyStateEl.innerHTML = `
+                <div style="margin-top: 10px;">
+                    <button onclick="quickCapture(document.getElementById('search-input').value)" style="background: transparent; border: 1px dashed var(--accent); color: var(--text-main); padding: 8px 18px; border-radius: 20px; font-size: 14px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s;">
+                        <span style="color: var(--accent); font-size: 16px; font-weight: 900;">+</span> ${query}
+                    </button>
+                </div>
+            `;
+            emptyStateEl.style.display = 'block';
+        } else if (emptyStateEl) {
+            emptyStateEl.style.display = 'none';
+        }
 }
+
 
     function clearSearch() {
         document.getElementById('search-input').value = '';
         filterItems();
     }
+
+
+
+
+   // 🟢 МАГІЯ: Швидке захоплення нових слів із пошуку (Inbox)
+    function quickCapture(text) {
+        text = text.trim();
+        if (!text) return;
+
+        const category = "Inbox";
+        const subheader = "Інше";
+
+        // 1. Зберігаємо як кастомну картку
+        let customCards = JSON.parse(localStorage.getItem('trackerCustomCards_v7')) || {};
+        if (!customCards[category]) customCards[category] = {};
+        if (!customCards[category][subheader]) customCards[category][subheader] = [];
+
+        if (!customCards[category][subheader].includes(text)) {
+            customCards[category][subheader].push(text);
+            localStorage.setItem('trackerCustomCards_v7', JSON.stringify(customCards));
+        }
+
+        // 2. Миттєво активуємо її (БЕЗ видимого add-note, скрипт відправки додасть його сам!)
+        const itemId = `${category}|${text}`;
+        selectedItems[itemId] = {
+            category: category,
+            name: text,
+            parent: null,
+            scale: null,
+            mods: [],
+            note: "" // 👈 Лишаємо порожнім, щоб не псувати візуальний звіт
+        };
+        isEdited = true;
+
+        // 3. Впорскуємо віртуальну категорію в кінець масиву
+        if (!parsedBlocks.some(b => b.title === category)) {
+            parsedBlocks.push({ type: 'category', title: category, items: [], desc: "" }); // 👈 ТУТ PUSH
+        }
+
+        let block = parsedBlocks.find(b => b.title === category);
+        if (!block.items.some(i => i.type === 'item' && i.name === text)) {
+             if (!block.items.some(i => i.type === 'subheader' && i.title === subheader)) {
+                 block.items.push({ type: 'subheader', title: subheader });
+             }
+             block.items.push({ type: 'item', name: text, parent: null, desc: "", info: "", ranges: [], triggers: [], mods: [], isCustom: true, subCategory: subheader });
+        }
+
+        // 4. Очищаємо пошук і ЖОРСТКО вимикаємо режим компактного пошуку
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) {
+            searchInput.value = '';
+            searchInput.blur();
+            searchInput.dataset.focused = 'false';
+            filterItems(); // 👈 ФІКС БАГУ: ця функція миттєво зніме компактний режим!
+        }
+
+
+        // 5. Рендеримо і плавно скролимо вниз до Інбоксу
+        saveAndRender();
+        setTimeout(() => {
+            const inboxEl = document.getElementById('cat-Inbox');
+            if (inboxEl) {
+                inboxEl.classList.add('expanded'); // 👈 АВТОМАТИЧНО розгортаємо його!
+                inboxEl.scrollIntoView({ behavior: 'smooth', block: 'center' }); // М'яко скролимо в центр екрана
+            }
+        }, 150);
+    }
+
+
+
+    // 🟢 МАГІЯ: Очищення Інбоксу в один клік
+    function clearInbox(event) {
+        if (event) event.stopPropagation();
+        if (!confirm("Видалити всі слова з Inbox? Вони назавжди зникнуть з бази.")) return;
+
+        // 1. Очищаємо з localStorage (видаляємо всі кастомні картки Інбоксу)
+        let customCards = JSON.parse(localStorage.getItem('trackerCustomCards_v7')) || {};
+        delete customCards["Inbox"];
+        localStorage.setItem('trackerCustomCards_v7', JSON.stringify(customCards));
+
+        // 2. Очищаємо їх з активних "Обраних" станів
+        for (let key in selectedItems) {
+            if (selectedItems[key].category === "Inbox") {
+                delete selectedItems[key];
+            }
+        }
+
+        // 3. Видаляємо саму категорію з масиву для рендеру
+        parsedBlocks = parsedBlocks.filter(b => b.title !== "Inbox");
+
+        saveAndRender();
+    }
+
+
+
 
     function toggleReportPanel() {
         const panel = document.getElementById('report-panel');
@@ -5822,10 +5978,20 @@ document.addEventListener('touchend', (e) => {
     window.addEventListener('online', processOfflineQueue);
 
 
-// 🟢 МАГІЯ: Затримка пошуку, щоб клавіатура не злітала під час швидкого друку
+// 🟢 МАГІЯ: Затримка пошуку та обробка клавіші Enter
     let searchTimeout;
     const searchInputField = document.getElementById('search-input');
     if (searchInputField) {
+        // 👈 ДОДАЄМО ОБРОБКУ ENTER
+        searchInputField.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (searchInputField.value.trim() !== '') {
+                    quickCapture(searchInputField.value);
+                }
+            }
+        });
+        
         searchInputField.addEventListener('input', (e) => {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
@@ -5837,4 +6003,4 @@ document.addEventListener('touchend', (e) => {
     initApp(); 
 </script>
 </body>
-</html>
+</html>>
