@@ -629,7 +629,7 @@
         
         .slider-container { 
             position: relative; 
-            padding-bottom: 16px; 
+            padding-bottom: 22px; 
             margin-top: -6px; /* ТУТ: Від'ємний відступ підтягує бігунок впритул до тексту */
         }
         /* --- АПГРЕЙД БІГУНКІВ ШКАЛ --- */
@@ -2039,19 +2039,41 @@
 
 
 
-        /* 🟢 МАГІЯ: Робимо категорію Inbox ультра-компактною та ЗАВЖДИ відкритою */
-        #cat-Inbox {
-            margin-top: 32px !important; /* Відступ зверху від інших блоків */
+        /* 🟢 МАГІЯ: Елегантний та мінімалістичний Inbox (Трей) */
+        #app-container #cat-Inbox { 
+            margin-top: 24px !important; 
+            background: transparent !important; 
+            border: 1px dashed var(--accent) !important; 
+            box-shadow: none !important; 
         }
-        #cat-Inbox .subheader-title { display: none !important; }
-        #cat-Inbox .subheader-wrap { margin: 0 !important; padding: 0 !important; border: none !important; }
-        #cat-Inbox .category-content { padding: 8px 12px 12px !important; }
         
-        /* Змушуємо картки бути видимими, навіть якщо підзаголовок технічно "згорнутий" */
-        #cat-Inbox .subheader-wrap.collapsed .sub-content { display: flex !important; }
-        [data-layout="grid"] #cat-Inbox .subheader-wrap.collapsed .sub-content,
-        [data-layout="list"] #cat-Inbox .subheader-wrap.collapsed .sub-content { display: grid !important; }
+        #app-container #cat-Inbox .category-header {
+            border: none !important;
+            padding-bottom: 0 !important;
+            background: transparent !important;
+        }
 
+        /* Ховаємо стрілочку ▼, бо він не згортається */
+        #app-container #cat-Inbox .category-chevron {
+            display: none !important;
+        }
+
+        /* 🛡️ Бронебійний захист: контент ЗАВЖДИ видимий */
+        #app-container #cat-Inbox .category-content {
+            border-top: none !important;
+            padding: 4px 12px 12px !important;
+            display: block !important; 
+        }
+
+        /* Приховуємо технічне слово "ІНШЕ" */
+        #app-container #cat-Inbox .subheader-title { display: none !important; }
+        #app-container #cat-Inbox .subheader-wrap { margin: 0 !important; padding: 0 !important; border: none !important; }
+        
+        /* Змушуємо картки показуватися, навіть якщо скрипт вішає статус "згорнуто" */
+        #app-container #cat-Inbox .subheader-wrap.collapsed .sub-content { display: flex !important; }
+        [data-layout="grid"] #app-container #cat-Inbox .subheader-wrap.collapsed .sub-content,
+        [data-layout="list"] #app-container #cat-Inbox .subheader-wrap.collapsed .sub-content { display: grid !important; }
+        
 
 
     </style>
@@ -2506,13 +2528,10 @@ function syncHistoryBackground() {
     function injectCustomCardsToParsedBlocks() {
         let customCards = JSON.parse(localStorage.getItem('trackerCustomCards_v7')) || {};
 
-        // 🟢 ДОДАЄМО: Якщо є швидкі нотатки, створюємо категорію внизу!
         if (customCards["Inbox"] && !parsedBlocks.some(b => b.title === "Inbox")) {
-            parsedBlocks.push({ type: 'category', title: "Inbox", items: [], desc: "" }); // 👈 ТУТ PUSH
+            parsedBlocks.push({ type: 'category', title: "Inbox", items: [], desc: "" });
         }
-        
 
-        
         parsedBlocks.forEach(block => {
             if (block.type !== 'category') return;
             if (customCards[block.title]) {
@@ -2520,13 +2539,18 @@ function syncHistoryBackground() {
                     let cards = customCards[block.title][subheader];
                     if (cards && cards.length > 0) {
                         let subIndex = block.items.findIndex(i => i.type === 'subheader' && i.title === subheader);
+                        
+                        // 🟢 ФІКС ДЛЯ ІНБОКСУ: Якщо підзаголовка немає (бо категорія нова), створюємо його!
+                        if (subIndex === -1 && block.title === "Inbox") {
+                            block.items.push({ type: 'subheader', title: subheader });
+                            subIndex = block.items.length - 1;
+                        }
+
                         if (subIndex > -1) {
                             let insertIndex = subIndex + 1;
-                            // Пропускаємо всі існуючі картки цієї групи
                             while(insertIndex < block.items.length && block.items[insertIndex].type !== 'subheader') {
                                 insertIndex++;
                             }
-                            // Вставляємо тимчасові картки
                             cards.forEach(cardName => {
                                 block.items.splice(insertIndex, 0, {
                                     type: 'item', name: cardName, parent: null, desc: "", info: "", ranges: [], triggers: [], mods: [],
@@ -3437,7 +3461,7 @@ function renderInlineMarkdown(text) {
             const sliderDiv = document.createElement('div');
             sliderDiv.className = 'slider-container'; sliderDiv.style.flex = '1'; sliderDiv.style.margin = '0'; 
             
-            sliderDiv.style.paddingBottom = showLabels ? '14px' : '4px';
+            sliderDiv.style.paddingBottom = showLabels ? '22px' : '4px';
 
             let labelsHtml = `
                 <div class="global-slider-labels ${type === 'IN' ? 'in-row-labels' : ''}" style="display: ${showLabels ? 'block' : 'none'};">
@@ -4029,7 +4053,8 @@ if (category.toLowerCase() === 'practices') {
 
 
 if (category === 'Inbox') {
-    smartBtnHtml = `<button class="smart-toggle" onclick="clearInbox(event)" style="color: #ff3b30; border-color: rgba(255, 59, 48, 0.3); background: rgba(255, 59, 48, 0.05); padding: 4px 10px;">🗑 Clear</button>`;
+    // 🟢 МАГІЯ: Прибираємо клас smart-toggle і робимо чисту "плоску" кнопку
+    smartBtnHtml = `<button onclick="clearInbox(event)" style="background: rgba(255, 59, 48, 0.08); border: none; color: #ff3b30; font-size: 11px; font-weight: 800; padding: 4px 8px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 4px; box-shadow: none; transition: background 0.2s;">🗑 Clear</button>`;
 }
 
             // 🟢 МАГІЯ: Формуємо мікро-бар аналітики для цього заголовка
@@ -4221,8 +4246,10 @@ if (category === 'Inbox') {
                 }
 
                 if (item.type === 'subheader') {
-                    const subWrap = document.createElement('div');
-                    subWrap.className = 'subheader-wrap collapsed'; // ЗГОРНУТО ЗА ЗАМОВЧУВАННЯМ
+                   const subWrap = document.createElement('div');
+// 🟢 МАГІЯ: Інбокс завжди розгорнутий і має захист (forceOpen)
+subWrap.className = category === "Inbox" ? 'subheader-wrap' : 'subheader-wrap collapsed';
+if (category === "Inbox") subWrap.dataset.forceOpen = "true";
                     
         
                    
@@ -4283,7 +4310,10 @@ if (category === 'Inbox') {
                     // Бронебійний клік по підкатегорії
                     subTitle.addEventListener('click', (e) => {
                         e.stopPropagation();
-                        subWrap.classList.toggle('collapsed');
+                        // 🟢 МАГІЯ: Забороняємо згортати підзаголовок Інбоксу
+                        if (category !== "Inbox") {
+                            subWrap.classList.toggle('collapsed');
+                        }
                     });
                     
 
@@ -5208,12 +5238,10 @@ function filterItems() {
     if (!searchInput) return;
 
     const query = searchInput.value.toLowerCase().trim();
-    // Розділяємо: чи є текст, і чи активний взагалі режим "компактності"
     const isTextSearching = query.length > 0;
     const isSearching = isTextSearching || (typeof isMyStateMode !== 'undefined' && isMyStateMode);
-            let totalVisibleItems = 0;
+    let totalVisibleItems = 0;
 
-    // 🟢 МАГІЯ ПОШУКУ: Вмикаємо/вимикаємо компактний режим
     const appContainer = document.getElementById('app-container');
     if (isSearching) {
         appContainer.classList.add('search-compact-mode');
@@ -5221,10 +5249,8 @@ function filterItems() {
         appContainer.classList.remove('search-compact-mode');
     }
 
-    // Показуємо хрестик ТІЛЬКИ якщо є текст
     document.getElementById('clear-search-btn').style.display = isTextSearching ? 'block' : 'none';
 
-    // Ховаємо текстові блоки та кастомні поля під час пошуку/MyState
     document.querySelectorAll('.md-quote').forEach(quote => {
         quote.style.display = isSearching ? 'none' : 'block';
     });
@@ -5240,28 +5266,29 @@ function filterItems() {
             let isActive = block.classList.contains('active');
             let matchText = block.dataset.searchText && block.dataset.searchText.includes(query);
 
+            let shouldShow = false;
             if (typeof isMyStateMode !== 'undefined' && isMyStateMode && isTextSearching) {
-                block.style.display = (isActive && matchText) ? 'block' : 'none';
+                shouldShow = isActive && matchText;
             } else if (typeof isMyStateMode !== 'undefined' && isMyStateMode) {
-                block.style.display = isActive ? 'block' : 'none';
+                shouldShow = isActive;
             } else if (isTextSearching) {
-                block.style.display = matchText ? 'block' : 'none';
+                shouldShow = matchText;
             } else {
-                block.style.display = 'block';
+                shouldShow = true;
             }
+
+            block.style.display = shouldShow ? 'block' : 'none';
             return; 
         }
 
         // 2. Звичайні кнопки (.option-btn)
         block.querySelectorAll('.option-btn').forEach(item => {
-            // Кнопку [+] залишаємо на розсуд CSS (у тебе вже є клас smart-hidden для неї)
             if (item.classList.contains('add-card-btn')) return; 
 
             let isActive = item.classList.contains('active');
             let isSmartHidden = item.classList.contains('smart-hidden');
             let matchText = false;
 
-            // 🟢 ТВІЙ ОРИГІНАЛЬНИЙ РОЗУМНИЙ ПОШУК (абсолютно без змін)
             if (isTextSearching) {
                 let searchText = "";
                 const nameEl = item.querySelector('.option-name');
@@ -5273,26 +5300,23 @@ function filterItems() {
                 }
                 const descEl = item.querySelector('.info-popup-desc');
                 if (descEl) searchText += descEl.textContent.toLowerCase() + " ";
-            const extEl = item.querySelector('.info-popup-ext');
-            if (extEl) searchText += extEl.textContent.toLowerCase() + " ";
-            const tagsEl = item.querySelector('.practice-tags-wrap');
-            if (tagsEl) searchText += tagsEl.textContent.toLowerCase() + " ";
+                const extEl = item.querySelector('.info-popup-ext');
+                if (extEl) searchText += extEl.textContent.toLowerCase() + " ";
+                const tagsEl = item.querySelector('.practice-tags-wrap');
+                if (tagsEl) searchText += tagsEl.textContent.toLowerCase() + " ";
 
-            // 🟢 ФІКС: Додаємо пошук по назві головної категорії (щоб пошук "parts" показував всю групу)
-            const catHeader = block.querySelector('.category-header-left span');
-            if (catHeader) searchText += catHeader.textContent.toLowerCase() + " ";
+                const catHeader = block.querySelector('.category-header-left span');
+                if (catHeader) searchText += catHeader.textContent.toLowerCase() + " ";
 
-            // 🟢 ФІКС: Додаємо пошук по назві підкатегорії (###)
-            const subHeader = item.closest('.subheader-wrap');
-            if (subHeader) {
-                const subTitle = subHeader.querySelector('.subheader-title span');
-                if (subTitle) searchText += subTitle.textContent.toLowerCase() + " ";
+                const subHeader = item.closest('.subheader-wrap');
+                if (subHeader) {
+                    const subTitle = subHeader.querySelector('.subheader-title span');
+                    if (subTitle) searchText += subTitle.textContent.toLowerCase() + " ";
+                }
+
+                matchText = searchText.includes(query);
             }
 
-            matchText = searchText.includes(query);
-            }
-
-            // Визначаємо, чи показувати картку залежно від режиму
             let shouldShow = false;
             if (typeof isMyStateMode !== 'undefined' && isMyStateMode && isTextSearching) {
                 shouldShow = isActive && matchText;
@@ -5301,17 +5325,13 @@ function filterItems() {
             } else if (isTextSearching) {
                 shouldShow = matchText;
             } else {
-                shouldShow = !isSmartHidden; // Твоя оригінальна логіка для звичайного режиму
+                shouldShow = !isSmartHidden;
             }
 
             if (shouldShow) {
                 item.style.display = 'flex';
-                if (shouldShow) {
-                item.style.display = 'flex';
                 hasVisibleInBlock = true;
-                totalVisibleItems++; // 👈 ДОДАТИ ЦЕ
-            }
-                hasVisibleInBlock = true;
+                totalVisibleItems++;
             } else {
                 item.style.display = 'none';
             }
@@ -5335,12 +5355,8 @@ function filterItems() {
 
             if (shouldShow) {
                 scale.style.display = 'block';
-                if (shouldShow) {
-                scale.style.display = 'block';
                 hasVisibleInBlock = true;
-                totalVisibleItems++; // 👈 ДОДАТИ ЦЕ
-            }
-                hasVisibleInBlock = true;
+                totalVisibleItems++;
             } else {
                 scale.style.display = 'none';
             }
@@ -5349,7 +5365,6 @@ function filterItems() {
         // 4. Підзаголовки (###)
         block.querySelectorAll('.subheader-wrap').forEach(wrap => {
             if (isSearching) {
-                // ТВІЙ ФІКС: Ігноруємо кнопку "+", щоб підзаголовок не висів порожнім
                 const visibleBtns = Array.from(wrap.querySelectorAll('.option-btn')).some(btn => btn.style.display !== 'none' && !btn.classList.contains('add-card-btn'));
                 const visibleScales = Array.from(wrap.querySelectorAll('.inline-scale-widget')).some(s => s.style.display !== 'none');
                 
@@ -5361,7 +5376,9 @@ function filterItems() {
                 }
             } else {
                 wrap.style.display = 'block';
-                wrap.classList.add('collapsed'); 
+                if (!wrap.closest('#cat-Inbox')) {
+                    wrap.classList.add('collapsed'); 
+                }
             }
         });
 
@@ -5385,26 +5402,25 @@ function filterItems() {
     });
 
     // 🟢 МАГІЯ: Якщо нічого не знайдено - пропонуємо створити!
-        let emptyStateEl = document.getElementById('search-empty-state');
-        if (isTextSearching && totalVisibleItems === 0) {
-            if (!emptyStateEl) {
-                emptyStateEl = document.createElement('div');
-                emptyStateEl.id = 'search-empty-state';
-                emptyStateEl.style.cssText = 'grid-column: 1 / -1; width: 100%; text-align: center; padding: 40px 10px; color: var(--text-desc);';
-                appContainer.appendChild(emptyStateEl);
-            }
-            // Формуємо елегантну мінімалістичну кнопку
-            emptyStateEl.innerHTML = `
-                <div style="margin-top: 10px;">
-                    <button onclick="quickCapture(document.getElementById('search-input').value)" style="background: transparent; border: 1px dashed var(--accent); color: var(--text-main); padding: 8px 18px; border-radius: 20px; font-size: 14px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s;">
-                        <span style="color: var(--accent); font-size: 16px; font-weight: 900;">+</span> ${query}
-                    </button>
-                </div>
-            `;
-            emptyStateEl.style.display = 'block';
-        } else if (emptyStateEl) {
-            emptyStateEl.style.display = 'none';
+    let emptyStateEl = document.getElementById('search-empty-state');
+    if (isTextSearching && totalVisibleItems === 0) {
+        if (!emptyStateEl) {
+            emptyStateEl = document.createElement('div');
+            emptyStateEl.id = 'search-empty-state';
+            emptyStateEl.style.cssText = 'grid-column: 1 / -1; width: 100%; text-align: center; padding: 40px 10px; color: var(--text-desc);';
+            appContainer.appendChild(emptyStateEl);
         }
+        emptyStateEl.innerHTML = `
+            <div style="margin-top: 10px;">
+                <button onclick="quickCapture(document.getElementById('search-input').value)" style="background: transparent; border: 1px dashed var(--accent); color: var(--text-main); padding: 8px 18px; border-radius: 20px; font-size: 14px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s;">
+                    <span style="color: var(--accent); font-size: 16px; font-weight: 900;">+</span> ${query}
+                </button>
+            </div>
+        `;
+        emptyStateEl.style.display = 'block';
+    } else if (emptyStateEl) {
+        emptyStateEl.style.display = 'none';
+    }
 }
 
 
