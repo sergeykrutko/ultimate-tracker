@@ -2039,23 +2039,21 @@
 
 
 
-
-
-
-        /* 🟢 МАГІЯ: Inbox з відступом, ховаємо підзаголовок, але дозволяємо згортатися */
-        #app-container #cat-Inbox { margin-top: 32px !important; }
-        #app-container #cat-Inbox .subheader-title { display: none !important; }
-        #app-container #cat-Inbox .subheader-wrap { margin: 0 !important; padding: 0 !important; border: none !important; }
+        /* 🟢 МАГІЯ: Робимо категорію Inbox ультра-компактною та ЗАВЖДИ відкритою */
+        #cat-Inbox {
+            margin-top: 32px !important; /* Відступ зверху від інших блоків */
+        }
+        #cat-Inbox .subheader-title { display: none !important; }
+        #cat-Inbox .subheader-wrap { margin: 0 !important; padding: 0 !important; border: none !important; }
+        #cat-Inbox .category-content { padding: 8px 12px 12px !important; }
         
-        /* 🛡️ Бронебійний захист карток (перебиває будь-яке приховування після згортання) */
-        #app-container #cat-Inbox .subheader-wrap.collapsed .sub-content { display: flex !important; }
-        [data-layout="grid"] #app-container #cat-Inbox .subheader-wrap.collapsed .sub-content,
-        [data-layout="list"] #app-container #cat-Inbox .subheader-wrap.collapsed .sub-content { display: grid !important; }
+        /* Змушуємо картки бути видимими, навіть якщо підзаголовок технічно "згорнутий" */
+        #cat-Inbox .subheader-wrap.collapsed .sub-content { display: flex !important; }
+        [data-layout="grid"] #cat-Inbox .subheader-wrap.collapsed .sub-content,
+        [data-layout="list"] #cat-Inbox .subheader-wrap.collapsed .sub-content { display: grid !important; }
 
 
 
-
-        
     </style>
 </head>
 <body>
