@@ -1905,6 +1905,25 @@
 
 
 
+        /* 🧹 ОЧИЩЕННЯ ВІЗУАЛЬНОГО ШУМУ ПІД ЧАС ПОШУКУ */
+#app-container.search-compact-mode .list-mode-desc,
+#app-container.search-compact-mode .practice-tags-wrap,
+#app-container.search-compact-mode .stats-badge,
+#app-container.search-compact-mode .category-comment {
+    display: none !important;
+}
+
+/* Робимо картки ще компактнішими, щоб на екран влазило більше результатів */
+#app-container.search-compact-mode .option-btn {
+    padding: 6px 10px !important;
+    min-height: auto !important;
+}
+
+
+
+
+
+
         /* ========================================= */
         /* 🟢 МАГІЯ ТИМЧАСОВИХ КАРТОК (БРОНЕБІЙНИЙ ФІКС) */
         /* ========================================= */
@@ -2075,6 +2094,9 @@
         [data-layout="list"] #app-container #cat-Inbox .subheader-wrap.collapsed .sub-content { display: grid !important; }
         
 
+
+
+        
 
     </style>
 </head>
@@ -3616,7 +3638,8 @@ function markOutTouched(category) {
             Object.values(selectedItems).forEach(i => {
                 if (i && i.category && i.name) {
                     let catStr = String(i.category).toLowerCase();
-                    if (!catStr.includes('practice') && !catStr.includes('практик')) {
+                    // 🛡️ ІЗОЛЯЦІЯ: Частини більше не потрапляють у первинні симптоми
+if (!catStr.includes('practice') && !catStr.includes('практик') && !catStr.includes('parts')) {
                         let n = String(i.name).toLowerCase().replace(/["']/g, '').trim();
                         if (n) {
                         // Якщо у картки є обрані модифікатори
@@ -3705,7 +3728,14 @@ function markOutTouched(category) {
             highlyActiveParts.sort((a, b) => b.score - a.score);
         } catch (e) { console.error("Parts Analysis Error", e); }
 
-
+// ⚡ ЗВОРОТНИЙ ЗВ'ЯЗОК: Додаємо обрані вручну Частини у тригери для Практик
+        try {
+            Object.values(selectedItems).forEach(i => {
+                if (i && i.category && i.name && String(i.category).toLowerCase().includes('parts')) {
+                    globalRawTriggers.push(String(i.name).toLowerCase().trim());
+                }
+            });
+        } catch(e) {}
 
 
         
@@ -4899,6 +4929,135 @@ if (category === "Inbox") subWrap.dataset.forceOpen = "true";
             container.appendChild(block);
         });
         updateReport();
+
+
+
+
+        // =========================================================================
+        // ✨ МІНІМАЛІСТИЧНИЙ АСИСТЕНТ ТА ХАБ РЕКОМЕНДАЦІЙ (БЕЗПЕЧНИЙ ХІРУРГІЧНИЙ ВАРІАНТ)
+        // =========================================================================
+        try {
+            let totalRecs = topPractices.length + highlyActiveParts.length;
+            const searchInputEl = document.getElementById('search-input');
+            const isSearchingTxt = searchInputEl && searchInputEl.value.trim().length > 0;
+
+            // 1. Створюємо окрему круглу кнопку асистента поруч із FAB
+            let assistBtn = document.getElementById('assistant-toggle-btn');
+            if (!assistBtn) {
+                assistBtn = document.createElement('button');
+                assistBtn.id = 'assistant-toggle-btn';
+                assistBtn.innerHTML = '✨';
+                // Повністю автономне позиціонування лівіше від твоєї панелі звітів
+                assistBtn.style.cssText = 'position: fixed; bottom: 24px; right: 155px; width: 40px; height: 40px; border-radius: 50%; border: none; background: var(--text-main); color: var(--bg-color); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(20, 22, 21, 0.15); transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); z-index: 999;';
+                
+                assistBtn.onclick = function(e) {
+                    e.stopPropagation();
+                    window.isAssistantOpen = !window.isAssistantOpen;
+                    haptic();
+                    saveAndRender();
+                };
+                document.body.appendChild(assistBtn);
+            }
+
+            // Показуємо кнопку, тільки якщо є реальний Action Plan і ми не в пошуку
+            if (totalRecs > 0 && !isSearchingTxt) {
+                assistBtn.style.display = 'flex';
+                if (window.isAssistantOpen) {
+                    assistBtn.style.background = 'var(--accent)';
+                    assistBtn.style.color = '#fff';
+                    assistBtn.style.transform = 'scale(1.05)';
+                    assistBtn.style.boxShadow = '0 0 14px var(--accent)';
+                } else {
+                    assistBtn.style.background = 'var(--text-main)';
+                    assistBtn.style.color = 'var(--bg-color)';
+                    assistBtn.style.transform = 'none';
+                    assistBtn.style.boxShadow = '0 4px 16px rgba(20, 22, 21, 0.15)';
+                }
+            } else {
+                assistBtn.style.display = 'none';
+            }
+
+            // 2. Рендеримо "Action Plan" на самому верху екрана (prepend)
+            if (window.isAssistantOpen && totalRecs > 0 && !isSearchingTxt) {
+                const assistantHub = document.createElement('div');
+                assistantHub.className = 'category-block expanded';
+                assistantHub.style.cssText = 'width: 100%; border: 1px dashed var(--accent); background: var(--card-bg); margin-bottom: 12px; padding: 12px; border-radius: 12px; box-sizing: border-box; box-shadow: 0 4px 16px rgba(72, 94, 80, 0.05);';
+                
+                assistantHub.innerHTML = `<div style="font-size: 11px; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; display: flex; align-items: center; gap: 4px;"><span>✨ Швидкий План Дій</span></div>`;
+
+                const hubGrid = document.createElement('div');
+                hubGrid.className = 'grid-unified';
+                let isMobile = window.innerWidth <= 600;
+
+                // Точки субособистостей
+                highlyActiveParts.slice(0, 4).forEach(part => {
+                    const pItemId = `${part.category}|${part.name}`;
+                    const isSelected = !!selectedItems[pItemId];
+                    
+                    const pBtn = document.createElement('div');
+                    pBtn.className = `option-btn ${isSelected ? 'active' : ''}`;
+                    pBtn.style.setProperty('grid-column', isMobile ? 'span 6 !important' : 'span 3 !important', 'important');
+                    if (isSelected) {
+                        pBtn.style.background = 'var(--accent-light)';
+                        pBtn.style.borderColor = 'var(--accent)';
+                    } else {
+                        pBtn.style.background = 'rgba(112, 90, 158, 0.04)';
+                        pBtn.style.borderColor = 'rgba(112, 90, 158, 0.15)';
+                    }
+                    
+                    let intensityDots = '•'.repeat(Math.ceil(part.score / 30));
+                    pBtn.innerHTML = `
+                        <div class="option-clickable-area" style="width: 100%; padding: 4px 2px;">
+                            <div class="option-name" style="font-size: 12px; font-weight: 700;">
+                                ${part.name} <span style="opacity: 0.6; font-size: 11px; margin-left: 2px; color: #705a9e;">${intensityDots}</span>
+                            </div>
+                            <div style="font-size: 10px; color: var(--text-desc); margin-top: 2px;">Частина • резонанс</div>
+                        </div>
+                    `;
+                    pBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        if (selectedItems[pItemId]) delete selectedItems[pItemId];
+                        else selectedItems[pItemId] = { category: part.category, name: part.name, parent: null, scale: null, mods: [] };
+                        haptic();
+                        saveAndRender();
+                    };
+                    hubGrid.appendChild(pBtn);
+                });
+
+                // Практики швидкої допомоги
+                topPractices.slice(0, 6).forEach(pName => {
+                    const pItemId = `Practices|${pName}`;
+                    const isSelected = !!selectedItems[pItemId];
+                    
+                    const prBtn = document.createElement('div');
+                    const starsCount = (pName.match(/⭑/g) || []).length;
+                    let starClass = starsCount > 0 ? 'starred' : 'recommended';
+                    if (starsCount > 0 && isSmartSortEnabled) starClass = 'starred super-match';
+
+                    prBtn.className = `option-btn ${isSelected ? 'active' : ''} ${starClass}`;
+                    prBtn.style.setProperty('grid-column', isMobile ? 'span 6 !important' : 'span 3 !important', 'important');
+                    
+                    prBtn.innerHTML = `
+                        <div class="option-clickable-area" style="width: 100%; padding: 4px 2px;">
+                            <div class="option-name" style="font-size: 12px; font-weight: 700;">${renderInlineMarkdown(pName)}</div>
+                            <div style="font-size: 10px; color: var(--text-desc); margin-top: 2px;">Практика</div>
+                        </div>
+                    `;
+                    prBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        if (selectedItems[pItemId]) delete selectedItems[pItemId];
+                        else selectedItems[pItemId] = { category: 'Practices', name: pName, parent: null, scale: null, mods: [] };
+                        haptic();
+                        saveAndRender();
+                    };
+                    hubGrid.appendChild(prBtn);
+                });
+
+                assistantHub.appendChild(hubGrid);
+                container.prepend(assistantHub); 
+            }
+        } catch (e) { console.error("Assistant Hub Error", e); }
+        // ==========================================
     }
 
     function toggleItem(id, category, name, parent) {
@@ -5238,7 +5397,8 @@ function filterItems() {
     if (!searchInput) return;
 
     const query = searchInput.value.toLowerCase().trim();
-    const isTextSearching = query.length > 0;
+    const isTextSearching = query.length > 1; // 🎯 МАГІЯ: Фільтрація стартує ТІЛЬКИ з 2-х літер!
+    const hasAnyText = query.length > 0;      // Зберігаємо інфо, чи є хоч щось у полі (для хрестика)
     const isSearching = isTextSearching || (typeof isMyStateMode !== 'undefined' && isMyStateMode);
     let totalVisibleItems = 0;
 
@@ -5249,8 +5409,8 @@ function filterItems() {
         appContainer.classList.remove('search-compact-mode');
     }
 
-    document.getElementById('clear-search-btn').style.display = isTextSearching ? 'block' : 'none';
-
+   document.getElementById('clear-search-btn').style.display = hasAnyText ? 'block' : 'none';
+   
     document.querySelectorAll('.md-quote').forEach(quote => {
         quote.style.display = isSearching ? 'none' : 'block';
     });
@@ -5261,10 +5421,10 @@ function filterItems() {
     document.querySelectorAll('.category-block').forEach(block => {
         let hasVisibleInBlock = false;
 
-        // 1. Глобальні Шкали
+        // 1. ГЛОБАЛЬНІ ШКАЛИ (Вгорі екрану)
         if (block.classList.contains('global-scale-widget') && !block.classList.contains('inline-scale-widget')) {
             let isActive = block.classList.contains('active');
-            let matchText = block.dataset.searchText && block.dataset.searchText.includes(query);
+            let matchText = block.dataset.searchText && block.dataset.searchText.toLowerCase().includes(query);
 
             let shouldShow = false;
             if (typeof isMyStateMode !== 'undefined' && isMyStateMode && isTextSearching) {
@@ -5281,7 +5441,7 @@ function filterItems() {
             return; 
         }
 
-        // 2. Звичайні кнопки (.option-btn)
+        // 2. ЗВИЧАЙНІ КНОПКИ (.option-btn)
         block.querySelectorAll('.option-btn').forEach(item => {
             if (item.classList.contains('add-card-btn')) return; 
 
@@ -5290,31 +5450,46 @@ function filterItems() {
             let matchText = false;
 
             if (isTextSearching) {
-                let searchText = "";
+                let titleText = "";
+                let deepText = "";
+
+                // Отримуємо чисту назву картки
                 const nameEl = item.querySelector('.option-name');
                 if (nameEl) {
                     const clone = nameEl.cloneNode(true);
                     const badge = clone.querySelector('.stats-badge');
                     if (badge) badge.remove(); 
-                    searchText += clone.textContent.toLowerCase() + " ";
-                }
-                const descEl = item.querySelector('.info-popup-desc');
-                if (descEl) searchText += descEl.textContent.toLowerCase() + " ";
-                const extEl = item.querySelector('.info-popup-ext');
-                if (extEl) searchText += extEl.textContent.toLowerCase() + " ";
-                const tagsEl = item.querySelector('.practice-tags-wrap');
-                if (tagsEl) searchText += tagsEl.textContent.toLowerCase() + " ";
-
-                const catHeader = block.querySelector('.category-header-left span');
-                if (catHeader) searchText += catHeader.textContent.toLowerCase() + " ";
-
-                const subHeader = item.closest('.subheader-wrap');
-                if (subHeader) {
-                    const subTitle = subHeader.querySelector('.subheader-title span');
-                    if (subTitle) searchText += subTitle.textContent.toLowerCase() + " ";
+                    // Вичищаємо стрілочки, лапки та зайві символи для точного startsWith
+                    titleText = clone.textContent.toLowerCase().trim().replace(/^[↳\s"'\u21b3]+/, '').trim();
                 }
 
-                matchText = searchText.includes(query);
+                // ⚖️ СУВОРИЙ ДВОРІВНЕВИЙ ФІЛЬТР КАРТОК
+                if (query.length < 3) {
+                    // До 3-х символів: ТІЛЬКИ пряме введення перших літер назви
+                    matchText = titleText.startsWith(query) || 
+                                titleText.includes(' ' + query) || 
+                                titleText.includes('-' + query) || 
+                                titleText.includes('.' + query);
+                } else {
+                    // Від 3-х символів: підключаємо глибокий контекстний пошук
+                    const descEl = item.querySelector('.info-popup-desc');
+                    if (descEl) deepText += descEl.textContent.toLowerCase() + " ";
+                    const extEl = item.querySelector('.info-popup-ext');
+                    if (extEl) deepText += extEl.textContent.toLowerCase() + " ";
+                    const tagsEl = item.querySelector('.practice-tags-wrap');
+                    if (tagsEl) deepText += tagsEl.textContent.toLowerCase() + " ";
+
+                    const catHeader = block.querySelector('.category-header-left span');
+                    if (catHeader) deepText += catHeader.textContent.toLowerCase() + " ";
+
+                    const subHeader = item.closest('.subheader-wrap');
+                    if (subHeader) {
+                        const subTitle = subHeader.querySelector('.subheader-title span');
+                        if (subTitle) deepText += subTitle.textContent.toLowerCase() + " ";
+                    }
+
+                    matchText = titleText.includes(query) || deepText.includes(query);
+                }
             }
 
             let shouldShow = false;
@@ -5337,10 +5512,27 @@ function filterItems() {
             }
         });
 
-        // 3. Вбудовані шкали (.inline-scale-widget)
+        // 3. ВБУДОВАНІ ШКАЛИ ТА ДЕЛЬТИ (.inline-scale-widget)
         block.querySelectorAll('.inline-scale-widget').forEach(scale => {
             let isActive = scale.classList.contains('active');
-            let matchText = scale.dataset.searchText && scale.dataset.searchText.includes(query);
+            
+            // Визначаємо чисту назву вбудованої шкали з її заголовка
+            const scaleTitleEl = scale.querySelector('.global-scale-title');
+            let scaleTitle = scaleTitleEl ? scaleTitleEl.textContent.toLowerCase().trim() : '';
+            // Прибираємо цифри статистики з назви шкали, якщо вони там є
+            scaleTitle = scaleTitle.replace(/\d+$/, '').trim();
+
+            let matchText = false;
+            if (isTextSearching) {
+                if (query.length < 3) {
+                    // До 3-х символів: перевіряємо ТІЛЬКИ назву самої шкали
+                    matchText = scaleTitle.startsWith(query) || scaleTitle.includes(' ' + query) || scaleTitle.includes('-' + query);
+                } else {
+                    // Від 3-х символів: шукаємо всюди всередині шкали (описи, мітки шкал)
+                    let scaleSearchText = scale.dataset.searchText ? scale.dataset.searchText.toLowerCase() : '';
+                    matchText = scaleSearchText.includes(query) || scaleTitle.includes(query);
+                }
+            }
 
             let shouldShow = false;
             if (typeof isMyStateMode !== 'undefined' && isMyStateMode && isTextSearching) {
@@ -5362,7 +5554,7 @@ function filterItems() {
             }
         });
 
-        // 4. Підзаголовки (###)
+        // 4. ПІДЗАГОЛОВКИ (###)
         block.querySelectorAll('.subheader-wrap').forEach(wrap => {
             if (isSearching) {
                 const visibleBtns = Array.from(wrap.querySelectorAll('.option-btn')).some(btn => btn.style.display !== 'none' && !btn.classList.contains('add-card-btn'));
@@ -5382,12 +5574,12 @@ function filterItems() {
             }
         });
 
-        // 5. Коментарі (####) та Міні-заголовки
+        // 5. КОМЕНТАРІ ТА МІНІ-ЗАГОЛОВКИ
         block.querySelectorAll('.category-comment, .mini-header').forEach(c => { 
             c.style.display = isSearching ? 'none' : 'block'; 
         });
 
-        // 6. Видимість Головного Блоку Категорії (#)
+        // 6. СТАТУС ВІДОБРАЖЕННЯ КАТЕГОРІЇ
         if (isSearching) {
             if (hasVisibleInBlock) {
                 block.style.display = 'block';
@@ -5401,7 +5593,7 @@ function filterItems() {
         }
     });
 
-    // 🟢 МАГІЯ: Якщо нічого не знайдено - пропонуємо створити!
+    // 7. EMPTY STATE КНОПКА
     let emptyStateEl = document.getElementById('search-empty-state');
     if (isTextSearching && totalVisibleItems === 0) {
         if (!emptyStateEl) {
@@ -5425,7 +5617,11 @@ function filterItems() {
 
 
     function clearSearch() {
-        document.getElementById('search-input').value = '';
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) {
+            searchInput.value = '';
+            searchInput.blur(); // Зняття фокусу запустить подію 'blur', яка сама плавно поверне екран вниз!
+        }
         filterItems();
     }
 
@@ -5645,7 +5841,7 @@ let savedScrollPosition = null; // Пам'ять для скролу
 
 searchInput.addEventListener('focus', () => {
     // Якщо починаємо новий пошук, запам'ятовуємо, де ми були
-    if (!searchInput.value && savedScrollPosition === null) {
+    if (savedScrollPosition === null) {
         savedScrollPosition = window.scrollY;
     }
 
@@ -5653,16 +5849,19 @@ searchInput.addEventListener('focus', () => {
     isKeyboardOpening = true;
     header.classList.remove('header-hidden');
     
+    // 🚀 ФІКС 2: Миттєво стрибаємо на самий верх, щоб бачити результати під час введення!
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    
     setTimeout(() => { isKeyboardOpening = false; }, 1200); 
 });
 
-// 🟢 ТИ ВИПАДКОВО ВИДАЛИВ ЦЕЙ БЛОК. ВІН ПОВЕРТАЄ ФОКУС ПІСЛЯ ПОШУКУ!
 searchInput.addEventListener('blur', () => {
     setTimeout(() => {
         if (document.activeElement !== searchInput) {
             searchInput.dataset.focused = 'false';
             
-            if (!searchInput.value && savedScrollPosition !== null) {
+            // 🔙 ФІКС 3: Повертаємось на старе місце ТІЛЬКИ якщо рядок порожній (тобто пошук скасували)
+            if (searchInput.value.trim() === '' && savedScrollPosition !== null) {
                 // Плавне повернення туди, звідки почали
                 window.scrollTo({ top: savedScrollPosition, behavior: 'smooth' });
                 savedScrollPosition = null; // Очищаємо пам'ять
@@ -5915,52 +6114,50 @@ window.addEventListener('scroll', () => {
     window.addEventListener("focus", wakeUpTime);
     
 
-   // 🟢 МАГІЯ: Активація пошуку при "відтягуванні" екрану вниз (Pull-to-search)
-let touchStartX = 0;
-let touchStartY = 0;
+// 🟢 МАГІЯ: Активація пошуку при "відтягуванні" екрану вниз (Pull-to-search)
+    let touchStartX = 0;
+    let touchStartY = 0;
 
-document.addEventListener('touchstart', (e) => {
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
-}, {passive: true});
+    document.addEventListener('touchstart', (e) => {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+    }, {passive: true});
 
-document.addEventListener('touchend', (e) => {
-    // Даємо допуск 15px для WebApp гумки
-    if (window.scrollY <= 15) { 
-        let touchEndX = e.changedTouches[0].clientX;
-        let touchEndY = e.changedTouches[0].clientY;
+    document.addEventListener('touchend', (e) => {
+        const searchInput = document.getElementById('search-input');
+        
+        // 🛑 ФІКС 1: Якщо ми ВЖЕ в режимі пошуку (є текст або курсор у полі) — повністю ігноруємо свайп вниз!
+        if (searchInput && (searchInput.value.trim() !== '' || searchInput === document.activeElement)) {
+            return; 
+        }
 
-        let diffY = touchEndY - touchStartY;
-        let diffX = Math.abs(touchEndX - touchStartX);
+        // Даємо допуск 15px для WebApp гумки
+        if (window.scrollY <= 15) { 
+            let touchEndX = e.changedTouches[0].clientX;
+            let touchEndY = e.changedTouches[0].clientY;
 
-        // Перевіряємо, чи це впевнений вертикальний свайп вниз
-        if (diffY > 65 && diffY > diffX * 1.5) { 
-            const searchInput = document.getElementById('search-input');
-            if (searchInput) {
-                e.preventDefault(); 
-                
-                // 🟢 Очищаємо текст, якщо він є, і перемальовуємо
-                if (searchInput.value.trim() !== '') {
-                    searchInput.value = '';
-                    filterItems();
-                }
-                
-                const header = document.querySelector('.header-container');
-                if (header) header.classList.remove('header-hidden');
-                
-                if (searchInput !== document.activeElement) {
+            let diffY = touchEndY - touchStartY;
+            let diffX = Math.abs(touchEndX - touchStartX);
+
+            // Перевіряємо, чи це впевнений вертикальний свайп вниз
+            if (diffY > 65 && diffY > diffX * 1.5) { 
+                if (searchInput) {
+                    e.preventDefault(); 
+                    
+                    const header = document.querySelector('.header-container');
+                    if (header) header.classList.remove('header-hidden');
+                    
                     if (savedScrollPosition === null) {
                         savedScrollPosition = window.scrollY;
                     }
+                    
+                    // 🟢 Завжди тримаємо фокус для нового введення
+                    searchInput.focus({ preventScroll: true });
+                    searchInput.dataset.focused = 'true';
                 }
-                
-                // 🟢 Завжди тримаємо фокус для нового введення
-                searchInput.focus({ preventScroll: true });
-                searchInput.dataset.focused = 'true';
             }
         }
-    }
-});
+    });
 
 
 
