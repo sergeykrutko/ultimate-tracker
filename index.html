@@ -2095,7 +2095,41 @@
         
 
 
+/* =========================================================
+           ✨ СТИЛІ ДЛЯ ХАБУ РЕКОМЕНДАЦІЙ ТА ПЛАВАЮЧОЇ КНОПКИ
+           ========================================================= */
+       
 
+        /* Стилі для верхньої панелі рекомендацій */
+        .assistant-hub-container {
+            width: 100% !important;
+            border: none;
+            background: transparent !important;
+            margin-bottom: 12px !important;
+            padding: 12px !important;
+            border-radius: 12px !important;
+            box-sizing: border-box !important;
+            box-shadow: 0 4px 16px rgba(72, 94, 80, 0.04) !important;
+        }
+
+        /* Адаптивність для кнопки на маленьких екранах */
+        @media (max-width: 480px) {
+            #assistant-toggle-btn {
+                right: 155px !important; /* Трохи притискаємо на iPhone */
+                bottom: 24px !important;
+            }
+        }
+
+        @keyframes pulse-glow {
+    0% { box-shadow: 0 0 0 0 rgba(229, 160, 0, 0.4); }
+    70% { box-shadow: 0 0 0 6px rgba(229, 160, 0, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(229, 160, 0, 0); }
+}
+
+.fab-has-recommendations {
+    animation: pulse-glow 2s infinite;
+    border: 1px solid rgba(229, 160, 0, 0.5) !important;
+}
         
 
     </style>
@@ -2243,6 +2277,7 @@ document.addEventListener('click', (e) => {
                                 !e.target.closest('.report-fab') &&
                                 !e.target.closest('.report-panel') &&
                                 !e.target.closest('.scroll-top-btn');
+                                
 
     if (isClickOnEmptySpace) {
         if (!hasOpenMenus) {
@@ -3622,8 +3657,13 @@ function markOutTouched(category) {
 
 
     function renderApp() {
+        
+       
+
         const container = document.getElementById('app-container');
         container.innerHTML = '';
+
+        let topPractices = [];
 
 
         // 🟢 АНАЛІТИКА: Рахуємо загальну кількість кліків та кліки по категоріях
@@ -3838,7 +3878,7 @@ let selectedInCat = Object.values(selectedItems).filter(i => i.category === cate
 
            // --- ПСИХОЛОГІЧНИЙ ТРІАЖ 4.0 (Точне зведення шкал + Анти-універсальність) ---
             let activeTriggers = [];
-            let topPractices = []; 
+            topPractices = []; 
             let recCount = 0;
             let isFilteringActive = false;
             
@@ -4933,123 +4973,288 @@ if (category === "Inbox") subWrap.dataset.forceOpen = "true";
 
 
 
-        // =========================================================================
-        // ✨ МІНІМАЛІСТИЧНИЙ АСИСТЕНТ ТА ХАБ РЕКОМЕНДАЦІЙ (БЕЗПЕЧНИЙ ХІРУРГІЧНИЙ ВАРІАНТ)
+       // =========================================================================
+        // ✨ МІНІМАЛІСТИЧНИЙ АСИСТЕНТ ТА ХАБ РЕКОМЕНДАЦІЙ (ПОВНОЦІННІ ПРАКТИКИ)
         // =========================================================================
         try {
-            let totalRecs = topPractices.length + highlyActiveParts.length;
             const searchInputEl = document.getElementById('search-input');
             const isSearchingTxt = searchInputEl && searchInputEl.value.trim().length > 0;
 
-            // 1. Створюємо окрему круглу кнопку асистента поруч із FAB
-            let assistBtn = document.getElementById('assistant-toggle-btn');
-            if (!assistBtn) {
+            // 1. Формуємо список практик для Хабу
+            let universalPractices = [];
+            // 🟢 ФІКС 1: Розуміє як "Practices", так і "Практики"
+            let practicesBlock = parsedBlocks.find(b => b.title && (b.title.toLowerCase().includes('practice') || b.title.toLowerCase().includes('практик')));
+            let practicesCatName = practicesBlock ? practicesBlock.title : 'Practices'; // Зберігаємо точну назву категорії для стейту
+            
+            if (practicesBlock) {
+                practicesBlock.items.forEach(i => {
+                    if (i.type === 'item' && i.name) {
+                        const starsCount = (i.name.match(/⭑/g) || []).length;
+                        if (starsCount >= 3) universalPractices.push(i.name);
+                    }
+                });
+            }
+
+            let finalHubPractices = [];
+            let addedToHub = new Set();
+
+            // 🎯 МАГІЯ 1: Гарантовано додаємо ВСІ 3-зіркові практики
+            universalPractices.forEach(p => {
+                finalHubPractices.push(p);
+                addedToHub.add(p);
+            });
+
+            // 🎯 МАГІЯ 2: Додаємо топ-збіги (якщо алгоритм їх знайшов вище)
+            if (typeof topPractices !== 'undefined' && topPractices.length > 0) {
+                let maxHubSize = Math.max(6, universalPractices.length + 3);
+                for (let p of topPractices) {
+                    if (!addedToHub.has(p) && finalHubPractices.length < maxHubSize) {
+                        finalHubPractices.push(p);
+                        addedToHub.add(p);
+                    }
+                }
+            }
+            
+            let totalRecs = finalHubPractices.length;
+
+            // 🎯 МАГІЯ 3: Автоматичне відкриття Хабу, коли є сильні динамічні збіги
+            if (typeof window.isAssistantOpen === 'undefined') {
+                window.isAssistantOpen = (typeof topPractices !== 'undefined' && topPractices.length > 0);
+            }
+
+            // 2. Створюємо кнопку та акуратно вбудовуємо її В СЕРЕДИНУ чорного FAB
+            let reportFab = document.getElementById('report-fab');
+            // 🟢 ФІКС 2: Змінили ID на 'inline-assist-btn', щоб старі CSS-стилі (position: fixed) не відривали її від чорної плашки!
+            let assistBtn = document.getElementById('inline-assist-btn');
+            
+            if (!assistBtn && reportFab) {
                 assistBtn = document.createElement('button');
-                assistBtn.id = 'assistant-toggle-btn';
+                assistBtn.id = 'inline-assist-btn';
                 assistBtn.innerHTML = '✨';
-                // Повністю автономне позиціонування лівіше від твоєї панелі звітів
-                assistBtn.style.cssText = 'position: fixed; bottom: 24px; right: 155px; width: 40px; height: 40px; border-radius: 50%; border: none; background: var(--text-main); color: var(--bg-color); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(20, 22, 21, 0.15); transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); z-index: 999;';
+                // Жорстко фіксуємо стилі, щоб кнопка ідеально сиділа зліва від лічильника
+                assistBtn.style.cssText = 'background: transparent !important; border: none !important; font-size: 16px !important; padding: 0 8px 0 0 !important; cursor: pointer !important; transition: all 0.3s ease !important; display: flex !important; align-items: center !important; justify-content: center !important; outline: none !important; border-right: 1px solid rgba(255,255,255,0.15) !important; margin-right: 4px !important; color: white !important; box-shadow: none !important; position: static !important; transform: none !important; height: auto !important; width: auto !important;';
                 
                 assistBtn.onclick = function(e) {
-                    e.stopPropagation();
+                    e.preventDefault();
+                    e.stopPropagation(); 
                     window.isAssistantOpen = !window.isAssistantOpen;
-                    haptic();
+                    if (typeof haptic === 'function') haptic();
                     saveAndRender();
                 };
-                document.body.appendChild(assistBtn);
+                reportFab.insertBefore(assistBtn, reportFab.firstChild);
             }
 
-            // Показуємо кнопку, тільки якщо є реальний Action Plan і ми не в пошуку
-            if (totalRecs > 0 && !isSearchingTxt) {
-                assistBtn.style.display = 'flex';
-                if (window.isAssistantOpen) {
-                    assistBtn.style.background = 'var(--accent)';
-                    assistBtn.style.color = '#fff';
-                    assistBtn.style.transform = 'scale(1.05)';
-                    assistBtn.style.boxShadow = '0 0 14px var(--accent)';
+            // Керуємо видимістю та світінням кнопки
+            if (assistBtn) {
+                // Показуємо кнопку завжди, коли є хоча б 1 рекомендація і немає текстового пошуку
+                if (totalRecs > 0 && !isSearchingTxt) {
+                    assistBtn.style.display = 'flex';
+                    if (window.isAssistantOpen) {
+                        assistBtn.style.opacity = '1';
+                        // Використовуємо filter для світіння, щоб не ламати flex-layout
+                        assistBtn.style.filter = 'drop-shadow(0 0 6px rgba(229, 160, 0, 0.9))';
+                    } else {
+                        assistBtn.style.opacity = '0.5';
+                        assistBtn.style.filter = 'none';
+                    }
                 } else {
-                    assistBtn.style.background = 'var(--text-main)';
-                    assistBtn.style.color = 'var(--bg-color)';
-                    assistBtn.style.transform = 'none';
-                    assistBtn.style.boxShadow = '0 4px 16px rgba(20, 22, 21, 0.15)';
+                    assistBtn.style.display = 'none';
+                    window.isAssistantOpen = false;
                 }
-            } else {
-                assistBtn.style.display = 'none';
             }
 
-            // 2. Рендеримо "Action Plan" на самому верху екрана (prepend)
+            // 3. Рендеримо "Action Plan" на самому верху екрана
             if (window.isAssistantOpen && totalRecs > 0 && !isSearchingTxt) {
                 const assistantHub = document.createElement('div');
                 assistantHub.className = 'category-block expanded';
-                assistantHub.style.cssText = 'width: 100%; border: 1px dashed var(--accent); background: var(--card-bg); margin-bottom: 12px; padding: 12px; border-radius: 12px; box-sizing: border-box; box-shadow: 0 4px 16px rgba(72, 94, 80, 0.05);';
+                assistantHub.style.cssText = 'width: 100%; border: none; background: var(--card-bg) box-shadow (0 4px 20px rgba(0,0,0,0.08)); margin-bottom: 10px; padding: 12px; border-radius: 12px; box-sizing: border-box; box-shadow: 0 4px 16px rgba(72, 94, 80, 0.05); overflow: visible !important;';
                 
-                assistantHub.innerHTML = `<div style="font-size: 11px; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; display: flex; align-items: center; gap: 4px;"><span>✨ Швидкий План Дій</span></div>`;
+                assistantHub.innerHTML = `<div style="font-size: 12px; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">✨ Best Now:</div>`;
 
                 const hubGrid = document.createElement('div');
                 hubGrid.className = 'grid-unified';
                 let isMobile = window.innerWidth <= 600;
 
-                // Точки субособистостей
-                highlyActiveParts.slice(0, 4).forEach(part => {
-                    const pItemId = `${part.category}|${part.name}`;
+                finalHubPractices.forEach(pName => {
+                    // 🟢 ФІКС 3: Використовуємо реальну назву категорії (Practices або Практики)
+                    const pItemId = `${practicesCatName}|${pName}`;
                     const isSelected = !!selectedItems[pItemId];
                     
-                    const pBtn = document.createElement('div');
-                    pBtn.className = `option-btn ${isSelected ? 'active' : ''}`;
-                    pBtn.style.setProperty('grid-column', isMobile ? 'span 6 !important' : 'span 3 !important', 'important');
-                    if (isSelected) {
-                        pBtn.style.background = 'var(--accent-light)';
-                        pBtn.style.borderColor = 'var(--accent)';
-                    } else {
-                        pBtn.style.background = 'rgba(112, 90, 158, 0.04)';
-                        pBtn.style.borderColor = 'rgba(112, 90, 158, 0.15)';
+                    let itemData = {};
+                    if (practicesBlock) {
+                        itemData = practicesBlock.items.find(i => i.type === 'item' && i.name === pName) || {};
                     }
-                    
-                    let intensityDots = '•'.repeat(Math.ceil(part.score / 30));
-                    pBtn.innerHTML = `
-                        <div class="option-clickable-area" style="width: 100%; padding: 4px 2px;">
-                            <div class="option-name" style="font-size: 12px; font-weight: 700;">
-                                ${part.name} <span style="opacity: 0.6; font-size: 11px; margin-left: 2px; color: #705a9e;">${intensityDots}</span>
-                            </div>
-                            <div style="font-size: 10px; color: var(--text-desc); margin-top: 2px;">Частина • резонанс</div>
-                        </div>
-                    `;
-                    pBtn.onclick = (e) => {
-                        e.stopPropagation();
-                        if (selectedItems[pItemId]) delete selectedItems[pItemId];
-                        else selectedItems[pItemId] = { category: part.category, name: part.name, parent: null, scale: null, mods: [] };
-                        haptic();
-                        saveAndRender();
-                    };
-                    hubGrid.appendChild(pBtn);
-                });
-
-                // Практики швидкої допомоги
-                topPractices.slice(0, 6).forEach(pName => {
-                    const pItemId = `Practices|${pName}`;
-                    const isSelected = !!selectedItems[pItemId];
                     
                     const prBtn = document.createElement('div');
                     const starsCount = (pName.match(/⭑/g) || []).length;
+                    
+                    let isTopMatch = typeof topPractices !== 'undefined' && topPractices.includes(pName);
                     let starClass = starsCount > 0 ? 'starred' : 'recommended';
-                    if (starsCount > 0 && isSmartSortEnabled) starClass = 'starred super-match';
+                    if (starsCount > 0 && isTopMatch) starClass = 'starred super-match';
 
                     prBtn.className = `option-btn ${isSelected ? 'active' : ''} ${starClass}`;
                     prBtn.style.setProperty('grid-column', isMobile ? 'span 6 !important' : 'span 3 !important', 'important');
+                    prBtn.style.position = 'relative'; 
                     
-                    prBtn.innerHTML = `
-                        <div class="option-clickable-area" style="width: 100%; padding: 4px 2px;">
-                            <div class="option-name" style="font-size: 12px; font-weight: 700;">${renderInlineMarkdown(pName)}</div>
-                            <div style="font-size: 10px; color: var(--text-desc); margin-top: 2px;">Практика</div>
+                    const clickableArea = document.createElement('div');
+                    clickableArea.className = 'option-clickable-area';
+                    clickableArea.style.width = '100%';
+                    clickableArea.style.padding = '0px 0';
+                    
+                    clickableArea.innerHTML = `
+                        <div class="option-name" style="padding-right: 16px; font-size: 12px; font-weight: 700;">${renderInlineMarkdown(pName)}</div>
+
+                        <div style="position: absolute !important; top: 50% !important; right: 6px !important; transform: translateY(-50%) !important; display: flex; gap: 2px; z-index: 2; align-items: center;">
+                            <span class="unified-menu-btn" style="color:var(--text-desc); font-size:16px; font-weight:900; opacity:0.6; cursor:pointer; padding: 4px 6px; transition: all 0.2s; line-height:1; user-select:none;">⋮</span>
                         </div>
                     `;
-                    prBtn.onclick = (e) => {
-                        e.stopPropagation();
+                    clickableArea.onclick = (e) => {
+                        document.querySelectorAll('.option-info.open').forEach(el => {
+                            el.classList.remove('open');
+                            const icon = el.parentElement.querySelector('.unified-menu-btn');
+                            if(icon) { icon.style.opacity = '0.6'; icon.style.color = 'var(--text-desc)'; }
+                        });
                         if (selectedItems[pItemId]) delete selectedItems[pItemId];
-                        else selectedItems[pItemId] = { category: 'Practices', name: pName, parent: null, scale: null, mods: [] };
-                        haptic();
+                        else selectedItems[pItemId] = { category: practicesCatName, name: pName, parent: null, scale: null, mods: [] };
+                        if (typeof haptic === 'function') haptic();
                         saveAndRender();
                     };
+                    prBtn.appendChild(clickableArea);
+
+                    // --- 🟢 МАГІЯ 4: ПОВНОЦІННЕ ВІКНО НАЛАШТУВАНЬ (Шкали, модифікатори, коментар) ---
+                    const popupDiv = document.createElement('div');
+                    popupDiv.className = 'option-info'; 
+                    popupDiv.style.cssText = 'min-width: 180px; max-width: 240px; padding: 10px; max-height: 25vh !important; overflow-y: auto !important; transition: opacity 0.15s ease, transform 0.15s ease !important; z-index: 101 !important;'; 
+                    popupDiv.onclick = (e) => e.stopPropagation();
+
+                    let hasTop = false;
+                    
+                    // 1. Опис та інфо
+                    if (itemData.desc || itemData.info) {
+                        const infoSection = document.createElement('div');
+                        infoSection.style.marginBottom = '8px';
+                        infoSection.innerHTML = `
+                            ${itemData.desc ? `<div class="info-popup-desc" style="margin-bottom: ${itemData.info ? '4px' : '0'}; font-style: normal; line-height: 1.3; color: var(--text-main); font-weight: 500; font-size: 11.5px;">${renderInlineMarkdown(itemData.desc)}</div>` : ''}
+                            ${itemData.info ? `<div class="info-popup-ext" style="font-style: normal; font-size: 11px; color: var(--text-desc); line-height: 1.3;">${renderInlineMarkdown(itemData.info)}</div>` : ''}
+                        `;
+                        popupDiv.appendChild(infoSection);
+                        hasTop = true;
+                    }
+
+                    // 2. Шкала та модифікатори
+                    const scaleSection = document.createElement('div');
+                    scaleSection.style.marginBottom = '8px';
+
+                    if (itemData.mods && itemData.mods.length > 0) {
+                        const modsRow = document.createElement('div');
+                        modsRow.className = 'mods-row';
+                        modsRow.style.marginBottom = '6px';
+                        itemData.mods.forEach(modVal => {
+                            const modBtn = document.createElement('div');
+                            const isActive = isSelected && selectedItems[pItemId].mods && selectedItems[pItemId].mods.includes(modVal);
+                            modBtn.className = `mod-btn ${isActive ? 'selected' : ''}`;
+                            modBtn.innerText = modVal;
+                            modBtn.onclick = (e) => {
+                                e.stopPropagation();
+                                toggleMod(pItemId, practicesCatName, pName, modVal, itemData.parent);
+                            };
+                            modsRow.appendChild(modBtn);
+                        });
+                        scaleSection.appendChild(modsRow);
+                        hasTop = true;
+                    }
+
+                    const scaleRow = document.createElement('div');
+                    scaleRow.className = 'scale-row';
+                    const tagsToUse = practicesBlock && practicesBlock.tags ? practicesBlock.tags : [1, 2, 3, 4, 5];
+                    const currentScale = isSelected ? selectedItems[pItemId].scale : null;
+                    
+                    tagsToUse.forEach(tagVal => {
+                        const scaleBtn = document.createElement('div');
+                        scaleBtn.className = `scale-btn ${currentScale === String(tagVal) ? 'selected' : ''}`;
+                        if (isNaN(tagVal)) scaleBtn.classList.add('text-tag');
+                        scaleBtn.innerText = tagVal;
+                        scaleBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            setScale(pItemId, practicesCatName, pName, String(tagVal), itemData.parent);
+                        };
+                        scaleRow.appendChild(scaleBtn);
+                    });
+                    scaleSection.appendChild(scaleRow);
+                    popupDiv.appendChild(scaleSection);
+                    hasTop = true;
+
+                    // 3. Поле коментаря
+                    const currentNote = selectedItems[pItemId] && selectedItems[pItemId].note ? selectedItems[pItemId].note : "";
+                    const unifiedNoteWrap = document.createElement('div');
+                    unifiedNoteWrap.style.display = 'block'; 
+                    unifiedNoteWrap.style.width = '100%';
+                    unifiedNoteWrap.style.borderTop = hasTop ? '1px dashed var(--border)' : 'none';
+                    unifiedNoteWrap.style.paddingTop = hasTop ? '8px' : '0';
+                    
+                    const isSaved = currentNote.trim() !== '';
+                    unifiedNoteWrap.innerHTML = `<input type="text" placeholder="Comment..." value="${currentNote}" style="width: 100%; box-sizing: border-box; background: transparent; border: none; border-bottom: 1px solid ${isSaved ? 'var(--accent)' : 'transparent'}; font-size: 11.5px; color: var(--text-main); outline: none; padding: 2px 4px; transition: all 0.2s; opacity: ${isSaved ? '1' : '0.5'};">`;
+                    
+                    const noteInput = unifiedNoteWrap.querySelector('input');
+                    noteInput.onclick = (e) => e.stopPropagation();
+                    noteInput.onfocus = () => { noteInput.style.opacity = '1'; noteInput.style.borderBottom = '1px solid var(--accent)'; };
+                    noteInput.onblur = (e) => {
+                        const val = e.target.value.trim();
+                        noteInput.style.opacity = val ? '1' : '0.5';
+                        noteInput.style.borderBottom = val ? '1px solid var(--accent)' : '1px solid transparent';
+                        if (selectedItems[pItemId]) { selectedItems[pItemId].note = val; saveData(); setTimeout(() => { updateReport(); saveAndRender(); }, 100); }
+                    };
+                    noteInput.oninput = (e) => {
+                        if (!selectedItems[pItemId]) { selectedItems[pItemId] = { category: practicesCatName, name: pName, parent: null, scale: null, mods: [] }; prBtn.classList.add('active'); }
+                        selectedItems[pItemId].note = e.target.value; saveData(); updateReport();
+                    };
+                    popupDiv.appendChild(unifiedNoteWrap);
+                    prBtn.appendChild(popupDiv);
+
+                    // Логіка відкриття меню `⋮`
+                    const menuIcon = clickableArea.querySelector('.unified-menu-btn');
+                    const menuId = 'hub_' + pItemId;
+                    
+                    if (window.activeUnifiedMenuId === menuId) {
+                        popupDiv.classList.add('open');
+                        menuIcon.style.opacity = '1';
+                        menuIcon.style.color = 'var(--accent)';
+                        popupDiv.style.setProperty('left', '0', 'important');
+                        popupDiv.style.setProperty('right', 'auto', 'important');
+                    }
+
+                    menuIcon.onclick = (e) => {
+                        e.stopPropagation(); 
+                        const isOpen = popupDiv.classList.contains('open');
+                        document.querySelectorAll('.option-info.open').forEach(el => {
+                            el.classList.remove('open');
+                            const icon = el.parentElement.querySelector('.unified-menu-btn');
+                            if(icon) { icon.style.opacity = '0.6'; icon.style.color = 'var(--text-desc)'; }
+                        });
+
+                        if (isOpen) {
+                            window.activeUnifiedMenuId = null;
+                            menuIcon.style.opacity = '0.6';
+                            menuIcon.style.color = 'var(--text-desc)';
+                        } else {
+                            window.activeUnifiedMenuId = menuId;
+                            popupDiv.classList.add('open');
+                            menuIcon.style.opacity = '1';
+                            menuIcon.style.color = 'var(--accent)';
+                            
+                            popupDiv.style.setProperty('left', '0', 'important');
+                            popupDiv.style.setProperty('right', 'auto', 'important');
+                            requestAnimationFrame(() => {
+                                const rect = popupDiv.getBoundingClientRect();
+                                const containerRect = document.getElementById('app-container').getBoundingClientRect();
+                                if (rect.right > containerRect.right - 10 || rect.right > window.innerWidth - 10) {
+                                    popupDiv.style.setProperty('left', 'auto', 'important');
+                                    popupDiv.style.setProperty('right', '0', 'important');
+                                }
+                            });
+                        }
+                    };
+                    
                     hubGrid.appendChild(prBtn);
                 });
 
@@ -5474,6 +5679,8 @@ function filterItems() {
                     // Від 3-х символів: підключаємо глибокий контекстний пошук
                     const descEl = item.querySelector('.info-popup-desc');
                     if (descEl) deepText += descEl.textContent.toLowerCase() + " ";
+
+                    /* ВІДКЛЮЧИНИЙ 🚫 : Пошук по прихованих тегах та категоріях
                     const extEl = item.querySelector('.info-popup-ext');
                     if (extEl) deepText += extEl.textContent.toLowerCase() + " ";
                     const tagsEl = item.querySelector('.practice-tags-wrap');
@@ -5486,7 +5693,7 @@ function filterItems() {
                     if (subHeader) {
                         const subTitle = subHeader.querySelector('.subheader-title span');
                         if (subTitle) deepText += subTitle.textContent.toLowerCase() + " ";
-                    }
+                    } */
 
                     matchText = titleText.includes(query) || deepText.includes(query);
                 }
