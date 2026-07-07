@@ -6196,32 +6196,42 @@ searchInput.addEventListener('blur', () => {
     }, 150);
 });
 
-// 🟢 ДОДАЄМО СЛУХАЧА ДОТИКІВ (Щоб знати, чи скролить людина пальцем)
-let isUserTouching = false;
-document.addEventListener('touchstart', () => { isUserTouching = true; }, {passive: true});
-document.addEventListener('touchend', () => { isUserTouching = false; }, {passive: true});
+// 🟢 ДОДАЄМО СЛУХАЧА ДОТИКІВ (Для розумного скролу і клавіатури)
+    let touchStartClientY = 0;
 
-if (window.scrollY > 100) {
-    header.classList.add('header-hidden');
-}
+    document.addEventListener('touchstart', (e) => { 
+        touchStartClientY = e.touches[0].clientY;
+    }, {passive: true});
 
-// 🟢 ОНОВЛЕНИЙ СТАБІЛЬНИЙ СКРОЛ (Шапка завжди зверху)
-window.addEventListener('scroll', () => {
-    const currentScrollY = window.scrollY;
-    
-    // 1. Смарт-закриття клавіатури (ТІЛЬКИ ЯКЩО ЛЮДИНА ФІЗИЧНО ТОРКАЄТЬСЯ ЕКРАНУ!)
-    if (isUserTouching && !isKeyboardOpening && Math.abs(currentScrollY - lastScrollY) > 20) {
-        if (searchInput && searchInput === document.activeElement) {
-            searchInput.blur();
+    // 🚀 МАГІЯ: Ховаємо клавіатуру МИТТЄВО при початку руху пальця
+    // Це працює набагато надійніше за подію scroll на iOS/Android
+    document.addEventListener('touchmove', (e) => {
+        const searchInput = document.getElementById('search-input');
+        
+        // Перевіряємо, чи відкрита зараз клавіатура (фокус у пошуку)
+        if (searchInput && document.activeElement === searchInput) {
+            const touchCurrentY = e.touches[0].clientY;
+            
+            // Якщо палець протягнули більше ніж на 15 пікселів (захист від випадкового мікро-дотику)
+            if (Math.abs(touchCurrentY - touchStartClientY) > 15) {
+                searchInput.blur(); // Блискавично ховаємо клавіатуру!
+            }
         }
+    }, {passive: true});
+
+    if (window.scrollY > 100) {
+        header.classList.add('header-hidden');
     }
-    
-    lastScrollY = currentScrollY;
-    
-    // 2. Кнопка "Вгору"
-    if (currentScrollY > 300) { scrollBtn.classList.add('visible'); } 
-    else { scrollBtn.classList.remove('visible'); }
-});
+
+    // 🟢 ОНОВЛЕНИЙ СТАБІЛЬНИЙ СКРОЛ
+    window.addEventListener('scroll', () => {
+        const currentScrollY = window.scrollY;
+        lastScrollY = currentScrollY;
+        
+        // Кнопка "Вгору"
+        if (currentScrollY > 300) { scrollBtn.classList.add('visible'); } 
+        else { scrollBtn.classList.remove('visible'); }
+    });
 
 
 
