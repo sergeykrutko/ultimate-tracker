@@ -1908,7 +1908,7 @@
         /* 🧹 ОЧИЩЕННЯ ВІЗУАЛЬНОГО ШУМУ ПІД ЧАС ПОШУКУ */
 #app-container.search-compact-mode .list-mode-desc,
 #app-container.search-compact-mode .practice-tags-wrap,
-#app-container.search-compact-mode .stats-badge,
+/* #app-container.search-compact-mode .stats-badge, */
 #app-container.search-compact-mode .category-comment {
     display: none !important;
 }
@@ -2331,6 +2331,7 @@ function getFormattedDateTime() {
 
 // 🟢 СТАТИСТИКА
 let trackerStats = JSON.parse(localStorage.getItem('trackerStats_v7')) || {};
+
 let statsMode = localStorage.getItem('trackerStatsMode') || 'month'; // 'month' або 'all'
 
 function toggleStatsMode(event) {
@@ -3450,16 +3451,15 @@ function renderInlineMarkdown(text) {
         function createRow(type, currentVal, showLabels, isExpandedInitially) {
             const row = document.createElement('div');
             // 🟢 ФІКС ДИЗАЙНУ: align-items: flex-start замість center. Це гарантує, що при появі цифр знизу, верхня частина не буде стрибати!
-            row.style.cssText = 'display:flex; align-items:flex-start; gap:8px; width:100%;';
+            row.style.cssText = 'display:flex; align-items:flex-start; gap:8px; width:100%; margin-top:-7px;';
             row.className = `delta-row-${type.toLowerCase()}`;
             
             const labelWrap = document.createElement('div');
             // 🟢 ФІКС ДИЗАЙНУ: height: 20px жорстко центрує текст IN/OUT рівно навпроти кружечка повзунка
-            labelWrap.style.cssText = 'display:flex; align-items:center; gap:2px; width:28px; height:20px;';
-            
+            labelWrap.style.cssText = 'display:flex; align-items:center; gap:4px; width:28px; height:20px; margin-top:4px;';
             const label = document.createElement('span');
             label.innerText = type; 
-            label.style.cssText = 'font-size:10px; font-weight:800; color:var(--text-desc);';
+            label.style.cssText = 'font-size:11px; font-weight:800; color:var(--text-desc);';
             labelWrap.appendChild(label);
 
             if (type === 'IN') {
@@ -3613,6 +3613,7 @@ function renderInlineMarkdown(text) {
                 sliderEl.style.border = `1px solid var(--border)`;
             }
         }
+        
         updateReport();
     }
 
@@ -5380,11 +5381,14 @@ function saveAndRender() {
         if (restoredPopup) restoredPopup.scrollTop = popupScrollTop;
         // 👆 ------------------------------ 👆
 
-        const query = document.getElementById('search-input').value;
-// 🟢 ФІКС: Зберігаємо режим фільтрації при кліках на картки
-if (query || (typeof isMyStateMode !== 'undefined' && isMyStateMode)) { 
-    filterItems(); 
-}
+        const searchInput = document.getElementById('search-input');
+        const query = searchInput ? searchInput.value : '';
+        const isFocused = searchInput && searchInput.dataset.focused === 'true';
+        
+        // 🟢 ФІКС: Відновлюємо інтерфейс після кліку, НАВІТЬ якщо поле пошуку порожнє (режим ТОП-10)
+        if (query || isFocused || (typeof isMyStateMode !== 'undefined' && isMyStateMode)) { 
+            filterItems(); 
+        }
         
         // Знімаємо фіксацію висоти, коли браузер все відмалював
         requestAnimationFrame(() => {
@@ -5601,21 +5605,154 @@ function filterItems() {
     const searchInput = document.getElementById('search-input');
     if (!searchInput) return;
 
+    // 🟢 НАЛАШТУВАННЯ ДАШБОРДУ:
+    const topPerCategoryLimit = 7; // Скільки кнопок брати з КОЖНОЇ категорії (6 ідеально для сітки)
+    const minClicks = 5;           // Мінімальна кількість натискань для потрапляння в ТОП
+
     const query = searchInput.value.toLowerCase().trim();
-    const isTextSearching = query.length > 1; // 🎯 МАГІЯ: Фільтрація стартує ТІЛЬКИ з 2-х літер!
-    const hasAnyText = query.length > 0;      // Зберігаємо інфо, чи є хоч щось у полі (для хрестика)
-    const isSearching = isTextSearching || (typeof isMyStateMode !== 'undefined' && isMyStateMode);
+    const isTextSearching = query.length > 1; 
+    const hasAnyText = query.length > 0;      
+    const isFocused = searchInput.dataset.focused === 'true';
+    
+    // Стан: Фокус у пошуку, але тексту ще немає (РЕЖИМ ДАШБОРДУ)
+    const isSearchBlankFocus = isFocused && !hasAnyText; 
+    const isSearching = isTextSearching || (typeof isMyStateMode !== 'undefined' && isMyStateMode) || isSearchBlankFocus;
     let totalVisibleItems = 0;
 
     const appContainer = document.getElementById('app-container');
-    if (isSearching) {
-        appContainer.classList.add('search-compact-mode');
-    } else {
-        appContainer.classList.remove('search-compact-mode');
+    if (isSearching) appContainer.classList.add('search-compact-mode');
+    else appContainer.classList.remove('search-compact-mode');
+
+    document.getElementById('clear-search-btn').style.display = hasAnyText ? 'block' : 'none';
+
+    // 🟢 1. МАГІЯ ТЕЛЕПОРТАЦІЇ: Повертаємо кнопки додому перед новим пошуком
+    if (window.teleportedButtons && window.teleportedButtons.length > 0) {
+        window.teleportedButtons.forEach(data => {
+            if (data.placeholder && document.body.contains(data.placeholder)) {
+                data.placeholder.parentElement.insertBefore(data.el, data.placeholder);
+                data.placeholder.remove();
+            }
+            data.el.style.margin = ''; 
+        });
+        window.teleportedButtons = [];
+    }
+    let oldHub = document.getElementById('quick-access-hub');
+    if (oldHub) oldHub.remove();
+
+    let emptyStateElBottom = document.getElementById('search-empty-state-bottom');
+    if (emptyStateElBottom) emptyStateElBottom.style.display = 'none';
+
+    // 🟢 2. РЕЖИМ ДАШБОРДУ: ЗБИРАЄМО ТОП З КОЖНОЇ КАТЕГОРІЇ
+    if (isSearchBlankFocus) {
+        let hubEl = document.createElement('div');
+        hubEl.id = 'quick-access-hub';
+        hubEl.className = 'category-block expanded';
+        hubEl.style.cssText = 'width: 100%; border: none; background: transparent; margin-bottom: 12px; padding: 0; overflow: visible !important;';
+        
+        hubEl.innerHTML = `<div style="font-size: 11px; font-weight: 800; color: var(--text-desc); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; margin-left: 4px;">⚡ Швидкий доступ (Топ-${topPerCategoryLimit} з кожної):</div>`;
+        
+        let hubGrid = document.createElement('div');
+        hubGrid.className = 'grid-unified';
+        hubGrid.style.cssText = 'display: flex !important; flex-wrap: wrap !important; gap: 6px !important; padding-top: 0 !important; align-items: flex-start !important;';
+        
+        window.teleportedButtons = [];
+        let btnsToMove = [];
+        let catOrder = [];
+
+        // Перебираємо всі блоки на сторінці
+        document.querySelectorAll('.category-block').forEach(block => {
+            if (block.id === 'quick-access-hub') return; 
+
+            // Дізнаємося назву категорії
+            let catHeader = block.querySelector('.category-header-left span:first-child');
+            let catName = catHeader ? catHeader.textContent.trim() : "ІНШЕ";
+            if (!catOrder.includes(catName)) catOrder.push(catName);
+
+            let catStats = [];
+            
+            // Перебираємо всі кнопки всередині цієї категорії
+            block.querySelectorAll('.option-btn:not(.add-card-btn)').forEach(btn => {
+                const nameEl = btn.querySelector('.option-name');
+                if (!nameEl) return;
+                const clone = nameEl.cloneNode(true);
+                const badge = clone.querySelector('.stats-badge');
+                if (badge) badge.remove(); 
+                let titleText = clone.textContent.toLowerCase().trim().replace(/^[↳\s"'\u21b3]+/, '').trim();
+
+                let count = 0;
+                let originalKey = Object.keys(trackerStats).find(k => k.toLowerCase().trim() === titleText);
+                if (originalKey) {
+                    count = statsMode === 'month' ? trackerStats[originalKey].month : trackerStats[originalKey].all;
+                }
+
+                // Додаємо кнопку до кандидатів, ТІЛЬКИ якщо натискань >= minClicks
+                if (count >= minClicks) {
+                    catStats.push({ el: btn, count: count });
+                }
+            });
+
+            // Сортуємо лідерів всередині конкретної категорії
+            catStats.sort((a, b) => b.count - a.count);
+            
+            // Беремо дозволений Топ (наприклад, 6 найкращих)
+            let topInCat = catStats.slice(0, topPerCategoryLimit);
+            
+            topInCat.forEach((item, index) => {
+                btnsToMove.push({ el: item.el, category: catName, rank: index });
+            });
+        });
+
+        // Сортуємо фінальний список: спочатку за порядком категорій на сторінці, потім за рейтингом
+        btnsToMove.sort((a, b) => {
+            let catDiff = catOrder.indexOf(a.category) - catOrder.indexOf(b.category);
+            if (catDiff !== 0) return catDiff;
+            return a.rank - b.rank;
+        });
+
+        // Телепортуємо відсортовані кнопки у Хаб
+        let currentCategory = "";
+        btnsToMove.forEach(data => {
+            if (data.category !== currentCategory) {
+                currentCategory = data.category;
+                let catLabel = document.createElement('div');
+                catLabel.style.cssText = 'width: 100%; font-size: 10px; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin: 8px 0 2px 4px; border-bottom: 1px dashed var(--border); padding-bottom: 4px;';
+                catLabel.innerText = currentCategory;
+                hubGrid.appendChild(catLabel);
+            }
+
+            let placeholder = document.createElement('div');
+            placeholder.className = 'teleport-placeholder';
+            placeholder.style.display = 'none';
+            data.el.parentElement.insertBefore(placeholder, data.el);
+            
+            window.teleportedButtons.push({ el: data.el, placeholder: placeholder });
+            
+            data.el.style.display = 'flex';
+            data.el.style.margin = '0'; 
+            data.el.classList.remove('smart-hidden'); 
+            
+            hubGrid.appendChild(data.el);
+        });
+
+        // Якщо немає жодної кнопки, яка б відповідала критеріям
+        if (btnsToMove.length === 0) {
+            hubGrid.innerHTML = `<div style="font-size: 12px; color: var(--text-desc); margin-left: 4px; font-style: italic;">Поки що немає кнопок з >${minClicks - 1} натисканнями.</div>`;
+        }
+
+        hubEl.appendChild(hubGrid);
+        appContainer.prepend(hubEl);
+
+        // Ховаємо весь інший інтерфейс
+        document.querySelectorAll('.category-block').forEach(block => {
+            if (block.id !== 'quick-access-hub') block.style.display = 'none';
+        });
+        document.querySelectorAll('.md-quote, .custom-items-wrap').forEach(w => w.style.display = 'none');
+        
+        return; // ВИХІД! Звичайний пошук текстом не запускаємо.
     }
 
-   document.getElementById('clear-search-btn').style.display = hasAnyText ? 'block' : 'none';
-   
+    // --- 3. ЗВИЧАЙНИЙ ПОШУК ТЕКСТОМ (Коли ввели букви) ---
+    
     document.querySelectorAll('.md-quote').forEach(quote => {
         quote.style.display = isSearching ? 'none' : 'block';
     });
@@ -5626,7 +5763,7 @@ function filterItems() {
     document.querySelectorAll('.category-block').forEach(block => {
         let hasVisibleInBlock = false;
 
-        // 1. ГЛОБАЛЬНІ ШКАЛИ (Вгорі екрану)
+        // 1. ГЛОБАЛЬНІ ШКАЛИ 
         if (block.classList.contains('global-scale-widget') && !block.classList.contains('inline-scale-widget')) {
             let isActive = block.classList.contains('active');
             let matchText = block.dataset.searchText && block.dataset.searchText.toLowerCase().includes(query);
@@ -5646,9 +5783,12 @@ function filterItems() {
             return; 
         }
 
-        // 2. ЗВИЧАЙНІ КНОПКИ (.option-btn)
+        // 2. ЗВИЧАЙНІ КНОПКИ ТА ПРАКТИКИ
         block.querySelectorAll('.option-btn').forEach(item => {
-            if (item.classList.contains('add-card-btn')) return; 
+            if (item.classList.contains('add-card-btn')) {
+                item.style.display = isSearching ? 'none' : 'flex';
+                return;
+            }
 
             let isActive = item.classList.contains('active');
             let isSmartHidden = item.classList.contains('smart-hidden');
@@ -5658,43 +5798,22 @@ function filterItems() {
                 let titleText = "";
                 let deepText = "";
 
-                // Отримуємо чисту назву картки
                 const nameEl = item.querySelector('.option-name');
                 if (nameEl) {
                     const clone = nameEl.cloneNode(true);
                     const badge = clone.querySelector('.stats-badge');
                     if (badge) badge.remove(); 
-                    // Вичищаємо стрілочки, лапки та зайві символи для точного startsWith
                     titleText = clone.textContent.toLowerCase().trim().replace(/^[↳\s"'\u21b3]+/, '').trim();
                 }
 
-                // ⚖️ СУВОРИЙ ДВОРІВНЕВИЙ ФІЛЬТР КАРТОК
                 if (query.length < 3) {
-                    // До 3-х символів: ТІЛЬКИ пряме введення перших літер назви
                     matchText = titleText.startsWith(query) || 
                                 titleText.includes(' ' + query) || 
                                 titleText.includes('-' + query) || 
                                 titleText.includes('.' + query);
                 } else {
-                    // Від 3-х символів: підключаємо глибокий контекстний пошук
                     const descEl = item.querySelector('.info-popup-desc');
                     if (descEl) deepText += descEl.textContent.toLowerCase() + " ";
-
-                    /* ВІДКЛЮЧИНИЙ 🚫 : Пошук по прихованих тегах та категоріях
-                    const extEl = item.querySelector('.info-popup-ext');
-                    if (extEl) deepText += extEl.textContent.toLowerCase() + " ";
-                    const tagsEl = item.querySelector('.practice-tags-wrap');
-                    if (tagsEl) deepText += tagsEl.textContent.toLowerCase() + " ";
-
-                    const catHeader = block.querySelector('.category-header-left span');
-                    if (catHeader) deepText += catHeader.textContent.toLowerCase() + " ";
-
-                    const subHeader = item.closest('.subheader-wrap');
-                    if (subHeader) {
-                        const subTitle = subHeader.querySelector('.subheader-title span');
-                        if (subTitle) deepText += subTitle.textContent.toLowerCase() + " ";
-                    } */
-
                     matchText = titleText.includes(query) || deepText.includes(query);
                 }
             }
@@ -5719,23 +5838,18 @@ function filterItems() {
             }
         });
 
-        // 3. ВБУДОВАНІ ШКАЛИ ТА ДЕЛЬТИ (.inline-scale-widget)
+        // 3. ВБУДОВАНІ ШКАЛИ ТА ДЕЛЬТИ
         block.querySelectorAll('.inline-scale-widget').forEach(scale => {
             let isActive = scale.classList.contains('active');
-            
-            // Визначаємо чисту назву вбудованої шкали з її заголовка
             const scaleTitleEl = scale.querySelector('.global-scale-title');
             let scaleTitle = scaleTitleEl ? scaleTitleEl.textContent.toLowerCase().trim() : '';
-            // Прибираємо цифри статистики з назви шкали, якщо вони там є
             scaleTitle = scaleTitle.replace(/\d+$/, '').trim();
 
             let matchText = false;
             if (isTextSearching) {
                 if (query.length < 3) {
-                    // До 3-х символів: перевіряємо ТІЛЬКИ назву самої шкали
                     matchText = scaleTitle.startsWith(query) || scaleTitle.includes(' ' + query) || scaleTitle.includes('-' + query);
                 } else {
-                    // Від 3-х символів: шукаємо всюди всередині шкали (описи, мітки шкал)
                     let scaleSearchText = scale.dataset.searchText ? scale.dataset.searchText.toLowerCase() : '';
                     matchText = scaleSearchText.includes(query) || scaleTitle.includes(query);
                 }
@@ -5800,25 +5914,22 @@ function filterItems() {
         }
     });
 
-    // 7. EMPTY STATE КНОПКА
-    let emptyStateEl = document.getElementById('search-empty-state');
+    // 7. EMPTY STATE (Тільки якщо введено букви, а результатів 0)
     if (isTextSearching && totalVisibleItems === 0) {
-        if (!emptyStateEl) {
-            emptyStateEl = document.createElement('div');
-            emptyStateEl.id = 'search-empty-state';
-            emptyStateEl.style.cssText = 'grid-column: 1 / -1; width: 100%; text-align: center; padding: 40px 10px; color: var(--text-desc);';
-            appContainer.appendChild(emptyStateEl);
+        if (!emptyStateElBottom) {
+            emptyStateElBottom = document.createElement('div');
+            emptyStateElBottom.id = 'search-empty-state-bottom';
+            emptyStateElBottom.style.cssText = 'grid-column: 1 / -1; width: 100%; text-align: center; padding: 40px 10px; color: var(--text-desc);';
+            appContainer.appendChild(emptyStateElBottom);
         }
-        emptyStateEl.innerHTML = `
+        emptyStateElBottom.innerHTML = `
             <div style="margin-top: 10px;">
                 <button onclick="quickCapture(document.getElementById('search-input').value)" style="background: transparent; border: 1px dashed var(--accent); color: var(--text-main); padding: 8px 18px; border-radius: 20px; font-size: 14px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s;">
                     <span style="color: var(--accent); font-size: 16px; font-weight: 900;">+</span> ${query}
                 </button>
             </div>
         `;
-        emptyStateEl.style.display = 'block';
-    } else if (emptyStateEl) {
-        emptyStateEl.style.display = 'none';
+        emptyStateElBottom.style.display = 'block';
     }
 }
 
@@ -5957,6 +6068,10 @@ function filterItems() {
         selectedItems = {}; 
         currentSessionId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
         historyDepth = 0; 
+
+        // 🟢 ФІКС: Примусово забуваємо розгорнуті дельта-шкали при очищенні
+        window.expandedDeltas = new Set();
+        window.collapsedDeltas = new Set();
         
         // 🟢 Скидаємо годинник на "Сьогодні" та поточний час
         logDateOffset = 0;
@@ -6059,6 +6174,8 @@ searchInput.addEventListener('focus', () => {
     // 🚀 ФІКС 2: Миттєво стрибаємо на самий верх, щоб бачити результати під час введення!
     window.scrollTo({ top: 0, behavior: 'instant' });
     
+    filterItems(); // 🟢 ДОДАНО: Оновлюємо інтерфейс, щоб відразу показати Топ-20
+    
     setTimeout(() => { isKeyboardOpening = false; }, 1200); 
 });
 
@@ -6073,6 +6190,8 @@ searchInput.addEventListener('blur', () => {
                 window.scrollTo({ top: savedScrollPosition, behavior: 'smooth' });
                 savedScrollPosition = null; // Очищаємо пам'ять
             }
+            
+            filterItems(); // 🟢 ДОДАНО: Ховаємо Топ-20 при закритті порожнього пошуку
         }
     }, 150);
 });
@@ -6423,6 +6542,34 @@ window.addEventListener('scroll', () => {
             }, 150); // Шукаємо тільки коли ти зробив паузу на 150мс
         });
     }
+
+
+
+
+    // 🟢 МАГІЯ: Блокуємо закриття пошуку (і клавіатури) при кліках на кнопки та звіт!
+// Це повністю лікує мілісекундне "блимання" інтерфейсу
+document.addEventListener('pointerdown', (e) => {
+    const searchInput = document.getElementById('search-input');
+    
+    // Перевіряємо, чи фокус зараз знаходиться у полі пошуку
+    if (searchInput && document.activeElement === searchInput) {
+        
+        // Якщо клік був по картці (або її меню), по кнопці звіту (📝), по верхньому меню
+        if (e.target.closest('.option-btn') || 
+            e.target.closest('.unified-menu-btn') || 
+            e.target.closest('.option-info') ||
+            e.target.closest('.report-fab') || 
+            e.target.closest('.report-panel') ||
+            e.target.closest('.header-actions')) {
+            
+            // Забороняємо полю пошуку втрачати фокус! 
+            // Клік пройде успішно, але клавіатура не стрибне.
+            e.preventDefault(); 
+        }
+    }
+});
+
+
 
     initApp(); 
 </script>
