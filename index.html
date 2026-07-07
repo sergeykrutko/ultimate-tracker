@@ -6168,13 +6168,14 @@ searchInput.addEventListener('focus', () => {
     }
 
     searchInput.dataset.focused = 'true';
+    searchInput.dataset.scrollingBlur = 'false'; // Очищаємо мітку скролу
     isKeyboardOpening = true;
     header.classList.remove('header-hidden');
     
-    // 🚀 ФІКС 2: Миттєво стрибаємо на самий верх, щоб бачити результати під час введення!
+    // Миттєво стрибаємо на самий верх, щоб бачити результати
     window.scrollTo({ top: 0, behavior: 'instant' });
     
-    filterItems(); // 🟢 ДОДАНО: Оновлюємо інтерфейс, щоб відразу показати Топ-20
+    filterItems(); // 🟢 МАГІЯ: Відкриваємо дашборд при кліку!
     
     setTimeout(() => { isKeyboardOpening = false; }, 1200); 
 });
@@ -6182,57 +6183,64 @@ searchInput.addEventListener('focus', () => {
 searchInput.addEventListener('blur', () => {
     setTimeout(() => {
         if (document.activeElement !== searchInput) {
+            
+            // 🟢 МАГІЯ: Якщо клавіатуру сховали через СКРОЛ — ми перериваємо закриття!
+            if (searchInput.dataset.scrollingBlur === 'true') {
+                searchInput.dataset.scrollingBlur = 'false'; // Скидаємо прапорець
+                return; // ВИХІД. Дашборд залишається відкритим, хоча курсора вже немає.
+            }
+
+            // Якщо ж ми просто скасували пошук (клікнули повз):
             searchInput.dataset.focused = 'false';
             
-            // 🔙 ФІКС 3: Повертаємось на старе місце ТІЛЬКИ якщо рядок порожній (тобто пошук скасували)
+            // Повертаємось на старе місце ТІЛЬКИ якщо рядок порожній
             if (searchInput.value.trim() === '' && savedScrollPosition !== null) {
-                // Плавне повернення туди, звідки почали
                 window.scrollTo({ top: savedScrollPosition, behavior: 'smooth' });
-                savedScrollPosition = null; // Очищаємо пам'ять
+                savedScrollPosition = null; 
             }
             
-            filterItems(); // 🟢 ДОДАНО: Ховаємо Топ-20 при закритті порожнього пошуку
+            filterItems(); // Оновлюємо інтерфейс (ховаємо дашборд)
         }
     }, 150);
 });
 
 // 🟢 ДОДАЄМО СЛУХАЧА ДОТИКІВ (Для розумного скролу і клавіатури)
-    let touchStartClientY = 0;
+let touchStartClientY = 0;
 
-    document.addEventListener('touchstart', (e) => { 
-        touchStartClientY = e.touches[0].clientY;
-    }, {passive: true});
+document.addEventListener('touchstart', (e) => { 
+    touchStartClientY = e.touches[0].clientY;
+}, {passive: true});
 
-    // 🚀 МАГІЯ: Ховаємо клавіатуру МИТТЄВО при початку руху пальця
-    // Це працює набагато надійніше за подію scroll на iOS/Android
-    document.addEventListener('touchmove', (e) => {
-        const searchInput = document.getElementById('search-input');
+// 🚀 МАГІЯ: Ховаємо клавіатуру МИТТЄВО при початку руху пальця
+document.addEventListener('touchmove', (e) => {
+    const searchInput = document.getElementById('search-input');
+    
+    // Якщо курсор зараз у пошуку (клавіатура відкрита)
+    if (searchInput && document.activeElement === searchInput) {
+        const touchCurrentY = e.touches[0].clientY;
         
-        // Перевіряємо, чи відкрита зараз клавіатура (фокус у пошуку)
-        if (searchInput && document.activeElement === searchInput) {
-            const touchCurrentY = e.touches[0].clientY;
-            
-            // Якщо палець протягнули більше ніж на 15 пікселів (захист від випадкового мікро-дотику)
-            if (Math.abs(touchCurrentY - touchStartClientY) > 15) {
-                searchInput.blur(); // Блискавично ховаємо клавіатуру!
-            }
+        // Якщо палець протягнули більше ніж на 15 пікселів (захист від випадкового мікро-дотику)
+        if (Math.abs(touchCurrentY - touchStartClientY) > 15) {
+            // Ставимо таємну мітку, що блюр викликаний СКРОЛОМ, а не скасуванням!
+            searchInput.dataset.scrollingBlur = 'true';
+            searchInput.blur(); // Блискавично ховаємо клавіатуру
         }
-    }, {passive: true});
-
-    if (window.scrollY > 100) {
-        header.classList.add('header-hidden');
     }
+}, {passive: true});
 
-    // 🟢 ОНОВЛЕНИЙ СТАБІЛЬНИЙ СКРОЛ
-    window.addEventListener('scroll', () => {
-        const currentScrollY = window.scrollY;
-        lastScrollY = currentScrollY;
-        
-        // Кнопка "Вгору"
-        if (currentScrollY > 300) { scrollBtn.classList.add('visible'); } 
-        else { scrollBtn.classList.remove('visible'); }
-    });
+if (window.scrollY > 100) {
+    header.classList.add('header-hidden');
+}
 
+// 🟢 ОНОВЛЕНИЙ СТАБІЛЬНИЙ СКРОЛ
+window.addEventListener('scroll', () => {
+    const currentScrollY = window.scrollY;
+    lastScrollY = currentScrollY;
+    
+    // Кнопка "Вгору"
+    if (currentScrollY > 300) { scrollBtn.classList.add('visible'); } 
+    else { scrollBtn.classList.remove('visible'); }
+});
 
 
 
